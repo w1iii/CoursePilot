@@ -1,0 +1,56 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+interface SyncResponse {
+  courses: number;
+  tasks: number;
+  announcements: number;
+  documents: number;
+  errors: string[];
+}
+
+export default function SyncButton() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<SyncResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function sync() {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await fetch("/api/sync", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Sync failed");
+      setResult(json);
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        onClick={sync}
+        disabled={loading}
+        className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+      >
+        {loading ? "Syncing Canvas…" : "Sync Canvas"}
+      </button>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {result && (
+        <p className="text-xs text-zinc-500">
+          Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
+          announcements, {result.documents} documents.
+          {result.errors.length > 0 && ` ${result.errors.length} errors.`}
+        </p>
+      )}
+    </div>
+  );
+}
