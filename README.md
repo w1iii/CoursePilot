@@ -82,3 +82,4 @@ supabase/
 - All secrets live in `.env` (gitignored). `.env.example` only has variable names.
 - Supabase service-role key stays server-side (route handlers only).
 - RLS is enabled on all tables; app access uses the service role.
+# CoursePilot
