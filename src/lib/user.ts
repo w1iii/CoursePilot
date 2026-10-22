@@ -8,7 +8,6 @@ export interface AppUser {
   full_name: string | null;
 }
 
-/** Require a Clerk session and upsert the matching row in public.users. */
 export async function requireUser(): Promise<AppUser> {
   const { userId } = await auth();
   if (!userId) {
