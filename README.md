@@ -9,7 +9,7 @@ Full spec: [`docs/CoursePilot.md`](docs/CoursePilot.md)
 - **Frontend/Backend:** Next.js 15 (App Router), React, TypeScript, Tailwind CSS
 - **Database:** Supabase PostgreSQL + pgvector (no ORM)
 - **Auth:** Clerk
-- **AI:** OpenAI (GPT-5 + text-embedding-3-small), RAG over synced Canvas data
+- **AI:** External [`CoursePilot-RAG`](../rag/canvas-ai-assistant) service (FastAPI + Gemini + pgvector)
 - **Canvas:** Canvas REST API
 
 ## Getting started
@@ -32,7 +32,18 @@ Full spec: [`docs/CoursePilot.md`](docs/CoursePilot.md)
 
 5. Get a Canvas access token (Account → Settings → Access Tokens). Set `CANVAS_API_URL` to your school's Canvas host.
 
-6. Run:
+6. Start the RAG service in `../rag/canvas-ai-assistant` (it owns the vector DB):
+
+   ```bash
+   cd ../rag/canvas-ai-assistant
+   uv sync
+   cp .env.example .env   # fill DATABASE_URL + GEMINI_API_KEY
+   uv run uvicorn app.main:app --reload --port 8000
+   ```
+
+   Point CoursePilot at it with `RAG_API_URL` (default `http://localhost:8000`).
+
+7. Run:
 
    ```bash
    npm run dev
@@ -57,11 +68,9 @@ src/
     supabase.ts              Service-role client
     canvas.ts                Canvas API client
     user.ts                  Clerk → users table upsert
-    sync.ts                  Canvas sync pipeline
+    sync.ts                  Canvas sync pipeline (courses/tasks/announcements)
     ai/
-      openai.ts              OpenAI client
-      embeddings.ts          Embedding helpers
-      rag.ts                 Retrieve → prompt → answer
+      rag.ts                 RAG service client + course resolution
 supabase/
   schema.sql                 Full schema + pgvector + match_documents()
 ```
@@ -75,11 +84,14 @@ supabase/
 | POST | `/api/tasks` | Create manual academic task |
 | PATCH | `/api/tasks/:id` | Update status/notes/priority/due date |
 | DELETE | `/api/tasks/:id` | Delete manual task (Canvas-synced tasks can't be deleted) |
-| POST | `/api/ask` | RAG question → grounded answer + sources |
+| POST | `/api/ask` | RAG question → CoursePilot-RAG answer + citations |
 
 ## Notes
 
 - All secrets live in `.env` (gitignored). `.env.example` only has variable names.
 - Supabase service-role key stays server-side (route handlers only).
 - RLS is enabled on all tables; app access uses the service role.
+- `/api/ask` resolves the signed-in user's selected course to its Canvas course ID,
+  then calls `POST {RAG_API_URL}/api/v1/chat`. RAG course material is ingested by
+  the RAG service (`scripts/ingest_documents.py` or `/api/v1/ingestion/canvas-module`).
 # CoursePilot

@@ -45,11 +45,19 @@ export default function SyncButton() {
       </button>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {result && (
-        <p className="text-xs text-zinc-500">
-          Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
-          announcements, {result.documents} documents.
-          {result.errors.length > 0 && ` ${result.errors.length} errors.`}
-        </p>
+        <div className="text-xs text-zinc-500">
+          <p>
+            Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
+            announcements.
+          </p>
+          {result.errors.length > 0 && (
+            <ul className="mt-1 list-disc pl-4 text-red-600">
+              {result.errors.slice(0, 5).map((msg) => (
+                <li key={msg}>{msg}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );

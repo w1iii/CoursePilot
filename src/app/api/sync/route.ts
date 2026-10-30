@@ -6,9 +6,11 @@ export async function POST() {
   try {
     const user = await requireUser();
     const result = await syncCanvas(user);
-    return NextResponse.json(result, {
-      status: result.errors.length > 0 && result.courses === 0 ? 502 : 200,
-    });
+    const failed = result.errors.length > 0 && result.courses === 0;
+    return NextResponse.json(
+      failed ? { error: result.errors[0], ...result } : result,
+      { status: failed ? 502 : 200 },
+    );
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

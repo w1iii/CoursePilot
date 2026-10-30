@@ -2,6 +2,14 @@ import { env } from "@/lib/env";
 
 const API_URL = (env("CANVAS_API_URL") ?? "https://canvas.instructure.com").replace(/\/$/, "");
 
+function canvasErrorDetail(text: string): string {
+  const plain = text
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.slice(0, 240);
+}
+
 async function canvasFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = env("CANVAS_ACCESS_TOKEN");
   if (!token) throw new Error("Missing CANVAS_ACCESS_TOKEN");
@@ -18,7 +26,9 @@ async function canvasFetch<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`Canvas API error ${res.status} for ${path}: ${await res.text()}`);
+    throw new Error(
+      `Canvas API error ${res.status} for ${path}: ${canvasErrorDetail(await res.text())}`,
+    );
   }
   return (await res.json()) as T;
 }

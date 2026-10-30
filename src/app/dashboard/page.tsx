@@ -21,7 +21,11 @@ export default async function DashboardPage() {
       .select("id, title, posted_at, courses(course_name)")
       .order("posted_at", { ascending: false })
       .limit(10),
-    sb.from("courses").select("id, course_code, course_name, instructor").limit(50),
+    sb
+      .from("courses")
+      .select("id, course_code, course_name, instructor")
+      .eq("user_id", user.id)
+      .limit(50),
   ]);
 
   const todayTasks = (tasks ?? []).filter((t) => {
@@ -122,7 +126,13 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <AskBox />
+      <AskBox
+        courses={(courses ?? []).map((c) => ({
+          id: c.id,
+          name: c.course_name,
+          code: c.course_code,
+        }))}
+      />
     </main>
   );
 }
