@@ -1,7 +1,6 @@
--- CoursePilot schema: PostgreSQL (Supabase) + pgvector
+-- CoursePilot schema: Supabase PostgreSQL
 -- Run this in the Supabase SQL editor (or psql) once per project.
-
-create extension if not exists vector;
+-- RAG vectors live in a separate database.
 
 -- ---------------------------------------------------------------------------
 -- Users
@@ -75,65 +74,8 @@ create index if not exists announcements_course_id_idx
   on public.announcements (course_id);
 
 -- ---------------------------------------------------------------------------
--- Documents  (RAG knowledge base; One Course -> Many Documents)
+-- RAG documents/chunks live in the separate CoursePilot-RAG database.
 -- ---------------------------------------------------------------------------
-create table if not exists public.documents (
-  id            uuid primary key default gen_random_uuid(),
-  course_id     uuid not null references public.courses(id) on delete cascade,
-  source_type   text not null
-                  check (source_type in ('announcement','module','page','assignment','syllabus')),
-  source_id     bigint,
-  title         text not null,
-  content       text not null,
-  embedding     vector(1536),
-  indexed_at    timestamptz not null default now()
-);
-
-create unique index if not exists documents_source_unique
-  on public.documents (course_id, source_type, source_id);
-
-create index if not exists documents_course_id_idx
-  on public.documents (course_id);
-
--- Cosine similarity index for pgvector retrieval.
-create index if not exists documents_embedding_idx
-  on public.documents
-  using hnsw (embedding vector_cosine_ops);
-
--- ---------------------------------------------------------------------------
--- Vector search RPC used by the RAG pipeline.
--- ---------------------------------------------------------------------------
-create or replace function public.match_documents (
-  query_embedding vector(1536),
-  match_user_id   uuid,
-  match_count     int default 8,
-  similarity_cut  float default 0.2
-)
-returns table (
-  id           uuid,
-  course_id    uuid,
-  source_type  text,
-  title        text,
-  content      text,
-  similarity   float
-)
-language sql stable
-as $$
-  select
-    d.id,
-    d.course_id,
-    d.source_type,
-    d.title,
-    d.content,
-    1 - (d.embedding <=> query_embedding) as similarity
-  from public.documents d
-  join public.courses c on c.id = d.course_id
-  where c.user_id = match_user_id
-    and d.embedding is not null
-    and 1 - (d.embedding <=> query_embedding) >= similarity_cut
-  order by d.embedding <=> query_embedding
-  limit match_count;
-$$;
 
 -- ---------------------------------------------------------------------------
 -- RLS: keep rows private per user. All app access uses the service-role key
@@ -143,4 +85,3 @@ alter table public.users         enable row level security;
 alter table public.courses       enable row level security;
 alter table public.academic_tasks enable row level security;
 alter table public.announcements enable row level security;
-alter table public.documents     enable row level security;

@@ -7,7 +7,7 @@ Full spec: [`docs/CoursePilot.md`](docs/CoursePilot.md)
 ## Stack
 
 - **Frontend/Backend:** Next.js 15 (App Router), React, TypeScript, Tailwind CSS
-- **Database:** Supabase PostgreSQL + pgvector (no ORM)
+- **Database:** Supabase PostgreSQL (no ORM)
 - **Auth:** Clerk
 - **AI:** External [`CoursePilot-RAG`](../rag/canvas-ai-assistant) service (FastAPI + Gemini + pgvector)
 - **Canvas:** Canvas REST API
@@ -26,7 +26,7 @@ Full spec: [`docs/CoursePilot.md`](docs/CoursePilot.md)
    cp .env.example .env
    ```
 
-3. Create a Supabase project. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor (enables `vector`, creates tables + `match_documents` RPC).
+3. Create a Supabase project. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor.
 
 4. Create a Clerk application. Copy publishable + secret keys into `.env`.
 
@@ -59,7 +59,7 @@ src/
     sign-in/ sign-up/        Clerk auth pages
     dashboard/               Dashboard (tasks, deadlines, announcements, AI assistant)
     api/
-      sync/route.ts          POST — pull Canvas data → Postgres → embeddings
+      sync/route.ts          POST — pull Canvas data → Postgres
       tasks/route.ts         GET list, POST create manual task
       tasks/[id]/route.ts    PATCH update, DELETE manual task
       ask/route.ts           POST RAG question
@@ -72,14 +72,14 @@ src/
     ai/
       rag.ts                 RAG service client + course resolution
 supabase/
-  schema.sql                 Full schema + pgvector + match_documents()
+  schema.sql                 CoursePilot tables + RLS
 ```
 
 ## API surface
 
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
-| POST | `/api/sync` | Sync Canvas courses/assignments/announcements, index embeddings |
+| POST | `/api/sync` | Sync Canvas courses/assignments/announcements |
 | GET | `/api/tasks` | List tasks for current user |
 | POST | `/api/tasks` | Create manual academic task |
 | PATCH | `/api/tasks/:id` | Update status/notes/priority/due date |
@@ -92,6 +92,6 @@ supabase/
 - Supabase service-role key stays server-side (route handlers only).
 - RLS is enabled on all tables; app access uses the service role.
 - `/api/ask` resolves the signed-in user's selected course to its Canvas course ID,
-  then calls `POST {RAG_API_URL}/api/v1/chat`. RAG course material is ingested by
-  the RAG service (`scripts/ingest_documents.py` or `/api/v1/ingestion/canvas-module`).
-# CoursePilot
+  then calls `POST {RAG_API_URL}/api/v1/chat` with `X-RAG-Token`. RAG course material
+  is ingested by the RAG service (`scripts/ingest_documents.py` or
+  `/api/v1/ingestion/canvas-module`).

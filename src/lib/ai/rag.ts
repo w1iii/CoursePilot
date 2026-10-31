@@ -136,9 +136,13 @@ export async function answerQuestion(
 
   let res: Response;
   try {
+    const token = env("RAG_API_TOKEN");
     res = await fetch(`${ragBaseUrl()}/api/v1/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "X-RAG-Token": token } : {}),
+      },
       body: JSON.stringify({
         course_id: course.canvas_course_id,
         question,

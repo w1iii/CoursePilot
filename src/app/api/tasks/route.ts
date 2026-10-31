@@ -11,22 +11,27 @@ export async function GET() {
     const user = await requireUser();
     const sb = supabaseAdmin();
 
+    const { data: courses, error: coursesError } = await sb
+      .from("courses")
+      .select("id")
+      .eq("user_id", user.id);
+
+    if (coursesError) throw new Error(coursesError.message);
+
+    const courseIds = (courses ?? []).map((course) => course.id);
+    if (courseIds.length === 0) {
+      return NextResponse.json({ tasks: [] });
+    }
+
     const { data, error } = await sb
       .from("academic_tasks")
       .select("id, course_id, canvas_task_id, title, description, type, due_date, priority, status, is_manual, notes, created_at, courses(course_name, course_code)")
+      .in("course_id", courseIds)
       .order("due_date", { ascending: true, nullsFirst: false });
 
     if (error) throw new Error(error.message);
 
-    // Only expose tasks belonging to this user's courses.
-    const { data: courseIds } = await sb
-      .from("courses")
-      .select("id")
-      .eq("user_id", user.id);
-    const allowed = new Set((courseIds ?? []).map((c) => c.id));
-    const tasks = (data ?? []).filter((t) => allowed.has(t.course_id));
-
-    return NextResponse.json({ tasks });
+    return NextResponse.json({ tasks: data ?? [] });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

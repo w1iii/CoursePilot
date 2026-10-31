@@ -12,7 +12,6 @@
     "@clerk/nextjs": "^7.9.18",
     "@supabase/supabase-js": "^2.118.0",
     "next": "^15.5.28",
-    "openai": "^7.40.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

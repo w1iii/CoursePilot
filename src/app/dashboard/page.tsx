@@ -3,30 +3,55 @@ import { supabaseAdmin } from "@/lib/supabase";
 import AskBox from "./AskBox";
 import SyncButton from "./SyncButton";
 
+async function loadCourseContent(courseIds: string[]) {
+  if (courseIds.length === 0) {
+    return { tasks: [], announcements: [] };
+  }
+
+  const sb = supabaseAdmin();
+  const [{ data: tasks, error: tasksError }, { data: announcements, error: announcementsError }] =
+    await Promise.all([
+      sb
+        .from("academic_tasks")
+        .select("id, title, type, due_date, priority, status, courses(course_name)")
+        .in("course_id", courseIds)
+        .eq("status", "pending")
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .limit(20),
+      sb
+        .from("announcements")
+        .select("id, title, posted_at, courses(course_name)")
+        .in("course_id", courseIds)
+        .order("posted_at", { ascending: false })
+        .limit(10),
+    ]);
+
+  if (tasksError) throw new Error(`Failed to load tasks: ${tasksError.message}`);
+  if (announcementsError) {
+    throw new Error(`Failed to load announcements: ${announcementsError.message}`);
+  }
+
+  return { tasks: tasks ?? [], announcements: announcements ?? [] };
+}
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const sb = supabaseAdmin();
 
   const nowIso = new Date().toISOString();
 
-  const [{ data: tasks }, { data: announcements }, { data: courses }] = await Promise.all([
-    sb
-      .from("academic_tasks")
-      .select("id, title, type, due_date, priority, status, courses(course_name)")
-      .eq("status", "pending")
-      .order("due_date", { ascending: true, nullsFirst: false })
-      .limit(20),
-    sb
-      .from("announcements")
-      .select("id, title, posted_at, courses(course_name)")
-      .order("posted_at", { ascending: false })
-      .limit(10),
-    sb
-      .from("courses")
-      .select("id, course_code, course_name, instructor")
-      .eq("user_id", user.id)
-      .limit(50),
-  ]);
+  const { data: courses, error: coursesError } = await sb
+    .from("courses")
+    .select("id, course_code, course_name, instructor")
+    .eq("user_id", user.id)
+    .limit(50);
+
+  if (coursesError) {
+    throw new Error(`Failed to load courses: ${coursesError.message}`);
+  }
+
+  const courseIds = (courses ?? []).map((course) => course.id);
+  const { tasks, announcements } = await loadCourseContent(courseIds);
 
   const todayTasks = (tasks ?? []).filter((t) => {
     if (!t.due_date) return false;
