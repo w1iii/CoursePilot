@@ -24,7 +24,10 @@ Working local demo. Build + lint green.
 
 ### API
 
-- [x] `POST /api/sync` — Canvas courses/assignments/announcements
+- [x] `POST /api/canvas/connect` — validate + encrypt per-user Canvas token
+- [x] `GET /api/canvas/status` — connection status (token never returned)
+- [x] `POST /api/canvas/disconnect` — remove stored connection
+- [x] `POST /api/sync` — Canvas courses/assignments/announcements (per-user token)
 - [x] `GET/POST /api/tasks` — list + create manual tasks
 - [x] `PATCH/DELETE /api/tasks/[id]` — update/delete manual tasks
 - [x] `POST /api/ask` — RAG answer + citations through RAG service
@@ -34,11 +37,13 @@ Working local demo. Build + lint green.
 - [x] `env.ts`, `supabase.ts`, `canvas.ts`, `user.ts`
 - [x] `sync.ts` — Canvas metadata sync
 - [x] `ai/rag.ts` — course resolution + RAG client + citations
+- [x] `crypto.ts` — AES-256-GCM token encryption
+- [x] `canvas-account.ts` — per-user Canvas credentials + status
 
 ### Database
 
 - [x] Supabase project + schema applied
-- [x] Tables: `users`, `courses`, `academic_tasks`, `announcements`
+- [x] Tables: `users`, `canvas_accounts`, `courses`, `academic_tasks`, `announcements`
 - [x] RLS enabled
 
 ### RAG
@@ -55,9 +60,16 @@ Working local demo. Build + lint green.
 - [x] `npx tsc --noEmit`
 - [x] RAG `/health`, ingest, chat
 
+### Multi-user Canvas
+
+- [x] Per-user Canvas personal access tokens (AES-256-GCM at rest)
+- [x] Connect / status / disconnect UI + routes
+- [x] Sync uses the signed-in user's credentials
+- [x] Env token only when `CANVAS_ALLOW_ENV_TOKEN=true`
+
 ## Next
 
-- [ ] Per-user Canvas personal access tokens
+- [ ] Canvas OAuth (deferred until developer key is available)
 - [ ] Canvas modules → automatic RAG ingestion
 - [ ] Hosted Neon RAG DB + hosted RAG service
 - [ ] Vercel deployment

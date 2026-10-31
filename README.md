@@ -30,7 +30,15 @@ Full spec: [`docs/CoursePilot.md`](docs/CoursePilot.md)
 
 4. Create a Clerk application. Copy publishable + secret keys into `.env`.
 
-5. Get a Canvas access token (Account → Settings → Access Tokens). Set `CANVAS_API_URL` to your school's Canvas host.
+5. Generate `TOKEN_ENCRYPTION_KEY` (encrypts per-user Canvas tokens):
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   ```
+
+   Set `CANVAS_API_URL` to your school's Canvas host (prefilled in the connect form).
+   Each user adds their own Canvas personal access token from the dashboard
+   (Canvas → Account → Settings → New Access Token).
 
 6. Start the RAG service in `../rag/canvas-ai-assistant` (it owns the vector DB):
 
@@ -59,6 +67,9 @@ src/
     sign-in/ sign-up/        Clerk auth pages
     dashboard/               Dashboard (tasks, deadlines, announcements, AI assistant)
     api/
+      canvas/connect/route.ts    POST — validate + store encrypted Canvas token
+      canvas/status/route.ts     GET — connection status (never returns the token)
+      canvas/disconnect/route.ts POST — remove the stored connection
       sync/route.ts          POST — pull Canvas data → Postgres
       tasks/route.ts         GET list, POST create manual task
       tasks/[id]/route.ts    PATCH update, DELETE manual task
@@ -66,7 +77,9 @@ src/
   lib/
     env.ts                   Env helpers
     supabase.ts              Service-role client
-    canvas.ts                Canvas API client
+    canvas.ts                Canvas API client (per-user credentials)
+    canvas-account.ts        Canvas connection storage + credential resolution
+    crypto.ts                AES-256-GCM token encryption
     user.ts                  Clerk → users table upsert
     sync.ts                  Canvas sync pipeline (courses/tasks/announcements)
     ai/
@@ -79,6 +92,9 @@ supabase/
 
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
+| POST | `/api/canvas/connect` | Validate and store the user's Canvas token |
+| GET | `/api/canvas/status` | Connection status for the current user |
+| POST | `/api/canvas/disconnect` | Delete the stored Canvas connection |
 | POST | `/api/sync` | Sync Canvas courses/assignments/announcements |
 | GET | `/api/tasks` | List tasks for current user |
 | POST | `/api/tasks` | Create manual academic task |
@@ -91,6 +107,9 @@ supabase/
 - All secrets live in `.env` (gitignored). `.env.example` only has variable names.
 - Supabase service-role key stays server-side (route handlers only).
 - RLS is enabled on all tables; app access uses the service role.
+- Canvas tokens are encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`) and are
+  never returned to the browser after submission. The shared `CANVAS_ACCESS_TOKEN`
+  is only used when `CANVAS_ALLOW_ENV_TOKEN=true` (local development).
 - `/api/ask` resolves the signed-in user's selected course to its Canvas course ID,
   then calls `POST {RAG_API_URL}/api/v1/chat` with `X-RAG-Token`. RAG course material
   is ingested by the RAG service (`scripts/ingest_documents.py` or

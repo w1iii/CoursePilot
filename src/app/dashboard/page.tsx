@@ -1,6 +1,9 @@
 import { requireUser } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
+import { defaultCanvasBaseUrl } from "@/lib/canvas";
+import { getCanvasStatus } from "@/lib/canvas-account";
 import AskBox from "./AskBox";
+import CanvasConnect from "./CanvasConnect";
 import SyncButton from "./SyncButton";
 
 async function loadCourseContent(courseIds: string[]) {
@@ -40,11 +43,14 @@ export default async function DashboardPage() {
 
   const nowIso = new Date().toISOString();
 
-  const { data: courses, error: coursesError } = await sb
-    .from("courses")
-    .select("id, course_code, course_name, instructor")
-    .eq("user_id", user.id)
-    .limit(50);
+  const [{ data: courses, error: coursesError }, canvasStatus] = await Promise.all([
+    sb
+      .from("courses")
+      .select("id, course_code, course_name, instructor")
+      .eq("user_id", user.id)
+      .limit(50),
+    getCanvasStatus(user.id),
+  ]);
 
   if (coursesError) {
     throw new Error(`Failed to load courses: ${coursesError.message}`);
@@ -65,8 +71,10 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-zinc-500">Signed in as {user.email}</p>
         </div>
-        <SyncButton />
+        <SyncButton connected={canvasStatus.connected} />
       </header>
+
+      <CanvasConnect initialStatus={canvasStatus} defaultBaseUrl={defaultCanvasBaseUrl()} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">

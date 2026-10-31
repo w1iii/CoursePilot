@@ -14,6 +14,27 @@ create table if not exists public.users (
 );
 
 -- ---------------------------------------------------------------------------
+-- Canvas Accounts  (One User -> One Connection per Canvas Host)
+-- Personal access tokens are encrypted at rest with AES-256-GCM.
+-- ---------------------------------------------------------------------------
+create table if not exists public.canvas_accounts (
+  id                        uuid primary key default gen_random_uuid(),
+  user_id                   uuid not null references public.users(id) on delete cascade,
+  canvas_base_url           text not null,
+  canvas_user_id            bigint,
+  canvas_user_name          text,
+  access_token_encrypted    text not null,
+  token_last_validated_at   timestamptz,
+  invalid_at                timestamptz,
+  created_at                timestamptz not null default now(),
+  updated_at                timestamptz not null default now(),
+  unique (user_id, canvas_base_url)
+);
+
+create index if not exists canvas_accounts_user_id_idx
+  on public.canvas_accounts (user_id);
+
+-- ---------------------------------------------------------------------------
 -- Courses  (One User -> Many Courses)
 -- ---------------------------------------------------------------------------
 create table if not exists public.courses (
@@ -83,5 +104,6 @@ create index if not exists announcements_course_id_idx
 -- ---------------------------------------------------------------------------
 alter table public.users         enable row level security;
 alter table public.courses       enable row level security;
+alter table public.canvas_accounts enable row level security;
 alter table public.academic_tasks enable row level security;
 alter table public.announcements enable row level security;
