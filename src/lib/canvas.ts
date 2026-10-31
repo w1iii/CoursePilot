@@ -22,6 +22,13 @@ export function normalizeCanvasBaseUrl(raw: string): string {
     throw new Error("Canvas URL must use https");
   }
 
+  // Reject bare schemes such as `javascript:alert(1)` while still allowing
+  // host:port input like `example.edu:8443`.
+  const bareScheme = trimmed.match(/^([a-z][a-z0-9+.-]*):(?!\d)/i)?.[1]?.toLowerCase();
+  if (!explicitScheme && bareScheme) {
+    throw new Error("Canvas URL must use https");
+  }
+
   const withScheme = explicitScheme ? trimmed : `https://${trimmed}`;
   let url: URL;
   try {

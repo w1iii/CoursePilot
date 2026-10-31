@@ -27,6 +27,7 @@ export async function GET() {
       .from("academic_tasks")
       .select("id, course_id, canvas_task_id, title, description, type, due_date, priority, status, is_manual, notes, created_at, courses(course_name, course_code)")
       .in("course_id", courseIds)
+      .is("removed_at", null)
       .order("due_date", { ascending: true, nullsFirst: false });
 
     if (error) throw new Error(error.message);

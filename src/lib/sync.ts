@@ -17,6 +17,11 @@ import {
   ragIngestionEnabled,
   ragReindexHours,
 } from "@/lib/ai/ingest";
+import { elapsedMs, logAiRequest } from "@/lib/ai/log";
+import {
+  scoreAnnouncementImportance,
+  scoreTaskPriority,
+} from "@/lib/priority";
 import { supabaseAdmin } from "@/lib/supabase";
 import type { AppUser } from "@/lib/user";
 
@@ -155,6 +160,7 @@ async function ingestDueCourses(
   }
 
   for (const course of dueCourses ?? []) {
+    const startedAt = Date.now();
     try {
       const ingestion = await ingestCanvasCourse({
         canvasCourseId: course.canvas_course_id,
@@ -166,6 +172,17 @@ async function ingestDueCourses(
       result.ragChunks += ingestion.chunks;
       result.ragFailures += ingestion.failures;
       result.ragSkipped += ingestion.skipped;
+
+      await logAiRequest({
+        userId,
+        feature: "ingest",
+        status: ingestion.failures > 0 ? "error" : "ok",
+        latencyMs: elapsedMs(startedAt),
+        error:
+          ingestion.failures > 0
+            ? `${ingestion.failures} item(s) failed while ingesting ${course.course_name}`
+            : null,
+      });
 
       if (ingestion.failures > 0) {
         result.errors.push(
@@ -187,6 +204,13 @@ async function ingestDueCourses(
         result.errors.push(`RAG index status update failed (${course.course_name}): ${updateError.message}`);
       }
     } catch (err) {
+      await logAiRequest({
+        userId,
+        feature: "ingest",
+        status: "error",
+        latencyMs: elapsedMs(startedAt),
+        error: `${course.course_name}: ${(err as Error).message}`,
+      });
       result.errors.push(`RAG ingestion failed (${course.course_name}): ${(err as Error).message}`);
     }
   }
@@ -200,9 +224,13 @@ async function syncAssignments(
   result: SyncResult,
 ): Promise<void> {
   try {
-    const assignments = await listAssignments(credentials, cc.id);
+    const assignments = (await listAssignments(credentials, cc.id)).filter(
+      (a) => a.workflow_state !== "deleted",
+    );
+    const seenIds: number[] = [];
+
     for (const a of assignments) {
-      if (a.workflow_state === "deleted") continue;
+      seenIds.push(a.id);
 
       const task = {
         course_id: courseId,
@@ -211,15 +239,35 @@ async function syncAssignments(
         description: stripHtml(a.description),
         type: "assignment",
         due_date: a.due_at,
+        priority: scoreTaskPriority({ dueDate: a.due_at, type: "assignment" }),
         is_manual: false,
+        removed_at: null,
       };
 
       const { data: existing } = await sb
         .from("academic_tasks")
-        .select("id")
+        .select("id, due_date")
         .eq("course_id", courseId)
         .eq("canvas_task_id", a.id)
         .maybeSingle();
+
+      const dueDateChanged =
+        existing?.due_date &&
+        a.due_at &&
+        new Date(existing.due_date).getTime() !== new Date(a.due_at).getTime();
+
+      if (existing && dueDateChanged) {
+        const { error: changeErr } = await sb.from("deadline_changes").insert({
+          task_id: existing.id,
+          course_id: courseId,
+          title: a.name,
+          old_due_date: existing.due_date,
+          new_due_date: a.due_at,
+        });
+        if (changeErr) {
+          result.errors.push(`Deadline change not recorded (${a.name}): ${changeErr.message}`);
+        }
+      }
 
       const { error: taskErr } = existing
         ? await sb.from("academic_tasks").update(task).eq("id", existing.id)
@@ -228,8 +276,33 @@ async function syncAssignments(
       if (taskErr) result.errors.push(`Task upsert failed (${a.name}): ${taskErr.message}`);
       else result.tasks += 1;
     }
+
+    await markMissingTasksRemoved(sb, courseId, seenIds, result);
   } catch (err) {
     reportCanvasError(err, `Assignments fetch failed (${cc.name})`, result);
+  }
+}
+
+async function markMissingTasksRemoved(
+  sb: SupabaseAdmin,
+  courseId: string,
+  seenIds: number[],
+  result: SyncResult,
+): Promise<void> {
+  const query = sb
+    .from("academic_tasks")
+    .update({ removed_at: new Date().toISOString() })
+    .eq("course_id", courseId)
+    .eq("is_manual", false)
+    .is("removed_at", null);
+
+  const { error } =
+    seenIds.length > 0
+      ? await query.not("canvas_task_id", "in", `(${seenIds.join(",")})`)
+      : await query.not("canvas_task_id", "is", null);
+
+  if (error) {
+    result.errors.push(`Removed-task reconciliation failed: ${error.message}`);
   }
 }
 
@@ -241,25 +314,60 @@ async function syncAnnouncements(
   result: SyncResult,
 ): Promise<void> {
   try {
-    const announcements = await listAnnouncements(credentials, cc.id);
-    for (const ann of announcements) {
-      if (ann.workflow_state === "deleted") continue;
+    const announcements = (await listAnnouncements(credentials, cc.id)).filter(
+      (ann) => ann.workflow_state !== "deleted",
+    );
+    const seenIds: number[] = [];
 
+    for (const ann of announcements) {
+      seenIds.push(ann.id);
+
+      const content = stripHtml(ann.message);
       const { error: annErr } = await sb.from("announcements").upsert(
         {
           course_id: courseId,
           canvas_announcement_id: ann.id,
           title: ann.title,
-          content: stripHtml(ann.message),
+          content,
           posted_at: ann.posted_at,
+          importance_score: scoreAnnouncementImportance({
+            title: ann.title,
+            content,
+            postedAt: ann.posted_at,
+          }),
+          removed_at: null,
         },
         { onConflict: "course_id,canvas_announcement_id" },
       );
       if (annErr) result.errors.push(`Announcement upsert failed: ${annErr.message}`);
       else result.announcements += 1;
     }
+
+    await markMissingAnnouncementsRemoved(sb, courseId, seenIds, result);
   } catch (err) {
     reportCanvasError(err, `Announcements fetch failed (${cc.name})`, result);
+  }
+}
+
+async function markMissingAnnouncementsRemoved(
+  sb: SupabaseAdmin,
+  courseId: string,
+  seenIds: number[],
+  result: SyncResult,
+): Promise<void> {
+  const query = sb
+    .from("announcements")
+    .update({ removed_at: new Date().toISOString() })
+    .eq("course_id", courseId)
+    .is("removed_at", null);
+
+  const { error } =
+    seenIds.length > 0
+      ? await query.not("canvas_announcement_id", "in", `(${seenIds.join(",")})`)
+      : await query.not("canvas_announcement_id", "is", null);
+
+  if (error) {
+    result.errors.push(`Removed-announcement reconciliation failed: ${error.message}`);
   }
 }
 

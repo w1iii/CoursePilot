@@ -6,6 +6,7 @@ import {
   CourseSelectionError,
   RagServiceError,
 } from "@/lib/ai/rag";
+import { elapsedMs, logAiRequest } from "@/lib/ai/log";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
@@ -40,7 +41,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await answerQuestion(user.id, question, courseId);
+    const startedAt = Date.now();
+    let result;
+    try {
+      result = await answerQuestion(user.id, question, courseId);
+    } catch (err) {
+      await logAiRequest({
+        userId: user.id,
+        feature: "ask",
+        status: "error",
+        latencyMs: elapsedMs(startedAt),
+        error: (err as Error).message,
+      });
+      throw err;
+    }
+
+    await logAiRequest({
+      userId: user.id,
+      feature: "ask",
+      status: "ok",
+      latencyMs: elapsedMs(startedAt),
+      model: result.model,
+    });
+
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof UnauthorizedError) {

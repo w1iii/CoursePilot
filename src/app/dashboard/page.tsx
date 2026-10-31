@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { defaultCanvasBaseUrl } from "@/lib/canvas";
 import { getCanvasStatus } from "@/lib/canvas-account";
+import { needsAction } from "@/lib/priority";
 import AskBox from "./AskBox";
 import CanvasConnect from "./CanvasConnect";
 import SyncButton from "./SyncButton";
@@ -9,33 +10,50 @@ import TaskManager from "./TaskManager";
 
 async function loadCourseContent(courseIds: string[]) {
   if (courseIds.length === 0) {
-    return { tasks: [], announcements: [] };
+    return { tasks: [], announcements: [], deadlineChanges: [] };
   }
 
   const sb = supabaseAdmin();
-  const [{ data: tasks, error: tasksError }, { data: announcements, error: announcementsError }] =
-    await Promise.all([
-      sb
-        .from("academic_tasks")
-        .select("id, title, type, due_date, priority, status, courses(course_name)")
-        .in("course_id", courseIds)
-        .eq("status", "pending")
-        .order("due_date", { ascending: true, nullsFirst: false })
-        .limit(20),
-      sb
-        .from("announcements")
-        .select("id, title, posted_at, courses(course_name)")
-        .in("course_id", courseIds)
-        .order("posted_at", { ascending: false })
-        .limit(10),
-    ]);
+  const [
+    { data: tasks, error: tasksError },
+    { data: announcements, error: announcementsError },
+    { data: deadlineChanges, error: changesError },
+  ] = await Promise.all([
+    sb
+      .from("academic_tasks")
+      .select("id, title, type, due_date, priority, status, courses(course_name)")
+      .in("course_id", courseIds)
+      .is("removed_at", null)
+      .eq("status", "pending")
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .limit(20),
+    sb
+      .from("announcements")
+      .select("id, title, content, importance_score, posted_at, courses(course_name)")
+      .in("course_id", courseIds)
+      .is("removed_at", null)
+      .order("importance_score", { ascending: false, nullsFirst: false })
+      .order("posted_at", { ascending: false })
+      .limit(10),
+    sb
+      .from("deadline_changes")
+      .select("id, title, old_due_date, new_due_date, detected_at, courses(course_name)")
+      .in("course_id", courseIds)
+      .order("detected_at", { ascending: false })
+      .limit(5),
+  ]);
 
   if (tasksError) throw new Error(`Failed to load tasks: ${tasksError.message}`);
   if (announcementsError) {
     throw new Error(`Failed to load announcements: ${announcementsError.message}`);
   }
+  if (changesError) throw new Error(`Failed to load deadline changes: ${changesError.message}`);
 
-  return { tasks: tasks ?? [], announcements: announcements ?? [] };
+  return {
+    tasks: tasks ?? [],
+    announcements: announcements ?? [],
+    deadlineChanges: deadlineChanges ?? [],
+  };
 }
 
 export default async function DashboardPage() {
@@ -58,7 +76,7 @@ export default async function DashboardPage() {
   }
 
   const courseIds = (courses ?? []).map((course) => course.id);
-  const { tasks, announcements } = await loadCourseContent(courseIds);
+  const { tasks, announcements, deadlineChanges } = await loadCourseContent(courseIds);
 
   const todayTasks = (tasks ?? []).filter((t) => {
     if (!t.due_date) return false;
@@ -128,12 +146,44 @@ export default async function DashboardPage() {
             <p className="text-sm text-zinc-500">No announcements yet.</p>
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
-              {(announcements ?? []).map((a) => (
-                <li key={a.id}>
-                  <p className="font-medium">{a.title}</p>
+              {(announcements ?? []).map((a) => {
+                const action = needsAction(a.title, a.content);
+                return (
+                  <li key={a.id}>
+                    <p className="font-medium">
+                      {action && (
+                        <span className="mr-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                          Action
+                        </span>
+                      )}
+                      {a.title}
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      {(a.courses as { course_name?: string } | null)?.course_name ?? "Course"}
+                      {a.posted_at ? ` · ${new Date(a.posted_at).toLocaleDateString()}` : ""}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <h2 className="mb-3 text-lg font-semibold">Deadline Changes</h2>
+          {(deadlineChanges ?? []).length === 0 ? (
+            <p className="text-sm text-zinc-500">No Canvas deadlines have moved.</p>
+          ) : (
+            <ul className="flex flex-col gap-2 text-sm">
+              {(deadlineChanges ?? []).map((change) => (
+                <li key={change.id}>
+                  <p className="font-medium">{change.title}</p>
                   <p className="text-xs text-zinc-500">
-                    {(a.courses as { course_name?: string } | null)?.course_name ?? "Course"}
-                    {a.posted_at ? ` · ${new Date(a.posted_at).toLocaleDateString()}` : ""}
+                    {change.old_due_date
+                      ? new Date(change.old_due_date).toLocaleDateString()
+                      : "No due date"}{" "}
+                    → {new Date(change.new_due_date).toLocaleDateString()} ·{" "}
+                    {(change.courses as { course_name?: string } | null)?.course_name ?? "Course"}
                   </p>
                 </li>
               ))}

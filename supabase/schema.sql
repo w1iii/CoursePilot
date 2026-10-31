@@ -71,6 +71,7 @@ create table if not exists public.academic_tasks (
                     check (status in ('pending','completed')),
   is_manual       boolean not null default false,
   notes           text,
+  removed_at      timestamptz,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
@@ -79,6 +80,8 @@ create index if not exists academic_tasks_course_id_idx
   on public.academic_tasks (course_id);
 create index if not exists academic_tasks_due_date_idx
   on public.academic_tasks (due_date);
+create index if not exists academic_tasks_open_idx
+  on public.academic_tasks (course_id, removed_at);
 
 -- ---------------------------------------------------------------------------
 -- Announcements  (One Course -> Many Announcements)
@@ -91,12 +94,52 @@ create table if not exists public.announcements (
   content                  text,
   importance_score         real,
   posted_at                timestamptz,
+  removed_at               timestamptz,
   created_at               timestamptz not null default now(),
   unique (course_id, canvas_announcement_id)
 );
 
 create index if not exists announcements_course_id_idx
   on public.announcements (course_id);
+create index if not exists announcements_open_idx
+  on public.announcements (course_id, removed_at);
+
+-- ---------------------------------------------------------------------------
+-- Deadline Changes  (Canvas due-date moves detected during sync)
+-- ---------------------------------------------------------------------------
+create table if not exists public.deadline_changes (
+  id            uuid primary key default gen_random_uuid(),
+  task_id       uuid references public.academic_tasks(id) on delete cascade,
+  course_id     uuid not null references public.courses(id) on delete cascade,
+  title         text not null,
+  old_due_date  timestamptz,
+  new_due_date  timestamptz not null,
+  detected_at   timestamptz not null default now()
+);
+
+create index if not exists deadline_changes_course_id_idx
+  on public.deadline_changes (course_id, detected_at desc);
+
+-- ---------------------------------------------------------------------------
+-- AI Requests  (Latency/error telemetry; prompts are never stored)
+-- ---------------------------------------------------------------------------
+create table if not exists public.ai_requests (
+  id                bigint generated always as identity primary key,
+  user_id           uuid references public.users(id) on delete set null,
+  feature           text not null,
+  model             text,
+  latency_ms        integer not null default 0,
+  status            text not null check (status in ('ok', 'error')),
+  error             text,
+  prompt_tokens     integer,
+  completion_tokens integer,
+  created_at        timestamptz not null default now()
+);
+
+create index if not exists ai_requests_user_created_idx
+  on public.ai_requests (user_id, created_at desc);
+create index if not exists ai_requests_feature_created_idx
+  on public.ai_requests (feature, created_at desc);
 
 -- ---------------------------------------------------------------------------
 -- Rate Limit Windows  (Per-user minute/day counters for expensive routes)
@@ -187,4 +230,6 @@ alter table public.courses       enable row level security;
 alter table public.canvas_accounts enable row level security;
 alter table public.academic_tasks enable row level security;
 alter table public.announcements enable row level security;
+alter table public.deadline_changes enable row level security;
+alter table public.ai_requests enable row level security;
 alter table public.rate_limit_windows enable row level security;
