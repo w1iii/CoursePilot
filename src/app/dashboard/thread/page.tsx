@@ -48,62 +48,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
         <div className="ambient-woven-dots absolute inset-0 opacity-60" />
       </div>
 
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 shadow-[0_1px_2px_rgba(21,55,13,0.05)] backdrop-blur-md">
-        <div className="mx-auto flex h-20 max-w-[1120px] items-center justify-between gap-space-lg px-gutter">
-          <div className="flex items-center gap-space-2xl">
-            <a href="/dashboard" className="group flex items-center gap-space-sm focus:outline-none">
-              <span className="font-headline-md text-headline-md lowercase tracking-tight text-primary-container transition-colors group-hover:text-primary">
-                habi
-              </span>
-              <span className="h-4 w-[2px] rotate-12 rounded-full bg-tertiary-container transition-transform group-hover:rotate-45" />
-            </a>
-            <nav className="hidden items-center gap-space-xs lg:flex">
-              <a
-                href="/dashboard"
-                className="rounded-lg px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
-              >
-                Ask Habi
-              </a>
-              <a
-                href="/dashboard/thread"
-                aria-current="page"
-                className="rounded-lg bg-secondary-container px-space-md py-space-sm font-label-md text-label-md text-on-secondary-container shadow-[0_1px_2px_rgba(21,55,13,0.08)] transition-all"
-              >
-                Thread
-              </a>
-              <a
-                href="/dashboard#courses"
-                className="rounded-lg px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
-              >
-                Courses
-              </a>
-              <a
-                href="/dashboard#canvas"
-                className="rounded-lg px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
-              >
-                Canvas Sync
-              </a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-space-md">
-            <div className="flex items-center gap-space-sm pl-space-xs">
-              <div className="hidden flex-col text-right xl:flex">
-                <span className="font-label-sm text-label-sm font-semibold leading-none text-on-surface">
-                  {displayName}
-                </span>
-                <span className="font-code-tag text-code-tag text-text-muted">{user.email}</span>
-              </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary ring-2 ring-surface ring-offset-1 ring-offset-border">
-                <span className="material-symbols-outlined text-[18px] text-on-primary">
-                  person
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="relative z-10 min-h-[calc(100vh-140px)] w-full pt-20">
+      <main className="relative z-10 min-h-[calc(100vh-40px)] w-full">
         <div className="mx-auto flex w-full max-w-[1120px] flex-col px-gutter-mobile pb-space-5xl md:px-gutter">
           <ThreadView
             userName={displayName}

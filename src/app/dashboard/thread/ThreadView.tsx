@@ -75,6 +75,7 @@ export default function ThreadView({
     initialCourseId || courses[0]?.id || "",
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const didInit = useRef(false);
@@ -230,27 +231,28 @@ export default function ThreadView({
 
   return (
     <div className="flex flex-col gap-space-xl">
-      <div className="flex flex-wrap items-center justify-between gap-space-sm pb-space-sm">
-        <div className="flex items-center gap-space-sm text-text-muted">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1 font-label-sm text-label-sm transition-colors hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            Dashboard
-          </Link>
-          <span className="h-3 w-[1px] bg-outline-variant" />
-          <span className="font-code-tag text-code-tag">
-            Thread {initialThreadId.slice(0, 8)}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-1.5 rounded bg-surface-container-low hover:bg-surface transition-colors"
+          aria-label="Toggle sidebar"
+        >
+          <span className="material-symbols-outlined">
+            {sidebarOpen ? "arrow_left" : "arrow_right"}
           </span>
-        </div>
+        </button>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-space-md py-1.5 font-label-sm text-label-sm text-text-muted shadow-sm transition-colors hover:text-primary"
+          className="flex items-center gap-1 font-label-sm text-label-sm transition-colors hover:text-primary"
         >
-          <span className="material-symbols-outlined text-[16px]">add</span>
-          New thread
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          Dashboard
         </Link>
+        <span className="h-1 w-1 bg-outline-variant" />
+        <span className="font-code-tag text-code-tag">
+          Thread {initialThreadId.slice(0, 8)}
+        </span>
       </div>
 
       {turns.length === 0 && !initialQuestion && (
@@ -272,7 +274,7 @@ export default function ThreadView({
       )}
 
       <div className="grid grid-cols-1 items-start gap-space-xl lg:grid-cols-12">
-        <div className="flex flex-col gap-space-xl lg:col-span-7">
+        <div className={`flex flex-col gap-space-xl lg:col-span-${sidebarOpen ? 7 : 12}`}>
           {turns.map((turn) => {
             const course = courses.find((item) => item.id === turn.courseId) ?? activeCourse;
             const paragraphs = turn.response?.answer
@@ -554,72 +556,74 @@ export default function ThreadView({
           </form>
         </div>
 
-        <aside className="flex flex-col gap-space-xl lg:col-span-5">
-          <div className="flex items-center justify-center rounded-xl bg-surface/70 p-space-sm shadow-sm">
-            <LoomOrbit
-              courses={courses}
-              activeCourseId={courseId}
-              onSelectCourse={selectCourse}
-              onHubClick={focusInput}
-            />
-          </div>
+        {sidebarOpen && (
+          <aside className="flex flex-col gap-space-xl lg:col-span-5">
+            <div className="flex items-center justify-center rounded-xl bg-surface/70 p-space-sm shadow-sm">
+              <LoomOrbit
+                courses={courses}
+                activeCourseId={courseId}
+                onSelectCourse={selectCourse}
+                onHubClick={focusInput}
+              />
+            </div>
 
-          <section className="rounded-xl bg-surface p-space-lg shadow-sm">
-            <p className="font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
-              Thread context
-            </p>
-            <h2 className="font-headline-sm text-headline-sm text-primary-container">
-              {activeCourse?.code ?? activeCourse?.name ?? "No course selected"}
-            </h2>
-            <p className="mt-1 font-body-sm text-body-sm text-text-muted">
-              {activeCourse?.name ?? "Sync Canvas to load course material."}
-            </p>
-            {activeCourse?.instructor && (
-              <p className="mt-1 font-body-sm text-body-sm text-text-muted">
-                {activeCourse.instructor}
+            <section className="rounded-xl bg-surface p-space-lg shadow-sm">
+              <p className="font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
+                Thread context
               </p>
-            )}
-            <div className="mt-space-md grid grid-cols-2 gap-space-sm">
-              <div className="rounded-lg bg-surface-container-low p-space-sm">
-                <p className="font-headline-sm text-headline-sm text-primary-container">
-                  {totalSources}
+              <h2 className="font-headline-sm text-headline-sm text-primary-container">
+                {activeCourse?.code ?? activeCourse?.name ?? "No course selected"}
+              </h2>
+              <p className="mt-1 font-body-sm text-body-sm text-text-muted">
+                {activeCourse?.name ?? "Sync Canvas to load course material."}
+              </p>
+              {activeCourse?.instructor && (
+                <p className="mt-1 font-body-sm text-body-sm text-text-muted">
+                  {activeCourse.instructor}
                 </p>
-                <p className="font-code-tag text-code-tag text-text-muted">Sources used</p>
+              )}
+              <div className="mt-space-md grid grid-cols-2 gap-space-sm">
+                <div className="rounded-lg bg-surface-container-low p-space-sm">
+                  <p className="font-headline-sm text-headline-sm text-primary-container">
+                    {totalSources}
+                  </p>
+                  <p className="font-code-tag text-code-tag text-text-muted">Sources used</p>
+                </div>
+                <div className="rounded-lg bg-surface-container-low p-space-sm">
+                  <p className="font-headline-sm text-headline-sm text-primary-container">
+                    {groundedTurns}/{Math.max(turns.filter((turn) => turn.status === "done").length, 1)}
+                  </p>
+                  <p className="font-code-tag text-code-tag text-text-muted">Grounded answers</p>
+                </div>
               </div>
-              <div className="rounded-lg bg-surface-container-low p-space-sm">
-                <p className="font-headline-sm text-headline-sm text-primary-container">
-                  {groundedTurns}/{Math.max(turns.filter((turn) => turn.status === "done").length, 1)}
-                </p>
-                <p className="font-code-tag text-code-tag text-text-muted">Grounded answers</p>
-              </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="rounded-xl bg-surface p-space-lg shadow-sm">
-            <p className="font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
-              Keep weaving
-            </p>
-            <div className="mt-space-sm flex flex-col gap-2">
-              {courses.slice(0, 3).map((course) => (
-                <button
-                  key={course.id}
-                  type="button"
-                  onClick={() => selectCourse(course)}
-                  className={`flex items-center justify-between gap-space-sm rounded-lg px-space-sm py-2 text-left transition-colors ${
-                    course.id === courseId
-                      ? "bg-secondary-container text-on-secondary-container"
-                      : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
-                  }`}
-                >
-                  <span className="truncate font-label-sm text-label-sm">
-                    {course.code ?? course.name}
-                  </span>
-                  <span className="material-symbols-outlined text-[16px]">north_east</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        </aside>
+            <section className="rounded-xl bg-surface p-space-lg shadow-sm">
+              <p className="font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
+                Keep weaving
+              </p>
+              <div className="mt-space-sm flex flex-col gap-2">
+                {courses.slice(0, 3).map((course) => (
+                  <button
+                    key={course.id}
+                    type="button"
+                    onClick={() => selectCourse(course)}
+                    className={`flex items-center justify-between gap-space-sm rounded-lg px-space-sm py-2 text-left transition-colors ${
+                      course.id === courseId
+                        ? "bg-secondary-container text-on-secondary-container"
+                        : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
+                    }`}
+                  >
+                    <span className="truncate font-label-sm text-label-sm">
+                      {course.code ?? course.name}
+                    </span>
+                    <span className="material-symbols-outlined text-[16px]">north_east</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </aside>
+        )}
       </div>
     </div>
   );
