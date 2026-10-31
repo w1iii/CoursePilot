@@ -1,12 +1,12 @@
 function SkeletonCard({ lines = 3 }: { lines?: number }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mb-4 h-5 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+    <div className="rounded-2xl border border-border bg-surface/80 p-6 shadow-sm backdrop-blur-sm">
+      <div className="mb-4 h-5 w-40 animate-pulse rounded bg-surface-container" />
       <div className="flex flex-col gap-3">
         {Array.from({ length: lines }).map((_, index) => (
           <div
             key={index}
-            className="h-4 animate-pulse rounded bg-zinc-100 dark:bg-zinc-900"
+            className="h-4 animate-pulse rounded bg-surface-container-low"
             style={{ width: `${90 - index * 12}%` }}
           />
         ))}
@@ -17,27 +17,36 @@ function SkeletonCard({ lines = 3 }: { lines?: number }) {
 
 export default function DashboardLoading() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="h-7 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="mt-2 h-4 w-64 animate-pulse rounded bg-zinc-100 dark:bg-zinc-900" />
+    <main className="relative z-10 mx-auto w-full max-w-[1120px] px-gutter-mobile py-10 md:px-gutter">
+      <div className="grid grid-cols-1 items-center gap-space-2xl lg:grid-cols-12">
+        <div className="space-y-space-md lg:col-span-6">
+          <div className="h-4 w-52 animate-pulse rounded bg-surface-container" />
+          <div className="h-14 w-80 max-w-full animate-pulse rounded bg-surface-container-high" />
+          <div className="h-6 w-64 animate-pulse rounded bg-surface-container" />
+          <div className="flex flex-wrap gap-2 pt-3">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-9 w-44 animate-pulse rounded-xl bg-surface-container"
+              />
+            ))}
+          </div>
         </div>
-        <div className="h-9 w-32 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
-      </header>
-
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="h-5 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-        <div className="mt-2 h-4 w-72 animate-pulse rounded bg-zinc-100 dark:bg-zinc-900" />
+        <div className="lg:col-span-6">
+          <div className="mx-auto h-[320px] w-[320px] max-w-full animate-pulse rounded-full border border-border bg-surface-container-low/60" />
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <SkeletonCard key={index} />
-        ))}
+      <div className="mt-8 h-[60px] animate-pulse rounded-2xl border border-border bg-surface-container-low" />
+
+      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={2} />
       </div>
 
-      <SkeletonCard lines={5} />
+      <div className="mt-8 h-40 animate-pulse rounded-2xl border border-border bg-surface-container-low" />
     </main>
   );
 }

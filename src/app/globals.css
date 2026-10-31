@@ -167,6 +167,11 @@
   ::-webkit-scrollbar {
     display: none;
   }
+
+  section[id],
+  div[id] {
+    scroll-margin-top: 6rem;
+  }
 }
 
 /* Material Symbols */
@@ -428,5 +433,305 @@
     animation: none !important;
     transform: none !important;
     transition: none !important;
+  }
+}
+
+/* ==========================================================
+   Dashboard ambient mesh + woven dot texture
+   ========================================================== */
+.ambient-mesh-canvas {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(218, 160, 48, 0.42) 0%, transparent 45%),
+    radial-gradient(circle at 82% 28%, rgba(85, 134, 76, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 48% 70%, rgba(212, 167, 55, 0.35) 0%, transparent 55%),
+    radial-gradient(circle at 12% 85%, rgba(71, 115, 64, 0.38) 0%, transparent 48%),
+    radial-gradient(circle at 85% 85%, rgba(223, 155, 40, 0.38) 0%, transparent 48%),
+    radial-gradient(circle at 50% 35%, rgba(21, 55, 13, 0.18) 0%, transparent 60%);
+  filter: blur(55px);
+  animation: ambient-drift 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.ambient-woven-dots {
+  background-image: radial-gradient(rgba(21, 55, 13, 0.12) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+@keyframes ambient-drift {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(4%, -3%) scale(1.05) rotate(1.5deg);
+  }
+  66% {
+    transform: translate(-3%, 4%) scale(0.97) rotate(-1.5deg);
+  }
+  100% {
+    transform: translate(2%, 2%) scale(1.03) rotate(1deg);
+  }
+}
+
+/* ==========================================================
+   Loom orbit
+   ========================================================== */
+.loom-orbit {
+  --size: clamp(300px, 36vw, 480px);
+  --loom-ink: #15370d;
+  --loom-sage: #728e6d;
+  --loom-gold: #e5cd82;
+  --loom-cream: #fff2b4;
+  --loom-surface: #ffffff;
+  position: relative;
+  display: flex;
+  width: var(--size);
+  height: var(--size);
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  user-select: none;
+}
+
+.loom-orbit__threads {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.loom-orbit__ring {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.loom-orbit__ring--inner {
+  width: calc(var(--size) * 0.52);
+  height: calc(var(--size) * 0.52);
+  border: 1.5px dashed rgba(114, 142, 109, 0.35);
+  animation: loom-spin 60s linear infinite reverse;
+}
+.loom-orbit__ring--outer {
+  width: calc(var(--size) * 0.84);
+  height: calc(var(--size) * 0.84);
+  border: 1px solid rgba(21, 55, 13, 0.12);
+  animation: loom-spin 90s linear infinite;
+}
+
+.loom-orbit__track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.loom-orbit__track--inner {
+  animation: loom-spin 34s linear infinite;
+}
+.loom-orbit__track--outer {
+  animation: loom-spin 48s linear infinite reverse;
+}
+
+.loom-orbit__item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+}
+.loom-orbit__counter {
+  display: inline-flex;
+}
+.loom-orbit__track--inner .loom-orbit__counter {
+  animation: loom-counter-spin 34s linear infinite;
+}
+.loom-orbit__track--outer .loom-orbit__counter {
+  animation: loom-counter-spin 48s linear infinite reverse;
+}
+
+.loom-orbit__node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(21, 55, 13, 0.14);
+  border-radius: 9999px;
+  background: var(--loom-surface);
+  box-shadow: 0 4px 12px rgba(21, 55, 13, 0.08);
+  max-width: 150px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+.loom-orbit__node:hover {
+  z-index: 10;
+  border-color: var(--loom-sage);
+  box-shadow: 0 6px 20px rgba(21, 55, 13, 0.16);
+  transform: scale(1.1);
+}
+.loom-orbit__node--active {
+  border-color: var(--loom-sage);
+  box-shadow:
+    0 6px 20px rgba(21, 55, 13, 0.16),
+    0 0 0 2px rgba(228, 205, 130, 0.55);
+}
+.loom-orbit__node-icon {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #fff;
+  font-size: 13px;
+}
+.loom-orbit__node-label {
+  font-family: var(--font-dm-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--loom-ink);
+}
+.loom-orbit__node-badge {
+  max-width: 100px;
+  overflow: hidden;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 1.1;
+  color: var(--loom-sage);
+  text-overflow: ellipsis;
+}
+.loom-orbit__float {
+  animation: loom-float 4s ease-in-out infinite;
+}
+
+.loom-orbit__hub {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  width: 86px;
+  height: 86px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--loom-cream);
+  border-radius: 9999px;
+  background: linear-gradient(145deg, #15370d, #204c16);
+  box-shadow:
+    0 8px 24px rgba(21, 55, 13, 0.25),
+    0 0 0 1px rgba(21, 55, 13, 0.15);
+  color: var(--loom-cream);
+  cursor: pointer;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease;
+}
+.loom-orbit__hub:hover {
+  transform: scale(1.08);
+  box-shadow:
+    0 12px 30px rgba(21, 55, 13, 0.35),
+    0 0 0 4px rgba(114, 142, 109, 0.3);
+}
+.loom-orbit__hub-glyph {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--loom-cream);
+}
+.loom-orbit__hub-pulse {
+  position: absolute;
+  inset: -6px;
+  border: 1.5px solid rgba(229, 205, 130, 0.5);
+  border-radius: 9999px;
+  animation: loom-pulse 3s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes loom-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes loom-counter-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes loom-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes loom-pulse {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.22);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-mesh-canvas {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .loom-orbit {
+    --size: min(340px, 88vw);
+  }
+  .loom-orbit__node {
+    max-width: 132px;
+  }
+  .loom-orbit__node {
+    gap: 4px;
+    padding: 4px 7px;
+  }
+  .loom-orbit__node-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+  }
+  .loom-orbit__node-badge {
+    display: none;
+  }
+  .loom-orbit__hub {
+    width: 64px;
+    height: 64px;
+    border-width: 2px;
+  }
+  .loom-orbit__hub-glyph {
+    font-size: 22px;
+  }
+  .loom-orbit__hub-pulse {
+    inset: -4px;
   }
 }

@@ -39,21 +39,34 @@ export default function SyncButton({ connected }: { connected: boolean }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col items-start gap-space-sm md:items-end">
       <button
+        type="button"
         onClick={sync}
         disabled={loading || !connected}
         title={connected ? undefined : "Connect Canvas first"}
-        className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className="inline-flex items-center gap-2 rounded-xl bg-primary-container px-space-xl py-3 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? "Syncing Canvas…" : "Sync Canvas"}
+        <span className={`material-symbols-outlined text-[18px] ${loading ? "animate-spin" : ""}`}>
+          sync
+        </span>
+        {loading ? "Weaving Canvas…" : "Sync now"}
       </button>
+
       {!connected && (
-        <p className="text-xs text-zinc-500">Connect Canvas before syncing.</p>
+        <p className="font-body-sm text-body-sm text-text-muted">
+          Connect Canvas before syncing.
+        </p>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {error && (
+        <p className="rounded-lg border border-error/30 bg-error-container/50 px-space-sm py-1 text-body-sm text-on-error-container">
+          {error}
+        </p>
+      )}
+
       {result && (
-        <div className="text-xs text-zinc-500">
+        <div className="text-right font-body-sm text-body-sm text-text-muted">
           <p>
             Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
             announcements.
@@ -66,7 +79,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
             </p>
           )}
           {result.errors.length > 0 && (
-            <ul className="mt-1 list-disc pl-4 text-red-600">
+            <ul className="mt-1 list-disc pl-4 text-left text-error">
               {result.errors.slice(0, 5).map((msg) => (
                 <li key={msg}>{msg}</li>
               ))}

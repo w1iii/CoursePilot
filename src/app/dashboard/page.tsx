@@ -2,65 +2,13 @@ import { requireUser } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { defaultCanvasBaseUrl } from "@/lib/canvas";
 import { getCanvasStatus } from "@/lib/canvas-account";
-import { needsAction } from "@/lib/priority";
 import AskBox from "./AskBox";
 import CanvasConnect from "./CanvasConnect";
 import SyncButton from "./SyncButton";
-import TaskManager from "./TaskManager";
-
-async function loadCourseContent(courseIds: string[]) {
-  if (courseIds.length === 0) {
-    return { tasks: [], announcements: [], deadlineChanges: [] };
-  }
-
-  const sb = supabaseAdmin();
-  const [
-    { data: tasks, error: tasksError },
-    { data: announcements, error: announcementsError },
-    { data: deadlineChanges, error: changesError },
-  ] = await Promise.all([
-    sb
-      .from("academic_tasks")
-      .select("id, title, type, due_date, priority, status, courses(course_name)")
-      .in("course_id", courseIds)
-      .is("removed_at", null)
-      .eq("status", "pending")
-      .order("due_date", { ascending: true, nullsFirst: false })
-      .limit(20),
-    sb
-      .from("announcements")
-      .select("id, title, content, importance_score, posted_at, courses(course_name)")
-      .in("course_id", courseIds)
-      .is("removed_at", null)
-      .order("importance_score", { ascending: false, nullsFirst: false })
-      .order("posted_at", { ascending: false })
-      .limit(10),
-    sb
-      .from("deadline_changes")
-      .select("id, title, old_due_date, new_due_date, detected_at, courses(course_name)")
-      .in("course_id", courseIds)
-      .order("detected_at", { ascending: false })
-      .limit(5),
-  ]);
-
-  if (tasksError) throw new Error(`Failed to load tasks: ${tasksError.message}`);
-  if (announcementsError) {
-    throw new Error(`Failed to load announcements: ${announcementsError.message}`);
-  }
-  if (changesError) throw new Error(`Failed to load deadline changes: ${changesError.message}`);
-
-  return {
-    tasks: tasks ?? [],
-    announcements: announcements ?? [],
-    deadlineChanges: deadlineChanges ?? [],
-  };
-}
 
 export default async function DashboardPage() {
   const user = await requireUser();
   const sb = supabaseAdmin();
-
-  const nowIso = new Date().toISOString();
 
   const [{ data: courses, error: coursesError }, canvasStatus] = await Promise.all([
     sb
@@ -75,156 +23,127 @@ export default async function DashboardPage() {
     throw new Error(`Failed to load courses: ${coursesError.message}`);
   }
 
-  const courseIds = (courses ?? []).map((course) => course.id);
-  const { tasks, announcements, deadlineChanges } = await loadCourseContent(courseIds);
+  const courseOptions = (courses ?? []).map((course) => ({
+    id: course.id,
+    name: course.course_name,
+    code: course.course_code,
+  }));
 
-  const todayTasks = (tasks ?? []).filter((t) => {
-    if (!t.due_date) return false;
-    return t.due_date.slice(0, 10) === nowIso.slice(0, 10);
-  });
+  function normalizeName(value: string): string {
+    if (value !== value.toUpperCase()) return value;
+    return value
+      .toLowerCase()
+      .split(/\s+/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+
+  const displayName = normalizeName(
+    user.full_name?.trim() || user.email.split("@")[0] || "weaver",
+  );
+  const firstName = displayName.split(/\s+/)[0];
+  const greetingName = firstName;
+  const initials = displayName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-zinc-500">Signed in as {user.email}</p>
-        </div>
-        <SyncButton connected={canvasStatus.connected} />
-      </header>
-
-      <CanvasConnect initialStatus={canvasStatus} defaultBaseUrl={defaultCanvasBaseUrl()} />
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-3 text-lg font-semibold">Today&apos;s Priorities</h2>
-          {todayTasks.length === 0 ? (
-            <p className="text-sm text-zinc-500">Nothing due today.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {todayTasks.map((t) => (
-                <li key={t.id} className="flex items-center justify-between gap-2">
-                  <span>{t.title}</span>
-                  <span
-                    className={`rounded px-2 py-0.5 text-xs ${
-                      t.priority === "high"
-                        ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-                        : t.priority === "medium"
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
-                          : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
-                    }`}
-                  >
-                    {t.priority}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-3 text-lg font-semibold">Upcoming Deadlines</h2>
-          {(tasks ?? []).length === 0 ? (
-            <p className="text-sm text-zinc-500">No pending tasks. Sync Canvas to pull work in.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {(tasks ?? []).slice(0, 8).map((t) => (
-                <li key={t.id} className="flex items-center justify-between gap-2">
-                  <span className="truncate">{t.title}</span>
-                  <span className="shrink-0 text-xs text-zinc-500">
-                    {t.due_date ? new Date(t.due_date).toLocaleDateString() : "No due date"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-3 text-lg font-semibold">Important Announcements</h2>
-          {(announcements ?? []).length === 0 ? (
-            <p className="text-sm text-zinc-500">No announcements yet.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {(announcements ?? []).map((a) => {
-                const action = needsAction(a.title, a.content);
-                return (
-                  <li key={a.id}>
-                    <p className="font-medium">
-                      {action && (
-                        <span className="mr-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                          Action
-                        </span>
-                      )}
-                      {a.title}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      {(a.courses as { course_name?: string } | null)?.course_name ?? "Course"}
-                      {a.posted_at ? ` · ${new Date(a.posted_at).toLocaleDateString()}` : ""}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-3 text-lg font-semibold">Deadline Changes</h2>
-          {(deadlineChanges ?? []).length === 0 ? (
-            <p className="text-sm text-zinc-500">No Canvas deadlines have moved.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {(deadlineChanges ?? []).map((change) => (
-                <li key={change.id}>
-                  <p className="font-medium">{change.title}</p>
-                  <p className="text-xs text-zinc-500">
-                    {change.old_due_date
-                      ? new Date(change.old_due_date).toLocaleDateString()
-                      : "No due date"}{" "}
-                    → {new Date(change.new_due_date).toLocaleDateString()} ·{" "}
-                    {(change.courses as { course_name?: string } | null)?.course_name ?? "Course"}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-3 text-lg font-semibold">Courses</h2>
-          {(courses ?? []).length === 0 ? (
-            <p className="text-sm text-zinc-500">No courses synced yet.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {(courses ?? []).map((c) => (
-                <li key={c.id}>
-                  <span className="font-medium">{c.course_code ?? "—"}</span> {c.course_name}
-                  {c.instructor && (
-                    <span className="block text-xs text-zinc-500">{c.instructor}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+    <>
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="ambient-mesh-canvas absolute -inset-[30%] opacity-60" />
+        <div className="ambient-woven-dots absolute inset-0 opacity-60" />
       </div>
 
-      <TaskManager
-        courses={(courses ?? []).map((c) => ({
-          id: c.id,
-          name: c.course_name,
-          code: c.course_code,
-        }))}
-      />
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 shadow-[0_1px_2px_rgba(21,55,13,0.05)] backdrop-blur-md">
+        <div className="mx-auto flex h-20 max-w-[1120px] items-center justify-between gap-space-lg px-gutter">
+          <div className="flex items-center gap-space-2xl">
+            <a
+              href="/dashboard"
+              className="group flex items-center gap-space-sm focus:outline-none"
+            >
+              <span className="font-headline-md text-headline-md lowercase tracking-tight text-primary-container transition-colors group-hover:text-primary">
+                habi
+              </span>
+              <span className="h-4 w-[2px] rotate-12 rounded-full bg-tertiary-container transition-transform group-hover:rotate-45" />
+            </a>
+            <nav className="hidden items-center gap-space-xs lg:flex">
+              <a
+                href="#ask-habi"
+                aria-current="page"
+                className="rounded-lg bg-secondary-container px-space-md py-space-sm font-label-md text-label-md text-on-secondary-container shadow-[0_1px_2px_rgba(21,55,13,0.08)] transition-all"
+              >
+                Ask Habi
+              </a>
+              <a
+                href="#courses"
+                className="rounded-lg px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
+              >
+                Courses
+              </a>
+              <a
+                href="#canvas"
+                className="rounded-lg px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
+              >
+                Canvas Sync
+              </a>
+            </nav>
+          </div>
+          <div className="flex items-center gap-space-md">
+            <div className="flex items-center gap-space-sm pl-space-xs">
+              <div className="hidden flex-col text-right xl:flex">
+                <span className="font-label-sm text-label-sm font-semibold leading-none text-on-surface">
+                  {displayName}
+                </span>
+                <span className="font-code-tag text-code-tag text-text-muted">{user.email}</span>
+              </div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary ring-2 ring-surface ring-offset-1 ring-offset-border">
+                {initials ? (
+                  <span className="font-label-sm text-label-sm font-semibold text-on-primary">
+                    {initials}
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px] text-on-primary">
+                    person
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <AskBox
-        courses={(courses ?? []).map((c) => ({
-          id: c.id,
-          name: c.course_name,
-          code: c.course_code,
-        }))}
-      />
-    </main>
+      <main className="relative z-10 min-h-[calc(100vh-140px)] w-full pt-20">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-space-2xl px-gutter-mobile py-space-xl md:px-gutter lg:py-space-2xl">
+          <AskBox userName={greetingName} courses={courseOptions} />
+        </div>
+      </main>
+
+      <footer className="relative z-10 mt-auto w-full border-t border-border bg-surface-container-low">
+        <div className="mx-auto flex max-w-[1120px] flex-col items-center justify-between gap-space-lg px-margin py-space-2xl md:flex-row">
+          <div className="flex items-center gap-space-md">
+            <span className="font-headline-sm text-headline-sm lowercase text-primary-container">
+              habi
+            </span>
+            <span className="h-3 w-[1px] bg-outline-variant" />
+            <span className="font-body-sm text-body-sm text-text-muted">
+              Hinabi para sa&apos;yo · Works with Canvas LMS
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-space-lg font-label-sm text-label-sm text-on-surface-variant">
+            <a href="#ask-habi" className="transition-colors hover:text-primary">
+              Ask Habi
+            </a>
+            <a href="#courses" className="transition-colors hover:text-primary">
+              Courses
+            </a>
+            <a href="#canvas" className="transition-colors hover:text-primary">
+              Sync Settings
+            </a>
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
