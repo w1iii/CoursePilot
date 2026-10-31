@@ -4,7 +4,7 @@ import SoundToggle from "@/components/landing/SoundToggle";
 import HeroLoom from "@/components/landing/HeroLoom";
 import Workflow from "@/components/landing/Workflow";
 import WeaveView from "@/components/landing/WeaveView";
-import AskCoursePilot from "@/components/landing/AskCoursePilot";
+import AskHabi from "@/components/landing/AskHabi";
 import Faq from "@/components/landing/Faq";
 
 function WeaveMark() {
@@ -39,7 +39,7 @@ export default function Home() {
           <Link href="/" className="flex items-center gap-space-md">
             <WeaveMark />
             <span className="font-headline-md text-headline-md font-semibold tracking-tight text-primary-container">
-              CoursePilot
+              Habi
             </span>
           </Link>
 
@@ -63,10 +63,10 @@ export default function Home() {
               Weave View
             </a>
             <a
-              href="#ask-coursepilot"
+              href="#ask-habi"
               className="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
             >
-              Ask CoursePilot
+              Ask Habi
             </a>
             <a
               href="#faq"
@@ -173,7 +173,7 @@ export default function Home() {
                       Weave your semester together.
                     </h1>
                     <p className="max-w-xl font-body-lg text-body-lg text-text-muted">
-                      CoursePilot pulls your deadlines, modules, and notes from Canvas into one calm,
+                      Habi pulls your deadlines, modules, and notes from Canvas into one calm,
                       tidy week. Less panic, more unhurried focus.
                     </p>
                   </div>
@@ -284,10 +284,10 @@ export default function Home() {
 
           {/* ============ ASK COURSEPILOT ============ */}
           <section
-            id="ask-coursepilot"
+            id="ask-habi"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
-            <AskCoursePilot />
+            <AskHabi />
           </section>
 
           {/* ============ FEATURES ============ */}
@@ -418,7 +418,7 @@ export default function Home() {
                   Grounded in mindful practice
                 </span>
                 <h3 className="font-headline-md text-headline-md text-primary-container">
-                  “Canvas felt like a loud inbox. CoursePilot feels like an organized desk.”
+                  “Canvas felt like a loud inbox. Habi feels like an organized desk.”
                 </h3>
                 <p className="font-body-md text-body-md text-text-muted">
                   — Bea R., Computer Science &amp; Linguistics Senior, Diliman
@@ -523,7 +523,7 @@ export default function Home() {
               <div className="flex items-center gap-space-xs">
                 <WeaveMark />
                 <span className="font-headline-md text-headline-md font-semibold text-primary-container">
-                  CoursePilot
+                  Habi
                 </span>
               </div>
               <p className="font-headline-sm text-headline-sm italic text-secondary">
@@ -567,10 +567,10 @@ export default function Home() {
                   </li>
                   <li className="font-body-sm text-body-sm">
                     <a
-                      href="#ask-coursepilot"
+                      href="#ask-habi"
                       className="text-on-surface-variant transition-colors hover:text-primary"
                     >
-                      Ask CoursePilot (RAG)
+                      Ask Habi (RAG)
                     </a>
                   </li>
                 </ul>
@@ -647,7 +647,7 @@ export default function Home() {
               Works with Canvas LMS. Not affiliated with Instructure.
             </p>
             <p className="font-body-sm text-body-sm text-text-muted">
-              © {new Date().getFullYear()} CoursePilot. Crafted with care in the Philippines.
+              © {new Date().getFullYear()} Habi. Crafted with care in the Philippines.
             </p>
           </div>
         </div>

@@ -86,7 +86,7 @@ const SIDE_FEATURES = [
   },
 ];
 
-export default function AskCoursePilot() {
+export default function AskHabi() {
   const [entry, setEntry] = useState<RagEntry>(RAG_QUERIES.reviewer);
   const [phase, setPhase] = useState<Phase>("ready");
   const [answerKey, setAnswerKey] = useState(0);
@@ -131,10 +131,10 @@ export default function AskCoursePilot() {
           </span>
         </div>
         <h2 className="font-headline-lg text-headline-lg text-primary-container">
-          Ask CoursePilot: Your Syllabus &amp; Lecture Oracle
+          Ask Habi: Your Syllabus &amp; Lecture Oracle
         </h2>
         <p className="font-body-md text-body-md text-text-muted">
-          Ask CoursePilot and it delivers, grounded directly in your course files, PDFs, lecture
+          Ask Habi and it delivers, grounded directly in your course files, PDFs, lecture
           transcripts, and Canvas discussion threads with zero hallucinations and exact citation
           links.
         </p>
@@ -210,7 +210,7 @@ export default function AskCoursePilot() {
                   </span>
                 </div>
                 <span className="font-label-md text-label-md font-semibold text-primary-container">
-                  CoursePilot Answer
+                  Habi Answer
                 </span>
               </div>
               <div className="flex items-center gap-1 font-code-tag text-[10px] font-semibold uppercase text-surface-tint">

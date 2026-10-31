@@ -22,7 +22,7 @@ const steps = [
     number: "02",
     icon: "tune",
     title: "Weave your week",
-    body: "CoursePilot unravels upcoming modules, lecture recordings, and problem sets into calibrated, sequential 45-minute focus intervals.",
+    body: "Habi unravels upcoming modules, lecture recordings, and problem sets into calibrated, sequential 45-minute focus intervals.",
     badgeIcon: "timelapse",
     badge: "Calibrated to human attention",
     accentText: "text-tertiary",

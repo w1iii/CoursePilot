@@ -21,9 +21,9 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "CoursePilot — Weave your semester together",
+  title: "Habi — Weave your semester together",
   description:
-    "CoursePilot pulls your deadlines, modules, and notes from Canvas LMS into one calm, tidy week.",
+    "Habi pulls your deadlines, modules, and notes from Canvas LMS into one calm, tidy week.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
