@@ -72,6 +72,12 @@ Working local demo. Build + lint green.
 - [x] Re-index window via `RAG_REINDEX_HOURS`
 - [x] Per-item errors/skips returned, sync never rolled back
 
+### Rate limiting
+
+- [x] `rate_limit_windows` table + `check_rate_limit()` SQL function
+- [x] Postgres minute/day budgets for `/api/ask`
+- [x] `429` + `Retry-After`, fails open on limiter errors
+
 ### Multi-user Canvas
 
 - [x] Per-user Canvas personal access tokens (AES-256-GCM at rest)

@@ -6,6 +6,7 @@ import {
   CourseSelectionError,
   RagServiceError,
 } from "@/lib/ai/rag";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,21 @@ export async function POST(req: NextRequest) {
     }
     if (question.length > 2000) {
       return NextResponse.json({ error: "question too long (max 2000 chars)" }, { status: 400 });
+    }
+
+    const limit = await checkRateLimit(user.id);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          error: rateLimitMessage(limit.scope),
+          scope: limit.scope,
+          retryAfterSeconds: limit.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+        },
+      );
     }
 
     const result = await answerQuestion(user.id, question, courseId);

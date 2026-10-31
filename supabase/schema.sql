@@ -99,6 +99,82 @@ create index if not exists announcements_course_id_idx
   on public.announcements (course_id);
 
 -- ---------------------------------------------------------------------------
+-- Rate Limit Windows  (Per-user minute/day counters for expensive routes)
+-- Backed by Postgres so it works on serverless hosts without extra services.
+-- ---------------------------------------------------------------------------
+create table if not exists public.rate_limit_windows (
+  user_id       uuid not null references public.users(id) on delete cascade,
+  window_kind   text not null check (window_kind in ('minute', 'day')),
+  window_start  timestamptz not null,
+  count         integer not null default 1,
+  primary key (user_id, window_kind, window_start)
+);
+
+create index if not exists rate_limit_windows_start_idx
+  on public.rate_limit_windows (window_start);
+
+-- Atomically count a request and report whether it is within the limits.
+-- Blocked requests only bump the minute counter, so spam cannot extend a
+-- day-level lockout. Old windows are pruned opportunistically.
+create or replace function public.check_rate_limit(
+  p_user_id      uuid,
+  p_minute_limit integer default 10,
+  p_day_limit    integer default 200
+)
+returns table (allowed boolean, exceeded_scope text, retry_after_seconds integer)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_now            timestamptz := now();
+  v_minute_start   timestamptz := date_trunc('minute', v_now);
+  v_day_start      timestamptz := date_trunc('day', v_now);
+  v_minute_count   integer;
+  v_day_count      integer;
+begin
+  delete from public.rate_limit_windows
+   where window_start < v_now - interval '2 days';
+
+  insert into public.rate_limit_windows (user_id, window_kind, window_start, count)
+  values (p_user_id, 'minute', v_minute_start, 1)
+  on conflict (user_id, window_kind, window_start)
+  do update set count = public.rate_limit_windows.count + 1
+  returning count into v_minute_count;
+
+  if v_minute_count > p_minute_limit then
+    return query select
+      false,
+      'minute'::text,
+      greatest(
+        1,
+        ceil(extract(epoch from (v_minute_start + interval '1 minute' - v_now)))::integer
+      );
+    return;
+  end if;
+
+  insert into public.rate_limit_windows (user_id, window_kind, window_start, count)
+  values (p_user_id, 'day', v_day_start, 1)
+  on conflict (user_id, window_kind, window_start)
+  do update set count = public.rate_limit_windows.count + 1
+  returning count into v_day_count;
+
+  if v_day_count > p_day_limit then
+    return query select
+      false,
+      'day'::text,
+      greatest(
+        1,
+        ceil(extract(epoch from (v_day_start + interval '1 day' - v_now)))::integer
+      );
+    return;
+  end if;
+
+  return query select true, null::text, 0;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- RAG documents/chunks live in the separate CoursePilot-RAG database.
 -- ---------------------------------------------------------------------------
 
@@ -111,3 +187,4 @@ alter table public.courses       enable row level security;
 alter table public.canvas_accounts enable row level security;
 alter table public.academic_tasks enable row level security;
 alter table public.announcements enable row level security;
+alter table public.rate_limit_windows enable row level security;

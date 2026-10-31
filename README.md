@@ -85,6 +85,7 @@ src/
     ai/
       rag.ts                 RAG service client + course resolution
       ingest.ts              Canvas course → RAG ingestion client
+    rate-limit.ts            Postgres-backed per-user request limits
 supabase/
   schema.sql                 CoursePilot tables + RLS
 ```
@@ -118,6 +119,19 @@ never stored by RAG).
   are reported in the sync result and retried on the next re-index; they never
   roll back courses/tasks/announcements.
 - **Disable:** set `RAG_INGESTION_ENABLED=false`.
+
+## Rate limiting
+
+`/api/ask` is the most expensive route (Gemini embedding + generation), so each
+user gets a minute and a day budget enforced in Postgres:
+
+- `RATE_LIMIT_PER_MINUTE` (default `10`)
+- `RATE_LIMIT_PER_DAY` (default `200`)
+
+Calls are counted by the `check_rate_limit()` SQL function, so all serverless
+instances share counters without Redis/Upstash. Over-limit requests return
+`429` with a `Retry-After` header. If the limiter itself errors, requests fail
+open rather than locking users out.
 
 ## Notes
 
