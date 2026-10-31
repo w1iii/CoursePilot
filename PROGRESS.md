@@ -49,8 +49,12 @@ Working local demo. Build + lint green.
 ### RAG
 
 - [x] Separate RAG DB/schema (`documents`, `chunks`)
-- [x] Chat auth via `X-RAG-Token`
+- [x] Chat auth via `X-RAG-Token`; admin auth via `X-Admin-Token`
 - [x] Course-scoped citation answers
+- [x] Course-level Canvas ingestion endpoint (`/api/v1/ingestion/canvas-course`)
+- [x] Sync-triggered ingestion using the user's Canvas token
+- [x] Modules-only scope (Files + Pages); skips unsupported item types
+- [x] Per-item failures tolerated and reported
 - [x] Gemini fallback planned; local model `gemini-3.6-flash`
 
 ### Verified
@@ -59,6 +63,14 @@ Working local demo. Build + lint green.
 - [x] `npm run lint`
 - [x] `npx tsc --noEmit`
 - [x] RAG `/health`, ingest, chat
+
+### Canvas → RAG
+
+- [x] `POST /api/v1/ingestion/canvas-course` in the RAG service
+- [x] Transient per-user Canvas credentials (never persisted by RAG)
+- [x] Sync indexes up to `RAG_INGEST_MAX_COURSES` due courses per run
+- [x] Re-index window via `RAG_REINDEX_HOURS`
+- [x] Per-item errors/skips returned, sync never rolled back
 
 ### Multi-user Canvas
 
@@ -70,7 +82,6 @@ Working local demo. Build + lint green.
 ## Next
 
 - [ ] Canvas OAuth (deferred until developer key is available)
-- [ ] Canvas modules → automatic RAG ingestion
 - [ ] Hosted Neon RAG DB + hosted RAG service
 - [ ] Vercel deployment
 - [ ] Task CRUD UI

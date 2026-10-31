@@ -84,6 +84,7 @@ src/
     sync.ts                  Canvas sync pipeline (courses/tasks/announcements)
     ai/
       rag.ts                 RAG service client + course resolution
+      ingest.ts              Canvas course → RAG ingestion client
 supabase/
   schema.sql                 CoursePilot tables + RLS
 ```
@@ -101,6 +102,22 @@ supabase/
 | PATCH | `/api/tasks/:id` | Update status/notes/priority/due date |
 | DELETE | `/api/tasks/:id` | Delete manual task (Canvas-synced tasks can't be deleted) |
 | POST | `/api/ask` | RAG question → CoursePilot-RAG answer + citations |
+
+## Canvas → RAG ingestion
+
+Sync keeps Canvas metadata in Supabase and also indexes course material into the
+RAG service, using the signed-in user's Canvas credentials (sent per request,
+never stored by RAG).
+
+- **Scope:** Canvas module **Files** (PDF, HTML, PPTX) and **Pages** only.
+  Assignments, quizzes, external URLs, external tools, and subheaders are skipped.
+- **Cadence:** each sync re-indexes up to `RAG_INGEST_MAX_COURSES` courses whose
+  `rag_indexed_at` is empty or older than `RAG_REINDEX_HOURS`. This spreads a
+  large account across syncs and avoids embedding-quota bursts.
+- **Failures:** item-level failures (oversized files, empty pages, Gemini 429s)
+  are reported in the sync result and retried on the next re-index; they never
+  roll back courses/tasks/announcements.
+- **Disable:** set `RAG_INGESTION_ENABLED=false`.
 
 ## Notes
 

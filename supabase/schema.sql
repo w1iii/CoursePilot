@@ -45,6 +45,10 @@ create table if not exists public.courses (
   course_name       text not null,
   instructor        text,
   semester          text,
+  rag_indexed_at    timestamptz,
+  rag_document_count int,
+  rag_chunk_count   int,
+  rag_failure_count int,
   created_at        timestamptz not null default now(),
   unique (user_id, canvas_course_id)
 );

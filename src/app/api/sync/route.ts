@@ -3,6 +3,9 @@ import { requireUser, UnauthorizedError } from "@/lib/user";
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import { syncCanvas } from "@/lib/sync";
 
+// Canvas + RAG ingestion can exceed the default serverless budget.
+export const maxDuration = 300;
+
 export async function POST() {
   try {
     const user = await requireUser();

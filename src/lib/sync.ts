@@ -11,6 +11,12 @@ import {
   markCanvasAccountInvalid,
   markCanvasAccountValid,
 } from "@/lib/canvas-account";
+import {
+  ingestCanvasCourse,
+  ragIngestMaxCourses,
+  ragIngestionEnabled,
+  ragReindexHours,
+} from "@/lib/ai/ingest";
 import { supabaseAdmin } from "@/lib/supabase";
 import type { AppUser } from "@/lib/user";
 
@@ -19,6 +25,10 @@ export interface SyncResult {
   tasks: number;
   announcements: number;
   documents: number;
+  ragDocuments: number;
+  ragChunks: number;
+  ragFailures: number;
+  ragSkipped: number;
   errors: string[];
 }
 
@@ -51,6 +61,10 @@ export async function syncCanvas(user: AppUser): Promise<SyncResult> {
     tasks: 0,
     announcements: 0,
     documents: 0,
+    ragDocuments: 0,
+    ragChunks: 0,
+    ragFailures: 0,
+    ragSkipped: 0,
     errors: [],
   };
 
@@ -106,10 +120,77 @@ export async function syncCanvas(user: AppUser): Promise<SyncResult> {
     }
   }
 
+  if (ragIngestionEnabled()) {
+    await ingestDueCourses(sb, user.id, credentials, result);
+  }
+
   return result;
 }
 
 type SupabaseAdmin = ReturnType<typeof supabaseAdmin>;
+
+/**
+ * Ingest the least-recently-indexed courses into RAG, capped per sync so a
+ * large Canvas account does not exceed request timeouts or embedding quotas.
+ */
+async function ingestDueCourses(
+  sb: SupabaseAdmin,
+  userId: string,
+  credentials: CanvasCredentials,
+  result: SyncResult,
+): Promise<void> {
+  const cutoff = new Date(Date.now() - ragReindexHours() * 60 * 60 * 1000).toISOString();
+
+  const { data: dueCourses, error } = await sb
+    .from("courses")
+    .select("id, canvas_course_id, course_name")
+    .eq("user_id", userId)
+    .or(`rag_indexed_at.is.null,rag_indexed_at.lt.${cutoff}`)
+    .order("rag_indexed_at", { ascending: true, nullsFirst: true })
+    .limit(ragIngestMaxCourses());
+
+  if (error) {
+    result.errors.push(`RAG ingestion skipped: ${error.message}`);
+    return;
+  }
+
+  for (const course of dueCourses ?? []) {
+    try {
+      const ingestion = await ingestCanvasCourse({
+        canvasCourseId: course.canvas_course_id,
+        canvasBaseUrl: credentials.baseUrl,
+        canvasAccessToken: credentials.token,
+      });
+
+      result.ragDocuments += ingestion.documents;
+      result.ragChunks += ingestion.chunks;
+      result.ragFailures += ingestion.failures;
+      result.ragSkipped += ingestion.skipped;
+
+      if (ingestion.failures > 0) {
+        result.errors.push(
+          `RAG ingestion for ${course.course_name}: ${ingestion.failures} item(s) failed`,
+        );
+      }
+
+      const { error: updateError } = await sb
+        .from("courses")
+        .update({
+          rag_indexed_at: new Date().toISOString(),
+          rag_document_count: ingestion.documents,
+          rag_chunk_count: ingestion.chunks,
+          rag_failure_count: ingestion.failures,
+        })
+        .eq("id", course.id);
+
+      if (updateError) {
+        result.errors.push(`RAG index status update failed (${course.course_name}): ${updateError.message}`);
+      }
+    } catch (err) {
+      result.errors.push(`RAG ingestion failed (${course.course_name}): ${(err as Error).message}`);
+    }
+  }
+}
 
 async function syncAssignments(
   sb: SupabaseAdmin,

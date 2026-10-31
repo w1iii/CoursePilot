@@ -8,6 +8,10 @@ interface SyncResponse {
   tasks: number;
   announcements: number;
   documents: number;
+  ragDocuments: number;
+  ragChunks: number;
+  ragFailures: number;
+  ragSkipped: number;
   errors: string[];
 }
 
@@ -54,6 +58,13 @@ export default function SyncButton({ connected }: { connected: boolean }) {
             Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
             announcements.
           </p>
+          {(result.ragDocuments > 0 || result.ragChunks > 0) && (
+            <p>
+              Indexed {result.ragDocuments} documents ({result.ragChunks} chunks)
+              {result.ragFailures > 0 ? `, ${result.ragFailures} failed` : ""}
+              {result.ragSkipped > 0 ? `, ${result.ragSkipped} skipped` : ""}.
+            </p>
+          )}
           {result.errors.length > 0 && (
             <ul className="mt-1 list-disc pl-4 text-red-600">
               {result.errors.slice(0, 5).map((msg) => (
