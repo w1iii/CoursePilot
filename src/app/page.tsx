@@ -6,6 +6,7 @@ import Workflow from "@/components/landing/Workflow";
 import WeaveView from "@/components/landing/WeaveView";
 import AskHabi from "@/components/landing/AskHabi";
 import Reveal from "@/components/landing/Reveal";
+import NavLinks from "@/components/landing/NavLinks";
 import SmoothScroll from "@/components/landing/SmoothScroll";
 import Faq from "@/components/landing/Faq";
 
@@ -45,38 +46,7 @@ export default function Home() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-space-lg lg:flex">
-            <a
-              href="#how-it-works"
-              className="rounded-lg bg-surface-container-high px-space-md py-space-xs font-bold text-primary"
-            >
-              How it works
-            </a>
-            <a
-              href="#features"
-              className="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              Features
-            </a>
-            <a
-              href="#weave-preview"
-              className="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              Weave View
-            </a>
-            <a
-              href="#ask-habi"
-              className="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              Ask Habi
-            </a>
-            <a
-              href="#faq"
-              className="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              FAQ
-            </a>
-          </nav>
+          <NavLinks />
 
           <div className="flex items-center gap-space-md">
             <SoundToggle />
@@ -574,14 +544,6 @@ export default function Home() {
                   </li>
                   <li className="font-body-sm text-body-sm">
                     <a
-                      href="#features"
-                      className="text-on-surface-variant transition-colors hover:text-primary"
-                    >
-                      Features
-                    </a>
-                  </li>
-                  <li className="font-body-sm text-body-sm">
-                    <a
                       href="#weave-preview"
                       className="text-on-surface-variant transition-colors hover:text-primary"
                     >
@@ -594,6 +556,14 @@ export default function Home() {
                       className="text-on-surface-variant transition-colors hover:text-primary"
                     >
                       Ask Habi (RAG)
+                    </a>
+                  </li>
+                  <li className="font-body-sm text-body-sm">
+                    <a
+                      href="#features"
+                      className="text-on-surface-variant transition-colors hover:text-primary"
+                    >
+                      Features
                     </a>
                   </li>
                 </ul>
