@@ -1,25 +1,10 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import LoomOrbit, { type OrbitCourse } from "./LoomOrbit";
 
 type CourseOption = OrbitCourse;
-
-interface RagSource {
-  id: string;
-  label: string;
-  title: string;
-  source_type: string;
-  chunk_index: number;
-}
-
-interface RagResponse {
-  answer: string;
-  sources: RagSource[];
-  model: string;
-  grounded: boolean;
-  course: { id: string; name: string };
-}
 
 interface Props {
   userName: string;
@@ -29,10 +14,8 @@ interface Props {
 export default function AskBox({ userName, courses }: Props) {
   const [question, setQuestion] = useState("");
   const [courseId, setCourseId] = useState(courses[0]?.id ?? "");
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<RagResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const activeCourse = useMemo(
     () => courses.find((course) => course.id === courseId) ?? courses[0],
@@ -80,25 +63,19 @@ export default function AskBox({ userName, courses }: Props) {
     focusInput();
   }
 
-  async function ask(event: React.FormEvent) {
+  function ask(event: React.FormEvent) {
     event.preventDefault();
     if (!question.trim() || courses.length === 0) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, course_id: courseId || undefined }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Request failed");
-      setData(json);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
+
+    const params = new URLSearchParams({
+      tid:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : String(Date.now()),
+      q: question.trim(),
+      course: courseId || courses[0]?.id || "",
+    });
+    router.push(`/dashboard/thread?${params.toString()}`);
   }
 
   return (
@@ -152,35 +129,17 @@ export default function AskBox({ userName, courses }: Props) {
 
       <form
         onSubmit={ask}
-        className="relative z-10 mt-space-xl flex flex-col items-stretch gap-space-sm rounded-2xl border border-border bg-surface-container-low/90 p-2 shadow-inner sm:flex-row sm:items-center"
+        className="relative z-10 mt-space-xl flex flex-col items-stretch gap-space-sm rounded-2xl p-2 sm:flex-row sm:items-center"
       >
-        <div className="flex shrink-0 items-center">
-          <label className="sr-only" htmlFor="ragCourseScope">
-            Course scope
-          </label>
-          <select
-            id="ragCourseScope"
-            value={courseId}
-            onChange={(event) => setCourseId(event.target.value)}
-            disabled={courses.length === 0}
-            className="w-full max-w-[240px] cursor-pointer truncate rounded-lg border border-border bg-surface px-space-sm py-2 font-code-tag text-code-tag text-primary shadow-sm focus:outline-none disabled:cursor-not-allowed disabled:text-text-muted sm:w-auto"
-          >
-            {courses.length === 0 && <option value="">No courses synced</option>}
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.code ?? course.name}
-              </option>
-            ))}
-          </select>
-        </div>
         <input
           ref={inputRef}
           value={question}
+          maxLength={2000}
           onChange={(event) => setQuestion(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
-              void ask(event);
+              ask(event);
             }
           }}
           placeholder={
@@ -192,15 +151,11 @@ export default function AskBox({ userName, courses }: Props) {
         />
         <button
           type="submit"
-          disabled={loading || courses.length === 0 || !question.trim()}
+          disabled={courses.length === 0 || !question.trim()}
           className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary-container px-space-lg py-2.5 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span>{loading ? "Weaving…" : "Send"}</span>
-          <span
-            className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}
-          >
-            {loading ? "progress_activity" : "arrow_upward"}
-          </span>
+          <span>Send</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
         </button>
       </form>
 
@@ -213,59 +168,6 @@ export default function AskBox({ userName, courses }: Props) {
         </p>
       )}
 
-      {error && (
-        <p className="relative z-10 mt-space-md rounded-xl border border-error/30 bg-error-container/50 px-space-md py-space-sm font-body-sm text-body-sm text-on-error-container">
-          {error}
-        </p>
-      )}
-
-      {data && (
-        <article className="rag-fade-in relative z-10 mt-space-xl overflow-hidden rounded-2xl border border-border bg-surface/90 p-space-lg shadow-sm backdrop-blur-sm">
-          <header className="mb-space-sm flex flex-wrap items-center gap-space-sm border-b border-border pb-space-sm">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-container font-display text-sm text-dark-text">
-              h
-            </span>
-            <h3 className="font-headline-sm text-headline-sm text-primary-container">
-              Habi&apos;s weave
-            </h3>
-            <span className="rounded-full bg-secondary-container px-space-sm py-0.5 font-code-tag text-code-tag text-on-secondary-container">
-              {data.course.name}
-            </span>
-            <span
-              className={`ml-auto rounded-full px-space-sm py-0.5 font-code-tag text-code-tag ${
-                data.grounded
-                  ? "bg-primary-fixed text-on-primary-fixed-variant"
-                  : "bg-surface-container-high text-text-muted"
-              }`}
-            >
-              {data.grounded ? "Grounded" : "General"}
-            </span>
-          </header>
-          <p className="whitespace-pre-wrap font-body-md text-body-md leading-relaxed text-on-surface">
-            {data.answer}
-          </p>
-          {data.sources.length > 0 && (
-            <div className="mt-space-md border-t border-border pt-space-sm">
-              <p className="mb-space-xs font-code-tag text-code-tag uppercase tracking-wide text-text-muted">
-                Threads pulled from your courses
-              </p>
-              <ul className="flex flex-wrap gap-2">
-                {data.sources.map((source) => (
-                  <li
-                    key={`${source.id}-${source.label}`}
-                    className="rounded-lg bg-surface-container px-space-sm py-1 font-body-sm text-body-sm text-on-surface-variant"
-                  >
-                    <span className="font-code-tag text-code-tag text-primary">
-                      [{source.label}]
-                    </span>{" "}
-                    {source.title} · {source.source_type}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </article>
-      )}
     </section>
   );
 }
