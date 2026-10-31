@@ -143,6 +143,12 @@
     padding: 0;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
   body {
     overscroll-behavior: none;
     background: var(--color-background);

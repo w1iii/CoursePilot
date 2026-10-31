@@ -5,6 +5,7 @@ import HeroLoom from "@/components/landing/HeroLoom";
 import Workflow from "@/components/landing/Workflow";
 import WeaveView from "@/components/landing/WeaveView";
 import AskHabi from "@/components/landing/AskHabi";
+import Reveal from "@/components/landing/Reveal";
 import Faq from "@/components/landing/Faq";
 
 function WeaveMark() {
@@ -259,19 +260,23 @@ export default function Home() {
             id="how-it-works"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
-            <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
-              <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
-                The Loom Workflow
-              </span>
-              <h2 className="font-headline-lg text-headline-lg text-primary-container">
-                From scattered threads to one tidy weave
-              </h2>
-              <p className="font-body-md text-body-md text-text-muted">
-                Crafted after traditional Filipino loom mechanics: intake raw fiber, align warp and
-                weft, and wear an effortless pattern.
-              </p>
-            </div>
-            <Workflow />
+            <Reveal>
+              <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
+                <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
+                  The Loom Workflow
+                </span>
+                <h2 className="font-headline-lg text-headline-lg text-primary-container">
+                  From scattered threads to one tidy weave
+                </h2>
+                <p className="font-body-md text-body-md text-text-muted">
+                  Crafted after traditional Filipino loom mechanics: intake raw fiber, align warp
+                  and weft, and wear an effortless pattern.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <Workflow />
+            </Reveal>
           </section>
 
           {/* ============ WEAVE VIEW ============ */}
@@ -279,7 +284,9 @@ export default function Home() {
             id="weave-preview"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
-            <WeaveView />
+            <Reveal>
+              <WeaveView />
+            </Reveal>
           </section>
 
           {/* ============ ASK COURSEPILOT ============ */}
@@ -287,7 +294,9 @@ export default function Home() {
             id="ask-habi"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
-            <AskHabi />
+            <Reveal>
+              <AskHabi />
+            </Reveal>
           </section>
 
           {/* ============ FEATURES ============ */}
@@ -295,19 +304,22 @@ export default function Home() {
             id="features"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
-            <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
-              <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
-                Crafted Capabilities
-              </span>
-              <h2 className="font-headline-lg text-headline-lg text-primary-container">
-                Engineered for students who value their calm
-              </h2>
-              <p className="font-body-md text-body-md text-text-muted">
-                No cluttered dashboards or gamified badges. Just purposeful academic clarity drawn
-                straight from your coursework.
-              </p>
-            </div>
+            <Reveal>
+              <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
+                <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
+                  Crafted Capabilities
+                </span>
+                <h2 className="font-headline-lg text-headline-lg text-primary-container">
+                  Engineered for students who value their calm
+                </h2>
+                <p className="font-body-md text-body-md text-text-muted">
+                  No cluttered dashboards or gamified badges. Just purposeful academic clarity
+                  drawn straight from your coursework.
+                </p>
+              </div>
+            </Reveal>
 
+            <Reveal delay={120}>
             <div className="grid grid-cols-1 gap-space-xl md:grid-cols-2">
               <div className="feature-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-surface p-space-xl shadow-sm transition-all duration-200">
                 <div className="edge-strand absolute inset-y-0 left-0 w-1.5 bg-primary-container opacity-80" />
@@ -408,10 +420,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            </Reveal>
           </section>
 
           {/* ============ STUDENT PRAISE ============ */}
           <section className="mx-auto w-full max-w-[1120px] px-gutter py-space-2xl">
+            <Reveal>
             <div className="flex flex-col items-center justify-between gap-space-2xl rounded-xl border border-secondary/15 bg-surface-container-high/60 p-space-xl sm:p-space-2xl md:flex-row">
               <div className="max-w-lg space-y-space-xs">
                 <span className="font-code-tag text-code-tag font-semibold uppercase text-surface-tint">
@@ -444,6 +458,7 @@ export default function Home() {
                 </span>
               </div>
             </div>
+            </Reveal>
           </section>
 
           {/* ============ FAQ ============ */}
@@ -451,23 +466,28 @@ export default function Home() {
             id="faq"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
-            <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
-              <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
-                Clear Answers
-              </span>
-              <h2 className="font-headline-lg text-headline-lg text-primary-container">
-                Frequently asked questions
-              </h2>
-              <p className="font-body-md text-body-md text-text-muted">
-                Everything you need to know about our Canvas connection, safety standards, and
-                student privacy.
-              </p>
-            </div>
-            <Faq />
+            <Reveal>
+              <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
+                <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
+                  Clear Answers
+                </span>
+                <h2 className="font-headline-lg text-headline-lg text-primary-container">
+                  Frequently asked questions
+                </h2>
+                <p className="font-body-md text-body-md text-text-muted">
+                  Everything you need to know about our Canvas connection, safety standards, and
+                  student privacy.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <Faq />
+            </Reveal>
           </section>
 
           {/* ============ FINAL CTA ============ */}
           <section className="mx-auto w-full max-w-[1120px] px-gutter pb-space-4xl pt-space-2xl">
+            <Reveal>
             <div className="relative flex flex-col items-center overflow-hidden rounded-xl bg-primary-container p-space-2xl text-center text-dark-text sm:p-space-4xl">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#fae194_1px,transparent_1px)] opacity-10 [background-size:20px_20px]" />
               <span className="mb-space-xs font-code-tag text-code-tag font-semibold uppercase tracking-widest text-dark-secondary">
@@ -511,6 +531,7 @@ export default function Home() {
                 needed.
               </p>
             </div>
+            </Reveal>
           </section>
         </div>
       </main>
