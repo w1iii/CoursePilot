@@ -6,6 +6,7 @@ import Workflow from "@/components/landing/Workflow";
 import WeaveView from "@/components/landing/WeaveView";
 import AskHabi from "@/components/landing/AskHabi";
 import Reveal from "@/components/landing/Reveal";
+import SmoothScroll from "@/components/landing/SmoothScroll";
 import Faq from "@/components/landing/Faq";
 
 function WeaveMark() {
@@ -111,6 +112,7 @@ export default function Home() {
       </header>
 
       <main className="w-full bg-background pt-20">
+        <SmoothScroll />
         <div className="flex w-full flex-col">
           {/* ============ HERO ============ */}
           <div className="relative w-full overflow-hidden">
