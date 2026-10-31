@@ -5,6 +5,7 @@ import { getCanvasStatus } from "@/lib/canvas-account";
 import AskBox from "./AskBox";
 import CanvasConnect from "./CanvasConnect";
 import SyncButton from "./SyncButton";
+import TaskManager from "./TaskManager";
 
 async function loadCourseContent(courseIds: string[]) {
   if (courseIds.length === 0) {
@@ -158,6 +159,14 @@ export default async function DashboardPage() {
           )}
         </section>
       </div>
+
+      <TaskManager
+        courses={(courses ?? []).map((c) => ({
+          id: c.id,
+          name: c.course_name,
+          code: c.course_code,
+        }))}
+      />
 
       <AskBox
         courses={(courses ?? []).map((c) => ({

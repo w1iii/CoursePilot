@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 const VALID_STATUSES = new Set(["pending", "completed"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
+const VALID_TYPES = new Set(["assignment", "quiz", "exam", "project", "activity", "reading"]);
 
 async function ownsTask(userId: string, taskId: string) {
   const sb = supabaseAdmin();
@@ -46,6 +47,15 @@ export async function PATCH(
         return NextResponse.json({ error: "priority must be low, medium, or high" }, { status: 400 });
       }
       updates.priority = body.priority;
+    }
+    if (body?.type !== undefined) {
+      if (!VALID_TYPES.has(body.type)) {
+        return NextResponse.json(
+          { error: `type must be one of: ${[...VALID_TYPES].join(", ")}` },
+          { status: 400 },
+        );
+      }
+      updates.type = body.type;
     }
     if (body?.notes !== undefined) updates.notes = body.notes;
     if (body?.title !== undefined) updates.title = body.title;
