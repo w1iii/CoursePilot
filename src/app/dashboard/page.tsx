@@ -56,7 +56,7 @@ export default async function DashboardPage() {
         <div className="ambient-woven-dots absolute inset-0 opacity-60" />
       </div>
 
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 shadow-[0_1px_2px_rgba(21,55,13,0.05)] backdrop-blur-md">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/25 bg-white/10 shadow-[0_1px_8px_rgba(21,55,13,0.06)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/10">
         <div className="mx-auto flex h-20 max-w-[1120px] items-center justify-between gap-space-lg px-gutter">
           <div className="flex items-center gap-space-2xl">
             <a
