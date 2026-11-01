@@ -2,16 +2,16 @@ function LoadingSidebar() {
   return (
     <aside
       aria-hidden="true"
-      className="hidden h-full w-[260px] shrink-0 flex-col overflow-hidden border-r border-border bg-surface-container-low md:flex"
+      className="hidden h-full w-[240px] shrink-0 flex-col overflow-hidden border-r border-border bg-surface-container-low md:flex"
     >
-      <div className="flex h-16 w-[260px] shrink-0 items-center justify-between border-b border-border px-4">
+      <div className="flex h-14 w-[240px] shrink-0 items-center justify-between border-b border-border px-3">
         <div className="h-6 w-16 animate-pulse rounded bg-surface-container" />
         <div className="h-8 w-8 animate-pulse rounded-lg bg-surface-container" />
       </div>
-      <div className="w-[260px] shrink-0 p-3">
+      <div className="w-[240px] shrink-0 p-2">
         <div className="h-10 w-full animate-pulse rounded-lg bg-primary-container/50" />
       </div>
-      <div className="w-[260px] min-h-0 flex-1 px-3">
+      <div className="w-[240px] min-h-0 flex-1 px-2">
         <div className="space-y-1">
           {[72, 92, 82].map((width) => (
             <div
@@ -33,7 +33,7 @@ function LoadingSidebar() {
           ))}
         </div>
       </div>
-      <div className="w-[260px] shrink-0 border-t border-border p-3">
+      <div className="w-[240px] shrink-0 border-t border-border p-2">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 animate-pulse rounded-full bg-secondary-container" />
           <div className="space-y-1">
@@ -60,4 +60,3 @@ export default function LoadingShell({ children }: { children: React.ReactNode }
     </div>
   );
 }
-
