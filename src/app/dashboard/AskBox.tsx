@@ -115,6 +115,37 @@ export default function AskBox({ userName, courses }: Props) {
               ))}
             </div>
           </div>
+          <form
+            onSubmit={ask}
+            className="relative z-10 mt-space-xl flex flex-col items-stretch gap-space-sm rounded-2xl p-2 sm:flex-row sm:items-center"
+          >
+            <input
+              ref={inputRef}
+              value={question}
+              maxLength={2000}
+              onChange={(event) => setQuestion(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  ask(event);
+                }
+              }}
+              placeholder={
+                courses.length === 0
+                  ? "Connect Canvas and sync so Habi can search your course material…"
+                  : "Ask Habi about your courses, problem sets, or notices…"
+              }
+              className="w-full min-w-0 flex-1 rounded-full border border-border bg-white px-space-md py-2 font-body-sm text-body-sm text-on-surface placeholder:text-text-muted focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={courses.length === 0 || !question.trim()}
+              className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary-container px-space-lg py-2.5 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>Send</span>
+              <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+            </button>
+          </form>
         </div>
 
         <div className="flex items-center justify-center py-space-sm lg:col-span-6">
@@ -127,37 +158,7 @@ export default function AskBox({ userName, courses }: Props) {
         </div>
       </div>
 
-      <form
-        onSubmit={ask}
-        className="relative z-10 mt-space-xl flex flex-col items-stretch gap-space-sm rounded-2xl p-2 sm:flex-row sm:items-center"
-      >
-        <input
-          ref={inputRef}
-          value={question}
-          maxLength={2000}
-          onChange={(event) => setQuestion(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              ask(event);
-            }
-          }}
-          placeholder={
-            courses.length === 0
-              ? "Connect Canvas and sync so Habi can search your course material…"
-              : "Ask Habi about your courses, problem sets, or notices…"
-          }
-          className="w-full min-w-0 flex-1 rounded-full border border-border bg-white px-space-md py-2 font-body-sm text-body-sm text-on-surface placeholder:text-text-muted focus:outline-none"
-        />
-        <button
-          type="submit"
-          disabled={courses.length === 0 || !question.trim()}
-          className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary-container px-space-lg py-2.5 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <span>Send</span>
-          <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
-        </button>
-      </form>
+      
 
       {courses.length === 0 && (
         <p className="relative z-10 mt-space-sm text-center font-body-sm text-body-sm text-text-muted">
