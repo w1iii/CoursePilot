@@ -10,7 +10,6 @@ export interface SavedThread {
   updatedAt: string;
 }
 
-export const THREAD_INDEX_KEY = "habi:threads";
 export const THREADS_CHANGED_EVENT = "habi:threads-changed";
 
 interface Props {
@@ -21,15 +20,6 @@ interface Props {
   onCloseMobile: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
-}
-
-function readThreads(): SavedThread[] {
-  try {
-    const value = JSON.parse(localStorage.getItem(THREAD_INDEX_KEY) ?? "[]");
-    return Array.isArray(value) ? value : [];
-  } catch {
-    return [];
-  }
 }
 
 function dateLabel(value: string): string {
@@ -52,8 +42,13 @@ export default function ThreadSidebar({
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const refresh = () => setThreads(readThreads());
-    refresh();
+    const refresh = async () => {
+      const response = await fetch("/api/threads", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json() as SavedThread[];
+      setThreads(data);
+    };
+    void refresh();
     window.addEventListener(THREADS_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(THREADS_CHANGED_EVENT, refresh);
   }, []);
@@ -76,6 +71,17 @@ export default function ThreadSidebar({
     ].filter((group) => group.items.length > 0);
   }, [search, threads]);
 
+  async function deleteThread(threadId: string) {
+    try {
+      const response = await fetch(`/api/threads/${encodeURIComponent(threadId)}`, { method: "DELETE" });
+      if (!response.ok) return;
+      setThreads((current) => current.filter((thread) => thread.id !== threadId));
+      window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
+    } catch {
+      // Keep the existing item visible when the request fails.
+    }
+  }
+
   return (
     <>
       {mobileOpen && (
@@ -90,19 +96,19 @@ export default function ThreadSidebar({
         id="habi-sidebar"
         aria-label="Sidebar"
         className={`z-40 flex h-full shrink-0 flex-col overflow-hidden border-r border-border bg-surface-container-low text-on-surface transition-[width,transform] duration-200 ${
-          collapsed ? "w-14" : "w-[260px]"
+          collapsed ? "w-[52px]" : "w-[240px]"
         } ${
           mobileOpen
-            ? "fixed inset-y-0 left-0 w-[min(280px,85vw)] translate-x-0 shadow-[8px_0_28px_rgba(21,55,13,0.16)]"
+            ? "fixed inset-y-0 left-0 w-[min(260px,85vw)] translate-x-0 shadow-[8px_0_28px_rgba(21,55,13,0.16)]"
             : "fixed inset-y-0 left-0 -translate-x-full md:static md:translate-x-0 md:shadow-none"
         } md:flex`}
       >
         <div
-          className={`flex h-16 w-[260px] shrink-0 items-center border-b border-border px-4 ${
+          className={`flex h-14 w-[240px] shrink-0 items-center border-b border-border px-3 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
-          <Link href="/dashboard" onClick={onCloseMobile} className="flex items-center gap-2">
+          <Link href="/dashboard" onClick={onCloseMobile} className="flex items-center gap-1.5">
             <span
               className={`font-headline-md text-headline-md lowercase tracking-tight text-primary-container ${
                 collapsed ? "hidden" : ""
@@ -134,12 +140,12 @@ export default function ThreadSidebar({
           </button>
         </div>
 
-        <div className={`w-[260px] shrink-0 p-3 ${collapsed ? "px-2" : ""}`}>
+        <div className={`w-[240px] shrink-0 p-2 ${collapsed ? "px-1.5" : ""}`}>
           <Link
             href="/dashboard/thread"
             onClick={onCloseMobile}
-            className={`group flex items-center gap-2 rounded-lg bg-primary-container py-2.5 font-label-md text-label-md text-dark-text shadow-sm transition-colors hover:bg-primary-hover ${
-              collapsed ? "justify-center px-0" : "px-3"
+            className={`group flex min-h-9 items-center gap-2 rounded-lg bg-primary-container px-2.5 py-2 font-label-md text-label-md text-dark-text shadow-sm transition-colors hover:bg-primary-hover ${
+              collapsed ? "justify-center px-0" : ""
             }`}
             title={collapsed ? "New chat" : undefined}
           >
@@ -152,14 +158,13 @@ export default function ThreadSidebar({
         </div>
 
         <div
-          className={`w-[260px] min-h-0 flex-1 overflow-y-auto pb-4 ${
-            collapsed ? "px-2" : "px-3"
+          className={`w-[240px] min-h-0 flex-1 overflow-y-auto pb-3 ${
+            collapsed ? "px-1.5" : "px-2"
           }`}
         >
-          <nav className="mb-5 space-y-1">
+          <nav className="mb-4 space-y-0.5">
             {[
               { label: "Chats", icon: "chat_bubble", href: "/dashboard/thread" },
-              { label: "Projects", icon: "folder", href: "/dashboard#courses" },
               { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
             ].map((item) => {
               const active =
@@ -172,7 +177,7 @@ export default function ThreadSidebar({
                   href={item.href}
                   onClick={onCloseMobile}
                   title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 font-label-sm text-label-sm transition-colors ${
+                  className={`flex min-h-8 items-center gap-2.5 rounded-lg px-2.5 py-1.5 font-label-sm text-label-sm transition-colors ${
                     collapsed ? "justify-center px-0" : ""
                   } ${
                     active
@@ -188,52 +193,65 @@ export default function ThreadSidebar({
           </nav>
           {!collapsed && (
             <label className="relative mb-4 block">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-text-muted">
+              <span className="material-symbols-outlined absolute left-2.5 top-2 text-[17px] text-text-muted">
                 search
               </span>
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search chats"
-                className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 font-body-sm text-body-sm text-on-surface outline-none placeholder:text-text-muted focus:border-tertiary-container"
+                className="w-full rounded-lg border border-border bg-surface py-1.5 pl-8 pr-2.5 font-body-sm text-body-sm text-on-surface outline-none placeholder:text-text-muted focus:border-tertiary-container"
               />
             </label>
           )}
           <p
-            className={`px-3 pb-2 pt-2 font-code-tag text-[10px] uppercase tracking-wider text-text-muted ${
+            className={`px-2 pb-1.5 pt-1.5 text-[11px] leading-4 text-text-muted ${
               collapsed ? "hidden" : ""
             }`}
           >
-            Recent chats
+            Recents
           </p>
           {!collapsed && threads.length === 0 ? (
-            <p className="px-3 py-2 font-body-sm text-body-sm text-text-muted">
+            <p className="px-2 py-1.5 font-body-sm text-body-sm text-text-muted">
               Your conversations will appear here.
             </p>
           ) : !collapsed ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {groupedThreads.map((group) => (
                 <div key={group.label}>
-                  <p className="px-3 pb-1 font-code-tag text-[10px] uppercase tracking-wider text-text-muted">
+                  <p className="px-2 pb-1 text-[11px] leading-4 text-text-muted">
                     {group.label}
                   </p>
                   <div className="space-y-1">
                     {group.items.map((thread) => (
-                      <Link
+                      <div
                         key={thread.id}
-                        href={`/dashboard/thread?tid=${encodeURIComponent(thread.id)}`}
-                        onClick={onCloseMobile}
-                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 font-body-sm text-body-sm transition-colors ${
+                        className={`group flex min-h-8 items-center gap-1.5 rounded-lg px-2 py-1.5 font-body-sm text-body-sm transition-colors ${
                           activeThreadId === thread.id
                             ? "bg-secondary-container text-on-secondary-container"
                             : "text-text-muted hover:bg-surface-container hover:text-on-surface"
                         }`}
                       >
-                        <span className="min-w-0 truncate">{thread.title}</span>
-                        <span className="shrink-0 font-code-tag text-[10px] opacity-70">
+                        <Link
+                          href={`/dashboard/thread?tid=${encodeURIComponent(thread.id)}`}
+                          onClick={onCloseMobile}
+                          className="min-w-0 flex-1 truncate"
+                        >
+                          {thread.title}
+                        </Link>
+                        <span className="shrink-0 font-code-tag text-[9px] opacity-70">
                           {dateLabel(thread.updatedAt)}
                         </span>
-                      </Link>
+                        <button
+                          type="button"
+                          onClick={() => deleteThread(thread.id)}
+                          className="shrink-0 rounded-md p-1 text-text-muted opacity-0 transition-opacity hover:bg-error-container hover:text-on-error-container group-hover:opacity-100 focus-visible:opacity-100"
+                          aria-label={`Delete ${thread.title}`}
+                          title="Delete chat"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -247,13 +265,13 @@ export default function ThreadSidebar({
           ) : null}
         </div>
 
-        <div className={`w-[260px] shrink-0 border-t border-border p-3 ${collapsed ? "px-2" : ""}`}>
+        <div className={`w-[240px] shrink-0 border-t border-border p-2 ${collapsed ? "px-1.5" : ""}`}>
           <div
-            className={`flex items-center gap-2 rounded-lg py-2 ${
+            className={`flex items-center gap-2 rounded-lg py-1.5 ${
               collapsed ? "justify-center px-0" : "px-2"
             }`}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary-container font-label-sm text-label-sm font-semibold text-on-secondary-container">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-container text-xs font-semibold text-on-secondary-container">
               {userName.slice(0, 1).toUpperCase()}
             </div>
             <div className={`min-w-0 ${collapsed ? "hidden" : ""}`}>
