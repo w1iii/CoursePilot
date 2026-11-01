@@ -1,8 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LoomOrbit, { type OrbitCourse } from "../LoomOrbit";
+import DashboardShell from "../DashboardShell";
+import {
+  THREAD_INDEX_KEY,
+  THREADS_CHANGED_EVENT,
+  type SavedThread,
+} from "../ThreadSidebar";
 
 export interface ThreadCourse extends OrbitCourse {
   instructor: string | null;
@@ -43,22 +49,25 @@ interface Props {
   initialThreadId: string;
 }
 
-function timeLabel(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+function renderText(text: string) {
+  return text.split("\n").map((line, index) => {
+    const heading = line.match(/^#{1,3}\s+(.+)/);
+    const bullet = line.match(/^[-*]\s+(.+)/);
+    const numbered = line.match(/^\d+\.\s+(.+)/);
+    const content = heading?.[1] ?? bullet?.[1] ?? numbered?.[1] ?? line;
+    const formatted = content.split(/(`[^`]+`)/g).map((part, partIndex) =>
+      part.startsWith("`") ? (
+        <code key={partIndex} className="rounded bg-surface-container px-1.5 py-0.5 font-mono text-[0.9em] text-primary-container">
+          {part.slice(1, -1)}
+        </code>
+      ) : (
+        part
+      ),
+    );
+    if (heading) return <h3 key={index} className="mt-5 font-headline-sm text-headline-sm">{formatted}</h3>;
+    if (bullet || numbered) return <li key={index} className="ml-5 list-disc pl-1">{formatted}</li>;
+    return <p key={index} className="min-h-[1.65em]">{formatted}</p>;
   });
-}
-
-function sourceIcon(type: string): string {
-  const value = type.toLowerCase();
-  if (value.includes("announce")) return "campaign";
-  if (value.includes("slide") || value.includes("lecture")) return "slideshow";
-  if (value.includes("code") || value.includes("tex")) return "code";
-  if (value.includes("syllab") || value.includes("pdf")) return "description";
-  return "menu_book";
 }
 
 export default function ThreadView({
@@ -71,560 +80,277 @@ export default function ThreadView({
 }: Props) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState("");
-  const [courseId, setCourseId] = useState(
-    initialCourseId || courses[0]?.id || "",
-  );
+  const [courseId, setCourseId] = useState(initialCourseId || courses[0]?.id || "");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const controllerRef = useRef<AbortController | null>(null);
   const didInit = useRef(false);
   const storageKey = `habi:thread:${initialThreadId}`;
 
-  const activeCourse = useMemo(
-    () => courses.find((course) => course.id === courseId) ?? courses[0],
-    [courses, courseId],
-  );
+  const persist = useCallback((nextTurns: Turn[]) => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(nextTurns));
+      const saved = JSON.parse(localStorage.getItem(THREAD_INDEX_KEY) ?? "[]") as SavedThread[];
+      const next = [
+        {
+          id: initialThreadId,
+          title: nextTurns[0]?.question.slice(0, 52) || "New chat",
+          updatedAt: nextTurns[nextTurns.length - 1]?.createdAt ?? new Date().toISOString(),
+        },
+        ...saved.filter((thread) => thread.id !== initialThreadId),
+      ].slice(0, 50);
+      localStorage.setItem(THREAD_INDEX_KEY, JSON.stringify(next));
+      window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
+    } catch {
+      // The conversation remains available in component state if storage is unavailable.
+    }
+  }, [initialThreadId, storageKey]);
 
-  const requestAnswer = useCallback(async (turnId: string, q: string, cid: string) => {
+  const requestAnswer = useCallback(async (turnId: string, prompt: string, cid: string) => {
+    const controller = new AbortController();
+    controllerRef.current = controller;
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, course_id: cid || undefined }),
+        body: JSON.stringify({ question: prompt, course_id: cid || undefined }),
+        signal: controller.signal,
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Request failed");
+      setTurns((current) => {
+        const next = current.map((turn) =>
+          turn.id === turnId ? { ...turn, status: "done" as const, response: json as RagResponse } : turn,
+        );
+        persist(next);
+        return next;
+      });
+    } catch (error) {
+      if ((error as Error).name === "AbortError") return;
       setTurns((current) =>
         current.map((turn) =>
-          turn.id === turnId
-            ? { ...turn, status: "done" as const, response: json as RagResponse }
-            : turn,
+          turn.id === turnId ? { ...turn, status: "error" as const, error: (error as Error).message } : turn,
         ),
       );
-    } catch (err) {
-      setTurns((current) =>
-        current.map((turn) =>
-          turn.id === turnId
-            ? { ...turn, status: "error" as const, error: (err as Error).message }
-            : turn,
-        ),
-      );
+    } finally {
+      controllerRef.current = null;
     }
-  }, []);
+  }, [persist]);
 
-  const startTurn = useCallback(
-    (q: string, cid: string) => {
-      const id =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : String(Date.now());
-      const turn: Turn = {
-        id,
-        question: q,
-        courseId: cid,
-        createdAt: new Date().toISOString(),
-        status: "loading",
-      };
-      setTurns((current) => [...current, turn]);
-      setCourseId(cid);
-      void requestAnswer(id, q, cid);
-      return id;
-    },
-    [requestAnswer],
-  );
+  const startTurn = useCallback((prompt: string, cid: string) => {
+    const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
+    const turn: Turn = { id, question: prompt, courseId: cid, createdAt: new Date().toISOString(), status: "loading" };
+    setTurns((current) => [...current, turn]);
+    persist([...turns, turn]);
+    void requestAnswer(id, prompt, cid);
+  }, [persist, requestAnswer, turns]);
 
   useEffect(() => {
     if (didInit.current) return;
     didInit.current = true;
-
     try {
-      const saved = sessionStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as Turn[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setTurns(parsed);
-          setCourseId(parsed[0].courseId || courseId);
-          return;
-        }
+      const saved = JSON.parse(localStorage.getItem(storageKey) ?? "[]") as Turn[];
+      if (Array.isArray(saved) && saved.length > 0) {
+        setTurns(saved);
+        setCourseId(saved[saved.length - 1].courseId || courseId);
+        return;
       }
     } catch {
-      sessionStorage.removeItem(storageKey);
+      localStorage.removeItem(storageKey);
     }
-
-    if (initialQuestion) {
-      startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
-    }
+    if (initialQuestion) startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
   }, [courseId, courses, initialCourseId, initialQuestion, startTurn, storageKey]);
 
   useEffect(() => {
-    if (!didInit.current || turns.length === 0) return;
-    if (turns.some((turn) => turn.status === "loading")) return;
-    try {
-      sessionStorage.setItem(storageKey, JSON.stringify(turns));
-    } catch {
-      // Storage can be unavailable in private mode; the thread still works in memory.
-    }
-  }, [storageKey, turns]);
-
-  useEffect(() => {
-    if (turns.length > 1) {
-      endRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (turns.length > 0) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [turns.length]);
 
-  const busy = turns.some((turn) => turn.status === "loading");
-  const totalSources = turns.reduce(
-    (count, turn) => count + (turn.response?.sources.length ?? 0),
-    0,
-  );
-  const groundedTurns = turns.filter((turn) => turn.response?.grounded).length;
-
-  const followUps = [
-    "Summarize the key points",
-    "What should I study first?",
-    "Check for schedule conflicts this week",
-  ];
-
-  function focusInput() {
-    inputRef.current?.focus();
-  }
-
-  function submitFollowUp(event: React.FormEvent) {
+  function submit(event: React.FormEvent) {
     event.preventDefault();
-    const value = question.trim();
-    if (!value || !courseId || busy) return;
-    startTurn(value, courseId);
+    const prompt = question.trim();
+    if (!prompt || !courseId || busy) return;
+    startTurn(prompt, courseId);
     setQuestion("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
   }
 
-  function chooseFollowUp(value: string) {
+  function updateQuestion(value: string) {
     setQuestion(value);
-    focusInput();
-  }
-
-  function selectCourse(course: OrbitCourse) {
-    setCourseId(course.id);
-    setQuestion(`What's due in ${course.code ?? course.name} this week?`);
-    focusInput();
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 180)}px`;
+    }
   }
 
   async function copyAnswer(turn: Turn) {
     if (!turn.response) return;
-    try {
-      await navigator.clipboard.writeText(turn.response.answer);
-      setCopiedId(turn.id);
-      setTimeout(() => setCopiedId(null), 1600);
-    } catch {
-      setCopiedId(null);
-    }
+    await navigator.clipboard.writeText(turn.response.answer);
+    setCopiedId(turn.id);
+    setTimeout(() => setCopiedId(null), 1400);
   }
 
   function retry(turn: Turn) {
-    setTurns((current) =>
-      current.map((item) =>
-        item.id === turn.id ? { ...item, status: "loading" as const, error: undefined } : item,
-      ),
-    );
+    setTurns((current) => current.map((item) => item.id === turn.id ? { ...item, status: "loading" as const, error: undefined } : item));
     void requestAnswer(turn.id, turn.question, turn.courseId);
   }
 
+  const busy = turns.some((turn) => turn.status === "loading");
+  const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
+  const suggestions = ["What’s due this week?", "Summarize my latest announcements", "What should I study first?"];
+
   return (
-    <div className="flex flex-col gap-space-xl">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 rounded bg-surface-container-low hover:bg-surface transition-colors"
-          aria-label="Toggle sidebar"
-        >
-          <span className="material-symbols-outlined">
-            {sidebarOpen ? "arrow_left" : "arrow_right"}
+    <DashboardShell
+        activeThreadId={initialThreadId}
+        userName={userName}
+        userEmail={userEmail}
+    >
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4 md:px-6">
+          <span className="truncate font-label-sm text-label-sm text-text-muted">
+            {turns[0]?.question.slice(0, 48) || "New chat"}
           </span>
-        </button>
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1 font-label-sm text-label-sm transition-colors hover:text-primary"
-        >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-          Dashboard
-        </Link>
-        <span className="h-1 w-1 bg-outline-variant" />
-        <span className="font-code-tag text-code-tag">
-          Thread {initialThreadId.slice(0, 8)}
-        </span>
-      </div>
-
-      {turns.length === 0 && !initialQuestion && (
-        <section className="rounded-xl bg-surface p-space-xl shadow-sm">
-          <h1 className="font-headline-md text-headline-md text-primary-container">
-            No thread selected
-          </h1>
-          <p className="mt-1 font-body-sm text-body-sm text-text-muted">
-            Ask Habi from the dashboard to start a new woven conversation.
-          </p>
-          <Link
-            href="/dashboard"
-            className="mt-space-md inline-flex items-center gap-2 rounded-lg bg-primary-container px-space-lg py-2.5 font-label-md text-label-md text-dark-text transition-colors hover:bg-primary-hover"
-          >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Back to Ask Habi
+          <Link href="/dashboard" className="rounded-lg px-3 py-2 font-label-sm text-label-sm text-text-muted hover:bg-surface-container">
+            Dashboard
           </Link>
-        </section>
-      )}
-
-      <div className="grid grid-cols-1 items-start gap-space-xl lg:grid-cols-12">
-        <div className={`flex flex-col gap-space-xl lg:col-span-${sidebarOpen ? 7 : 12}`}>
-          {turns.map((turn) => {
-            const course = courses.find((item) => item.id === turn.courseId) ?? activeCourse;
-            const paragraphs = turn.response?.answer
-              .split(/\n{2,}/)
-              .filter((paragraph) => paragraph.trim().length > 0);
-
-            return (
-              <div key={turn.id} className="flex flex-col gap-space-xl">
-                <section className="relative overflow-hidden rounded-xl bg-surface p-space-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-primary-container via-tertiary to-secondary" />
-                  <div className="flex flex-col justify-between gap-space-md pl-space-sm sm:flex-row sm:items-center">
-                    <div className="flex items-start gap-space-md">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-primary-container">
-                        <span className="material-symbols-outlined text-[20px]">person</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <span className="font-label-md text-label-md text-on-surface">
-                            {userName}
-                          </span>
-                          <span className="font-code-tag text-code-tag text-text-muted">
-                            {timeLabel(turn.createdAt)}
-                          </span>
-                        </div>
-                        <p className="font-headline-sm text-headline-sm leading-snug text-primary">
-                          &ldquo;{turn.question}&rdquo;
-                        </p>
-                        <p className="mt-1 font-code-tag text-code-tag text-text-muted">
-                          {course?.code ?? course?.name ?? "Course"} · {userEmail}
-                        </p>
-                      </div>
+        </header>
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background">
+          <div className={`mx-auto flex w-full max-w-[720px] flex-col bg-background px-4 md:px-6 ${
+            turns.length === 0 ? "min-h-full justify-center py-8" : "pb-8 pt-4"
+          }`}>
+          {turns.length === 0 ? (
+            <div className="flex w-full flex-col items-center">
+              <section className="grid w-full max-w-[620px] grid-cols-1 items-center gap-6 md:grid-cols-[minmax(220px,300px)_1fr] md:gap-8">
+                <LoomOrbit
+                  compact
+                  courses={courses}
+                  activeCourseId={courseId}
+                  onSelectCourse={(course) => {
+                    setCourseId(course.id);
+                    updateQuestion(`What's due in ${course.code ?? course.name} this week?`);
+                    inputRef.current?.focus();
+                  }}
+                  onHubClick={() => inputRef.current?.focus()}
+                />
+                <div className="text-center md:text-left">
+                  <span className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary-container font-display text-base text-dark-text">
+                    h
+                  </span>
+                  <h1 className="font-display text-[38px] leading-tight tracking-[-0.02em] text-primary-container md:text-[46px]">
+                    {greeting}, {userName.split(" ")[0]}
+                  </h1>
+                  <p className="mt-3 font-body-sm text-body-sm text-text-muted">
+                    How can I help you today?
+                  </p>
+                </div>
+              </section>
+              <div className="mt-6 w-full max-w-[680px] text-center">
+                <p className="font-code-tag text-[10px] uppercase tracking-[0.18em] text-text-muted">
+                  Choose a course or start a new thread
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-8 pb-8 pt-8">
+              {turns.map((turn) => (
+                <div key={turn.id} className="space-y-5">
+                  <div className="flex justify-end">
+                    <div className="max-w-[85%] rounded-2xl bg-surface-container-high px-4 py-3 font-body-md text-body-md leading-relaxed text-on-surface">
+                      {turn.question}
                     </div>
                   </div>
-                </section>
-
-                {turn.status === "loading" && (
-                  <article className="relative overflow-hidden rounded-xl bg-surface p-space-xl shadow-sm">
-                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-container via-tertiary-container to-secondary-container" />
-                    <div className="flex items-center gap-space-md">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-dark-text">
-                        <span className="font-headline-md text-[18px] leading-none">h</span>
-                      </div>
-                      <div>
-                        <p className="font-label-md text-label-md text-primary-container">
-                          Weaving an answer
-                        </p>
-                        <p className="font-code-tag text-code-tag text-text-muted">
-                          Reading {course?.code ?? course?.name ?? "your course"} sources…
-                        </p>
-                      </div>
-                      <span className="ml-auto material-symbols-outlined animate-spin text-[20px] text-secondary">
-                        progress_activity
-                      </span>
-                    </div>
-                    <div className="mt-space-lg space-y-space-sm">
-                      <div className="h-4 w-11/12 animate-pulse rounded bg-surface-container" />
-                      <div className="h-4 w-4/5 animate-pulse rounded bg-surface-container" />
-                      <div className="h-4 w-2/3 animate-pulse rounded bg-surface-container-low" />
-                    </div>
-                  </article>
-                )}
-
-                {turn.status === "error" && (
-                  <article className="rounded-xl border border-error/30 bg-error-container/50 p-space-lg shadow-sm">
-                    <div className="flex items-start gap-space-sm">
-                      <span className="material-symbols-outlined text-[22px] text-on-error-container">
-                        error
-                      </span>
-                      <div>
-                        <p className="font-label-md text-label-md text-on-error-container">
-                          Could not weave this answer
-                        </p>
-                        <p className="mt-1 font-body-sm text-body-sm text-on-error-container">
-                          {turn.error}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => retry(turn)}
-                          className="mt-space-sm rounded-lg bg-primary-container px-space-md py-1.5 font-label-sm text-label-sm text-dark-text"
-                        >
-                          Try again
-                        </button>
+                  {turn.status === "loading" && (
+                    <div className="flex gap-3">
+                      <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container font-display text-sm text-dark-text">h</span>
+                      <div className="flex items-center gap-1 pt-2">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-tertiary-container" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-tertiary-container [animation-delay:120ms]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-tertiary-container [animation-delay:240ms]" />
                       </div>
                     </div>
-                  </article>
-                )}
-
-                {turn.response && (
-                  <article className="relative overflow-hidden rounded-xl bg-surface p-space-xl shadow-sm md:p-space-2xl">
-                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-container via-tertiary-container to-secondary-container" />
-                    <div className="flex flex-wrap items-center justify-between gap-space-md pb-space-lg">
-                      <div className="flex items-center gap-space-md">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-dark-text shadow-sm">
-                          <span className="font-headline-md text-[18px] leading-none">h</span>
-                        </div>
-                        <div>
-                          <p className="font-label-md text-label-md text-primary-container">
-                            Habi Academic Intelligence
-                          </p>
-                          <p className="font-code-tag text-code-tag text-text-muted">
-                            {turn.response.course.name} · {turn.response.sources.length} source
-                            {turn.response.sources.length === 1 ? "" : "s"}
-                          </p>
+                  )}
+                  {turn.status === "error" && (
+                    <div className="rounded-xl border border-error/30 bg-error-container p-4 text-sm text-on-error-container">
+                      {turn.error}
+                      <button type="button" onClick={() => retry(turn)} className="ml-3 underline">Try again</button>
+                    </div>
+                  )}
+                  {turn.response && (
+                    <div className="group flex gap-3">
+                      <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container font-display text-sm text-dark-text">h</span>
+                      <div className="min-w-0 flex-1 font-body-md text-body-md leading-[1.7] text-on-surface">
+                        <div>{renderText(turn.response.answer)}</div>
+                        <div className="mt-3 flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+                          <button type="button" onClick={() => void copyAnswer(turn)} className="rounded-md p-1.5 hover:bg-surface-container" title="Copy">
+                            <span className="material-symbols-outlined text-[17px]">{copiedId === turn.id ? "check" : "content_copy"}</span>
+                          </button>
+                          <button type="button" onClick={() => retry(turn)} className="rounded-md p-1.5 hover:bg-surface-container" title="Regenerate"><span className="material-symbols-outlined text-[17px]">refresh</span></button>
+                          <button type="button" className="rounded-md p-1.5 hover:bg-surface-container" title="Helpful"><span className="material-symbols-outlined text-[17px]">thumb_up</span></button>
+                          <button type="button" className="rounded-md p-1.5 hover:bg-surface-container" title="Not helpful"><span className="material-symbols-outlined text-[17px]">thumb_down</span></button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-text-muted">
-                        <span
-                          className={`rounded-full px-space-sm py-0.5 font-code-tag text-code-tag ${
-                            turn.response.grounded
-                              ? "bg-primary-fixed text-on-primary-fixed-variant"
-                              : "bg-surface-container-high"
-                          }`}
-                        >
-                          {turn.response.grounded ? "Grounded" : "General"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => void copyAnswer(turn)}
-                          className="rounded p-1.5 transition-colors hover:bg-surface-container-low"
-                          title="Copy answer"
-                          aria-label="Copy answer"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">
-                            {copiedId === turn.id ? "check" : "content_copy"}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={focusInput}
-                          className="rounded p-1.5 transition-colors hover:bg-surface-container-low"
-                          title="Ask a follow-up"
-                          aria-label="Ask a follow-up"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">reply</span>
-                        </button>
-                      </div>
                     </div>
-
-                    <div className="rounded-xl bg-surface-container-low p-space-lg">
-                      <div className="mb-space-sm flex items-center gap-space-sm">
-                        <span className="material-symbols-outlined text-[20px] text-primary-hover">
-                          auto_awesome
-                        </span>
-                        <span className="font-label-sm text-label-sm uppercase tracking-wider text-tertiary">
-                          Synthesized answer
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-space-sm">
-                        {(paragraphs ?? [turn.response.answer]).map((paragraph, index) => (
-                          <p
-                            key={`${turn.id}-p-${index}`}
-                            className="whitespace-pre-wrap font-body-md text-body-md leading-relaxed text-on-surface"
-                          >
-                            {paragraph}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-
-                    {turn.response.sources.length > 0 && (
-                      <div className="pb-space-sm pt-space-lg">
-                        <span className="mb-space-sm block font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
-                          {turn.response.sources.length} source
-                          {turn.response.sources.length === 1 ? "" : "s"} verified &amp;
-                          interwoven
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {turn.response.sources.map((source) => (
-                            <span
-                              key={`${turn.id}-${source.id}-${source.label}`}
-                              className="inline-flex items-center gap-1.5 rounded-lg bg-surface-container-lowest px-3 py-1.5 font-code-tag text-[11px] text-on-surface shadow-sm"
-                            >
-                              <span className="material-symbols-outlined text-[14px] text-primary">
-                                {sourceIcon(source.source_type)}
-                              </span>
-                              [{source.label}] {source.title}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-between gap-space-md border-t border-border pt-space-md">
-                      <div className="flex flex-wrap items-center gap-space-sm">
-                        <button
-                          type="button"
-                          onClick={() => void copyAnswer(turn)}
-                          className="inline-flex items-center gap-2 rounded-lg bg-primary-container px-space-lg py-2 font-label-md text-label-md text-dark-text transition-colors hover:bg-primary-hover"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">
-                            content_copy
-                          </span>
-                          Copy answer
-                        </button>
-                        <button
-                          type="button"
-                          onClick={focusInput}
-                          className="inline-flex items-center gap-2 rounded-lg bg-surface px-space-md py-2 font-label-md text-label-md text-primary-container transition-colors hover:bg-surface-container-low"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">
-                            forum
-                          </span>
-                          Ask follow-up
-                        </button>
-                      </div>
-                      <span className="font-code-tag text-code-tag text-text-muted">
-                        {turn.response.model}
-                      </span>
-                    </div>
-                  </article>
-                )}
-              </div>
-            );
-          })}
-
-          <div ref={endRef} />
-
-          <form
-            onSubmit={submitFollowUp}
-            className="flex flex-col gap-space-md rounded-xl bg-surface p-space-lg shadow-sm"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-space-sm">
-              <div className="flex items-center gap-space-sm">
-                <span className="material-symbols-outlined text-text-muted">auto_awesome</span>
-                <span className="font-label-sm text-label-sm font-semibold text-on-surface">
-                  Weave next query
-                </span>
-              </div>
-              <label className="flex items-center gap-2 font-code-tag text-code-tag text-text-muted">
-                <span>Scope</span>
-                <select
-                  value={courseId}
-                  onChange={(event) => setCourseId(event.target.value)}
-                  disabled={courses.length === 0}
-                  className="max-w-[190px] rounded-lg border border-border bg-surface-container-lowest px-2 py-1 font-code-tag text-code-tag text-primary focus:outline-none disabled:opacity-50"
-                >
-                  {courses.length === 0 && <option value="">No courses</option>}
-                  {courses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.code ?? course.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  )}
+                </div>
+              ))}
+              <div ref={endRef} />
             </div>
+          )}
 
-            <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center">
-              <input
+          </div>
+        </div>
+        <div className="shrink-0 border-t border-border bg-background px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 md:px-6">
+          <form onSubmit={submit} className="mx-auto w-full max-w-[720px]">
+            <div className="rounded-[20px] border border-border bg-surface p-2 shadow-[0_8px_28px_rgba(21,55,13,0.08)]">
+              <textarea
                 ref={inputRef}
                 value={question}
+                onChange={(event) => updateQuestion(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    submit(event);
+                  }
+                }}
+                rows={1}
                 maxLength={2000}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder="Ask a clarifying question or request specific notes…"
-                className="w-full flex-1 rounded-lg bg-surface-container-lowest px-4 py-3 font-body-md text-body-md text-on-surface shadow-sm outline-none placeholder:text-text-muted focus:bg-surface"
+                placeholder="Message Habi..."
+                className="max-h-[180px] min-h-[48px] w-full resize-none bg-transparent px-3 py-3 font-body-md text-body-md leading-relaxed text-on-surface outline-none placeholder:text-text-muted"
               />
-              <button
-                type="submit"
-                disabled={!question.trim() || !courseId || busy}
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary-container px-space-lg py-2.5 font-label-md text-label-md text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {busy ? "Weaving…" : "Ask"}
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="font-code-tag text-[11px] text-text-muted">Follow-ups:</span>
-              {followUps.map((followUp) => (
-                <button
-                  key={followUp}
-                  type="button"
-                  onClick={() => chooseFollowUp(followUp)}
-                  className="rounded-full bg-surface-container-low px-2.5 py-1 font-label-sm text-[12px] text-primary-container transition-colors hover:bg-surface-container"
-                >
-                  {followUp}
+              <div className="flex items-center justify-between px-1 pb-1">
+                <button type="button" className="rounded-full p-2 text-text-muted hover:bg-surface-container" title="Attach file">
+                  <span className="material-symbols-outlined text-[20px]">add</span>
                 </button>
-              ))}
-            </div>
-          </form>
-        </div>
-
-        {sidebarOpen && (
-          <aside className="flex flex-col gap-space-xl lg:col-span-5">
-            <div className="flex items-center justify-center rounded-xl bg-surface/70 p-space-sm shadow-sm">
-              <LoomOrbit
-                courses={courses}
-                activeCourseId={courseId}
-                onSelectCourse={selectCourse}
-                onHubClick={focusInput}
-              />
-            </div>
-
-            <section className="rounded-xl bg-surface p-space-lg shadow-sm">
-              <p className="font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
-                Thread context
-              </p>
-              <h2 className="font-headline-sm text-headline-sm text-primary-container">
-                {activeCourse?.code ?? activeCourse?.name ?? "No course selected"}
-              </h2>
-              <p className="mt-1 font-body-sm text-body-sm text-text-muted">
-                {activeCourse?.name ?? "Sync Canvas to load course material."}
-              </p>
-              {activeCourse?.instructor && (
-                <p className="mt-1 font-body-sm text-body-sm text-text-muted">
-                  {activeCourse.instructor}
-                </p>
-              )}
-              <div className="mt-space-md grid grid-cols-2 gap-space-sm">
-                <div className="rounded-lg bg-surface-container-low p-space-sm">
-                  <p className="font-headline-sm text-headline-sm text-primary-container">
-                    {totalSources}
-                  </p>
-                  <p className="font-code-tag text-code-tag text-text-muted">Sources used</p>
-                </div>
-                <div className="rounded-lg bg-surface-container-low p-space-sm">
-                  <p className="font-headline-sm text-headline-sm text-primary-container">
-                    {groundedTurns}/{Math.max(turns.filter((turn) => turn.status === "done").length, 1)}
-                  </p>
-                  <p className="font-code-tag text-code-tag text-text-muted">Grounded answers</p>
+                <div className="flex items-center gap-2">
+                  <select value={courseId} onChange={(event) => setCourseId(event.target.value)} className="max-w-[150px] bg-transparent px-2 py-2 font-label-sm text-label-sm text-text-muted outline-none">
+                    {courses.length === 0 && <option value="">No course</option>}
+                    {courses.map((course) => <option key={course.id} value={course.id}>{course.code ?? course.name}</option>)}
+                  </select>
+                  {busy ? (
+                    <button type="button" onClick={() => controllerRef.current?.abort()} className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary" title="Stop">
+                      <span className="material-symbols-outlined text-[18px]">stop</span>
+                    </button>
+                  ) : (
+                    <button type="submit" disabled={!question.trim() || !courseId} className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
+                      <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                    </button>
+                  )}
                 </div>
               </div>
-            </section>
-
-            <section className="rounded-xl bg-surface p-space-lg shadow-sm">
-              <p className="font-code-tag text-[11px] uppercase tracking-wider text-text-muted">
-                Keep weaving
-              </p>
-              <div className="mt-space-sm flex flex-col gap-2">
-                {courses.slice(0, 3).map((course) => (
-                  <button
-                    key={course.id}
-                    type="button"
-                    onClick={() => selectCourse(course)}
-                    className={`flex items-center justify-between gap-space-sm rounded-lg px-space-sm py-2 text-left transition-colors ${
-                      course.id === courseId
-                        ? "bg-secondary-container text-on-secondary-container"
-                        : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
-                    }`}
-                  >
-                    <span className="truncate font-label-sm text-label-sm">
-                      {course.code ?? course.name}
-                    </span>
-                    <span className="material-symbols-outlined text-[16px]">north_east</span>
+            </div>
+            {turns.length === 0 && (
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                {suggestions.map((suggestion) => (
+                  <button key={suggestion} type="button" onClick={() => updateQuestion(suggestion)} className="rounded-full border border-border bg-surface px-3 py-2 font-label-sm text-label-sm text-text-muted transition-colors hover:border-tertiary-container hover:bg-surface-container hover:text-primary-container">
+                    {suggestion}
                   </button>
                 ))}
               </div>
-            </section>
-          </aside>
-        )}
+            )}
+            <p className="mt-2 text-center font-code-tag text-[10px] text-text-muted">Enter to send · Shift + Enter for a new line</p>
+          </form>
+        </div>
       </div>
-    </div>
+    </DashboardShell>
   );
 }

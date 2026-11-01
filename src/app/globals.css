@@ -493,6 +493,49 @@
   user-select: none;
 }
 
+.loom-orbit--compact {
+  --size: clamp(128px, 16vw, 168px);
+}
+
+.loom-orbit--compact .loom-orbit__node {
+  gap: 3px;
+  padding: 4px 6px;
+  max-width: 108px;
+}
+
+.loom-orbit--compact .loom-orbit__node-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+
+.loom-orbit--compact .loom-orbit__node-label {
+  font-size: 9px;
+}
+
+.loom-orbit--compact .loom-orbit__node-badge {
+  max-width: 68px;
+  font-size: 8px;
+}
+
+.loom-orbit--compact .loom-orbit__hub {
+  width: 52px;
+  height: 52px;
+  border-width: 2px;
+}
+
+.loom-orbit--compact .loom-orbit__hub-glyph {
+  font-size: 21px;
+}
+
+.loom-orbit--compact .loom-orbit__hub-pulse {
+  inset: -4px;
+}
+
+.loom-orbit--compact .loom-orbit__ring--inner {
+  border-width: 1px;
+}
+
 .loom-orbit__threads {
   position: absolute;
   top: 0;

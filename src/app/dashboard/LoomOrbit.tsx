@@ -13,6 +13,7 @@ interface Props {
   activeCourseId: string;
   onSelectCourse: (course: OrbitCourse) => void;
   onHubClick: () => void;
+  compact?: boolean;
 }
 
 const NODE_COLORS = ["#15370D", "#728E6D", "#2C4F22", "#4B6547", "#6F5D1E", "#1F4A14", "#C0AA62"];
@@ -25,6 +26,7 @@ export default function LoomOrbit({
   activeCourseId,
   onSelectCourse,
   onHubClick,
+  compact = false,
 }: Props) {
   const orbitRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -131,7 +133,7 @@ export default function LoomOrbit({
   }
 
   return (
-    <div className="loom-orbit" ref={orbitRef}>
+    <div className={`loom-orbit ${compact ? "loom-orbit--compact" : ""}`} ref={orbitRef}>
       <svg className="loom-orbit__threads" ref={svgRef} xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="threadGrad" x1="0%" x2="100%" y1="0%" y2="100%">
