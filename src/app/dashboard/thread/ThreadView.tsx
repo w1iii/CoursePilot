@@ -5,9 +5,7 @@ import Link from "next/link";
 import LoomOrbit, { type OrbitCourse } from "../LoomOrbit";
 import DashboardShell from "../DashboardShell";
 import {
-  THREAD_INDEX_KEY,
   THREADS_CHANGED_EVENT,
-  type SavedThread,
 } from "../ThreadSidebar";
 
 export interface ThreadCourse extends OrbitCourse {
@@ -85,27 +83,19 @@ export default function ThreadView({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
-  const didInit = useRef(false);
-  const storageKey = `habi:thread:${initialThreadId}`;
-
-  const persist = useCallback((nextTurns: Turn[]) => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(nextTurns));
-      const saved = JSON.parse(localStorage.getItem(THREAD_INDEX_KEY) ?? "[]") as SavedThread[];
-      const next = [
-        {
-          id: initialThreadId,
-          title: nextTurns[0]?.question.slice(0, 52) || "New chat",
-          updatedAt: nextTurns[nextTurns.length - 1]?.createdAt ?? new Date().toISOString(),
-        },
-        ...saved.filter((thread) => thread.id !== initialThreadId),
-      ].slice(0, 50);
-      localStorage.setItem(THREAD_INDEX_KEY, JSON.stringify(next));
-      window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
-    } catch {
-      // The conversation remains available in component state if storage is unavailable.
-    }
-  }, [initialThreadId, storageKey]);
+  const initializedThreadId = useRef<string | null>(null);
+  const persist = useCallback(async (nextTurns: Turn[]) => {
+    const response = await fetch(`/api/threads/${encodeURIComponent(initialThreadId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        courseId: nextTurns.at(-1)?.courseId || initialCourseId || null,
+        turns: nextTurns,
+      }),
+    });
+    if (!response.ok) throw new Error("Failed to save chat thread");
+    window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
+  }, [initialCourseId, initialThreadId]);
 
   const requestAnswer = useCallback(async (turnId: string, prompt: string, cid: string) => {
     const controller = new AbortController();
@@ -123,7 +113,6 @@ export default function ThreadView({
         const next = current.map((turn) =>
           turn.id === turnId ? { ...turn, status: "done" as const, response: json as RagResponse } : turn,
         );
-        persist(next);
         return next;
       });
     } catch (error) {
@@ -136,35 +125,49 @@ export default function ThreadView({
     } finally {
       controllerRef.current = null;
     }
-  }, [persist]);
+  }, []);
 
   const startTurn = useCallback((prompt: string, cid: string) => {
     const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
     const turn: Turn = { id, question: prompt, courseId: cid, createdAt: new Date().toISOString(), status: "loading" };
     setTurns((current) => [...current, turn]);
-    persist([...turns, turn]);
     void requestAnswer(id, prompt, cid);
-  }, [persist, requestAnswer, turns]);
+  }, [requestAnswer]);
 
   useEffect(() => {
-    if (didInit.current) return;
-    didInit.current = true;
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) ?? "[]") as Turn[];
-      if (Array.isArray(saved) && saved.length > 0) {
-        setTurns(saved);
-        setCourseId(saved[saved.length - 1].courseId || courseId);
+    if (initializedThreadId.current === initialThreadId) return;
+    initializedThreadId.current = initialThreadId;
+    controllerRef.current?.abort();
+    setTurns([]);
+    setQuestion("");
+    const load = async () => {
+      const response = await fetch(`/api/threads/${encodeURIComponent(initialThreadId)}`, { cache: "no-store" });
+      if (!response.ok) {
+        if (initialQuestion) startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
         return;
       }
-    } catch {
-      localStorage.removeItem(storageKey);
-    }
-    if (initialQuestion) startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
-  }, [courseId, courses, initialCourseId, initialQuestion, startTurn, storageKey]);
+      const data = await response.json() as { turns?: Turn[] };
+      if (data.turns?.length) {
+        setTurns(data.turns);
+        setCourseId(data.turns.at(-1)?.courseId || initialCourseId || courses[0]?.id || "");
+      } else if (initialQuestion) {
+        startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
+      }
+    };
+    void load();
+  }, [courses, initialCourseId, initialQuestion, initialThreadId, startTurn]);
 
   useEffect(() => {
-    if (turns.length > 0) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [turns.length]);
+    if (turns.length > 0) {
+      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [turns]);
+
+  useEffect(() => {
+    if (initializedThreadId.current === initialThreadId && turns.length > 0) {
+      void persist(turns).catch((error) => console.error(error));
+    }
+  }, [initialThreadId, persist, turns]);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -278,7 +281,7 @@ export default function ThreadView({
                   {turn.response && (
                     <div className="group flex gap-3">
                       <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container font-display text-sm text-dark-text">h</span>
-                      <div className="min-w-0 flex-1 font-body-md text-body-md leading-[1.7] text-on-surface">
+                      <div className="min-w-0 flex-1 break-words font-body-md text-body-md leading-[1.7] text-on-surface">
                         <div>{renderText(turn.response.answer)}</div>
                         <div className="mt-3 flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
                           <button type="button" onClick={() => void copyAnswer(turn)} className="rounded-md p-1.5 hover:bg-surface-container" title="Copy">
