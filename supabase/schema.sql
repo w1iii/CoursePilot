@@ -156,6 +156,36 @@ create table if not exists public.rate_limit_windows (
 create index if not exists rate_limit_windows_start_idx
   on public.rate_limit_windows (window_start);
 
+-- ---------------------------------------------------------------------------
+-- Chat Threads and Messages
+-- ---------------------------------------------------------------------------
+create table if not exists public.chat_threads (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references public.users(id) on delete cascade,
+  course_id   uuid references public.courses(id) on delete set null,
+  title       text not null default 'New chat',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  archived_at timestamptz
+);
+
+create index if not exists chat_threads_user_updated_idx
+  on public.chat_threads (user_id, updated_at desc);
+
+create table if not exists public.chat_messages (
+  id          uuid primary key default gen_random_uuid(),
+  thread_id   uuid not null references public.chat_threads(id) on delete cascade,
+  role        text not null check (role in ('user', 'assistant')),
+  content     text not null,
+  status      text not null default 'complete'
+              check (status in ('pending', 'complete', 'error')),
+  metadata    jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists chat_messages_thread_created_idx
+  on public.chat_messages (thread_id, created_at);
+
 -- Atomically count a request and report whether it is within the limits.
 -- Blocked requests only bump the minute counter, so spam cannot extend a
 -- day-level lockout. Old windows are pruned opportunistically.
@@ -233,3 +263,5 @@ alter table public.announcements enable row level security;
 alter table public.deadline_changes enable row level security;
 alter table public.ai_requests enable row level security;
 alter table public.rate_limit_windows enable row level security;
+alter table public.chat_threads enable row level security;
+alter table public.chat_messages enable row level security;

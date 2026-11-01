@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import ThreadView from "./ThreadView";
+import { randomUUID } from "crypto";
 
 interface PageProps {
   searchParams: Promise<{ q?: string; course?: string; tid?: string }>;
@@ -40,6 +41,9 @@ export default async function ThreadPage({ searchParams }: PageProps) {
   const displayName = normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "weaver",
   );
+  const threadId = params.tid && /^[0-9a-f-]{36}$/i.test(params.tid)
+    ? params.tid
+    : randomUUID();
 
   return (
     <>
@@ -54,7 +58,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
         courses={courseOptions}
         initialQuestion={params.q?.trim() ?? ""}
         initialCourseId={params.course ?? courseOptions[0]?.id ?? ""}
-        initialThreadId={params.tid ?? "thread"}
+        initialThreadId={threadId}
       />
 
     </>
