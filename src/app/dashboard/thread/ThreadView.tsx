@@ -299,7 +299,7 @@ export default function ThreadView({
 
           </div>
         </div>
-        <div className="shrink-0 border-t border-border bg-background px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 md:px-6">
+        <div className="shrink-0 border-border bg-background px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 md:px-6">
           <form onSubmit={submit} className="mx-auto w-full max-w-[720px]">
             <div className="rounded-[20px] border border-border bg-surface p-2 shadow-[0_8px_28px_rgba(21,55,13,0.08)]">
               <textarea

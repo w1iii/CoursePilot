@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export interface SavedThread {
   id: string;
@@ -46,6 +47,7 @@ export default function ThreadSidebar({
   collapsed,
   onToggleCollapse,
 }: Props) {
+  const pathname = usePathname();
   const [threads, setThreads] = useState<SavedThread[]>([]);
   const [search, setSearch] = useState("");
 
@@ -108,11 +110,6 @@ export default function ThreadSidebar({
             >
               habi
             </span>
-            <span
-              className={`rotate-12 rounded-full bg-tertiary-container ${
-                collapsed ? "h-5 w-1" : "h-4 w-[2px]"
-              }`}
-            />
           </Link>
           <button
             type="button"
@@ -139,7 +136,7 @@ export default function ThreadSidebar({
 
         <div className={`w-[260px] shrink-0 p-3 ${collapsed ? "px-2" : ""}`}>
           <Link
-            href="/dashboard"
+            href="/dashboard/thread"
             onClick={onCloseMobile}
             className={`group flex items-center gap-2 rounded-lg bg-primary-container py-2.5 font-label-md text-label-md text-dark-text shadow-sm transition-colors hover:bg-primary-hover ${
               collapsed ? "justify-center px-0" : "px-3"
@@ -163,9 +160,12 @@ export default function ThreadSidebar({
             {[
               { label: "Chats", icon: "chat_bubble", href: "/dashboard/thread" },
               { label: "Projects", icon: "folder", href: "/dashboard#courses" },
-              { label: "Library", icon: "auto_stories", href: "/dashboard#canvas" },
+              { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
             ].map((item) => {
-              const active = item.label === "Chats";
+              const active =
+                item.label === "Chats"
+                  ? pathname.startsWith("/dashboard/thread")
+                  : item.href === "/dashboard" && pathname === "/dashboard";
               return (
                 <Link
                   key={item.label}
