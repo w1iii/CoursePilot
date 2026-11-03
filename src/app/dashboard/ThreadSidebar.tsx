@@ -104,7 +104,9 @@ export default function ThreadSidebar({
         } md:flex`}
       >
         <div
-          className={`flex h-14 w-[240px] shrink-0 items-center border-b border-border px-3 ${
+          className={`flex h-14 shrink-0 items-center border-b border-border px-3 ${
+            collapsed ? "w-[52px]" : "w-[240px]"
+          } ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
@@ -140,7 +142,7 @@ export default function ThreadSidebar({
           </button>
         </div>
 
-        <div className={`w-[240px] shrink-0 p-2 ${collapsed ? "px-1.5" : ""}`}>
+        <div className={`${collapsed ? "w-[52px] px-1.5" : "w-[240px]"} shrink-0 p-2`}>
           <Link
             href="/dashboard/thread"
             onClick={onCloseMobile}
@@ -158,9 +160,7 @@ export default function ThreadSidebar({
         </div>
 
         <div
-          className={`w-[240px] min-h-0 flex-1 overflow-y-auto pb-3 ${
-            collapsed ? "px-1.5" : "px-2"
-          }`}
+          className={`${collapsed ? "w-[52px] px-1.5" : "w-[240px] px-2"} min-h-0 flex-1 overflow-y-auto pb-3`}
         >
           <nav className="mb-4 space-y-0.5">
             {[
@@ -265,7 +265,7 @@ export default function ThreadSidebar({
           ) : null}
         </div>
 
-        <div className={`w-[240px] shrink-0 border-t border-border p-2 ${collapsed ? "px-1.5" : ""}`}>
+        <div className={`${collapsed ? "w-[52px] px-1.5" : "w-[240px]"} shrink-0 border-t border-border p-2`}>
           <div
             className={`flex items-center gap-2 rounded-lg py-1.5 ${
               collapsed ? "justify-center px-0" : "px-2"

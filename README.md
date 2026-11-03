@@ -74,6 +74,8 @@ src/
       tasks/route.ts         GET list, POST create manual task
       tasks/[id]/route.ts    PATCH update, DELETE manual task
       ask/route.ts           POST RAG question
+      threads/route.ts          GET chat history
+      threads/[id]/route.ts     GET, PUT, DELETE chat thread
   lib/
     env.ts                   Env helpers
     supabase.ts              Service-role client
@@ -87,7 +89,7 @@ src/
       ingest.ts              Canvas course → RAG ingestion client
     rate-limit.ts            Postgres-backed per-user request limits
 supabase/
-  schema.sql                 CoursePilot tables + RLS
+  schema.sql                 CoursePilot tables + chat history + RLS
 ```
 
 ## API surface
@@ -103,6 +105,10 @@ supabase/
 | PATCH | `/api/tasks/:id` | Update status/notes/priority/due date |
 | DELETE | `/api/tasks/:id` | Delete manual task (Canvas-synced tasks can't be deleted) |
 | POST | `/api/ask` | RAG question → CoursePilot-RAG answer + citations |
+| GET | `/api/threads` | List the signed-in user's chat threads |
+| GET | `/api/threads/:id` | Load a chat thread and messages |
+| PUT | `/api/threads/:id` | Save a chat thread and messages |
+| DELETE | `/api/threads/:id` | Delete a chat thread |
 
 ## Canvas → RAG ingestion
 

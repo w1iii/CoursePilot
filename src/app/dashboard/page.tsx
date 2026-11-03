@@ -1,10 +1,6 @@
 import { requireUser } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
-import { getCanvasStatus } from "@/lib/canvas-account";
-import { defaultCanvasBaseUrl } from "@/lib/canvas";
 import DashboardShell from "./DashboardShell";
-import CanvasConnect from "./CanvasConnect";
-import SyncButton from "./SyncButton";
 import TaskBoard, { type DashboardTask } from "./TaskBoard";
 
 export default async function DashboardPage() {
@@ -54,37 +50,14 @@ export default async function DashboardPage() {
   );
   const firstName = displayName.split(/\s+/)[0];
   const greetingName = firstName;
-  const canvasStatus = await getCanvasStatus(user.id);
   return (
     <DashboardShell
       userName={greetingName}
       userEmail={user.email}
     >
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="ambient-mesh-canvas absolute -inset-[30%] opacity-60" />
-        <div className="ambient-woven-dots absolute inset-0 opacity-60" />
-      </div>
-
-      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto bg-background">
-        <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-space-2xl bg-background px-gutter-mobile py-space-xl md:px-gutter lg:px-margin-desktop lg:py-space-2xl">
-          <div className="grid gap-space-lg lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.42fr)]">
-            <TaskBoard initialTasks={(tasks ?? []) as DashboardTask[]} courses={courseOptions} />
-            <div className="space-y-space-lg">
-              <CanvasConnect initialStatus={canvasStatus} defaultBaseUrl={defaultCanvasBaseUrl()} />
-              <section className="rounded-2xl border border-border bg-surface p-space-lg shadow-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-surface-tint">sync</span>
-                    <h2 className="font-headline-sm text-headline-sm text-primary-container">Canvas sync</h2>
-                  </div>
-                  <SyncButton connected={canvasStatus.connected && !canvasStatus.needsReconnect} />
-                </div>
-                <p className="mt-2 font-body-sm text-body-sm text-text-muted">
-                  Sync keeps your dashboard tasks and course material index current.
-                </p>
-              </section>
-            </div>
-          </div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="flex min-h-full w-full flex-col px-gutter-mobile py-space-xl md:px-gutter lg:px-margin-desktop lg:py-space-2xl">
+          <TaskBoard initialTasks={(tasks ?? []) as DashboardTask[]} courses={courseOptions} />
         </div>
       </div>
     </DashboardShell>
