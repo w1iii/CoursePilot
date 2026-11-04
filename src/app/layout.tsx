@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Mono, DM_Sans, Fraunces } from "next/font/google";
+import AuthRedirect from "@/components/AuthRedirect";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         </head>
         <body className="flex min-h-full flex-col bg-background font-body-md text-body-md text-on-surface">
+          <AuthRedirect />
           {children}
         </body>
       </html>
