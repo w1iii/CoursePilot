@@ -304,41 +304,45 @@ export default function ThreadView({
         </div>
         <div className="shrink-0 border-border bg-background px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 md:px-6">
           <form onSubmit={submit} className="mx-auto w-full max-w-[720px]">
-            <div className="rounded-[20px] border border-border bg-surface p-2 shadow-[0_8px_28px_rgba(21,55,13,0.08)]">
-              <textarea
-                ref={inputRef}
-                value={question}
-                onChange={(event) => updateQuestion(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    submit(event);
-                  }
-                }}
-                rows={1}
-                maxLength={2000}
-                placeholder="Message Habi..."
-                className="max-h-[180px] min-h-[48px] w-full resize-none bg-transparent px-3 py-3 font-body-md text-body-md leading-relaxed text-on-surface outline-none placeholder:text-text-muted"
-              />
-              <div className="flex items-center justify-between px-1 pb-1">
-                <button type="button" className="rounded-full p-2 text-text-muted hover:bg-surface-container" title="Attach file">
-                  <span className="material-symbols-outlined text-[20px]">add</span>
-                </button>
-                <div className="flex items-center gap-2">
-                  <select value={courseId} onChange={(event) => setCourseId(event.target.value)} className="max-w-[150px] bg-transparent px-2 py-2 font-label-sm text-label-sm text-text-muted outline-none">
-                    {courses.length === 0 && <option value="">No course</option>}
-                    {courses.map((course) => <option key={course.id} value={course.id}>{course.code ?? course.name}</option>)}
-                  </select>
-                  {busy ? (
-                    <button type="button" onClick={() => controllerRef.current?.abort()} className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary" title="Stop">
-                      <span className="material-symbols-outlined text-[18px]">stop</span>
-                    </button>
-                  ) : (
-                    <button type="submit" disabled={!question.trim() || !courseId} className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
-                      <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
-                    </button>
-                  )}
-                </div>
+            <div className="rounded-[20px] border border-border bg-surface p-1.5 shadow-[0_8px_28px_rgba(21,55,13,0.08)]">
+              <div className="flex items-end gap-2">
+                <textarea
+                  ref={inputRef}
+                  value={question}
+                  onChange={(event) => updateQuestion(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      submit(event);
+                    }
+                  }}
+                  rows={1}
+                  maxLength={2000}
+                  placeholder="Message Habi..."
+                  className="max-h-[180px] min-h-[32px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-1.5 font-body-md text-body-md leading-relaxed text-on-surface outline-none placeholder:text-text-muted"
+                />
+                <select
+                  value={courseId}
+                  onChange={(event) => setCourseId(event.target.value)}
+                  className="max-w-[120px] bg-transparent px-1 py-1.5 font-label-sm text-label-sm text-text-muted outline-none"
+                  aria-label="Select module"
+                >
+                  {courses.length === 0 && <option value="">No module</option>}
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.code ?? course.name}
+                    </option>
+                  ))}
+                </select>
+                {busy ? (
+                  <button type="button" onClick={() => controllerRef.current?.abort()} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary" title="Stop">
+                    <span className="material-symbols-outlined text-[16px]">stop</span>
+                  </button>
+                ) : (
+                  <button type="submit" disabled={!question.trim() || !courseId} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-container text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
+                    <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+                  </button>
+                )}
               </div>
             </div>
             {turns.length === 0 && (
