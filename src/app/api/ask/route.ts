@@ -9,6 +9,8 @@ import {
 import { elapsedMs, logAiRequest } from "@/lib/ai/log";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
+const MAX_QUESTION_CHARS = 12000;
+
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
@@ -22,8 +24,11 @@ export async function POST(req: NextRequest) {
     if (!question) {
       return NextResponse.json({ error: "question is required" }, { status: 400 });
     }
-    if (question.length > 2000) {
-      return NextResponse.json({ error: "question too long (max 2000 chars)" }, { status: 400 });
+    if (question.length > MAX_QUESTION_CHARS) {
+      return NextResponse.json(
+        { error: `question too long (max ${MAX_QUESTION_CHARS} chars)` },
+        { status: 400 },
+      );
     }
 
     const limit = await checkRateLimit(user.id);
