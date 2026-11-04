@@ -89,13 +89,16 @@ export async function PUT(request: Request, { params }: Params) {
     if (existing === null && turns.length === 0) {
       return NextResponse.json({ error: "Thread not found" }, { status: 404 });
     }
-    const { error: threadError } = await sb.from("chat_threads").upsert({
-      id,
-      user_id: user.id,
-      course_id: body.courseId || turns.at(-1)?.courseId || null,
-      title,
-      updated_at: now,
-    });
+    const { error: threadError } = await sb.from("chat_threads").upsert(
+      {
+        id,
+        user_id: user.id,
+        course_id: body.courseId || turns.at(-1)?.courseId || null,
+        title,
+        updated_at: now,
+      },
+      { onConflict: "id" },
+    );
     if (threadError) throw new Error(threadError.message);
 
     const { error: deleteError } = await sb.from("chat_messages").delete().eq("thread_id", id);

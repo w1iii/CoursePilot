@@ -84,17 +84,34 @@ export default function ThreadView({
   const endRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const initializedThreadId = useRef<string | null>(null);
-  const persist = useCallback(async (nextTurns: Turn[]) => {
-    const response = await fetch(`/api/threads/${encodeURIComponent(initialThreadId)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        courseId: nextTurns.at(-1)?.courseId || initialCourseId || null,
-        turns: nextTurns,
-      }),
-    });
-    if (!response.ok) throw new Error("Failed to save chat thread");
-    window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
+  const skipNextPersistRef = useRef(false);
+  const pendingSaveRef = useRef<Turn[] | null>(null);
+  const savePromiseRef = useRef<Promise<void> | null>(null);
+  const persist = useCallback((nextTurns: Turn[]) => {
+    pendingSaveRef.current = nextTurns;
+    if (savePromiseRef.current) return;
+
+    savePromiseRef.current = (async () => {
+      while (pendingSaveRef.current) {
+        const turnsToSave = pendingSaveRef.current;
+        pendingSaveRef.current = null;
+        const response = await fetch(`/api/threads/${encodeURIComponent(initialThreadId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseId: turnsToSave.at(-1)?.courseId || initialCourseId || null,
+            turns: turnsToSave,
+          }),
+        });
+        if (!response.ok) throw new Error("Failed to save chat thread");
+        window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
+      }
+    })()
+      .catch((error) => console.error(error))
+      .finally(() => {
+        savePromiseRef.current = null;
+        if (pendingSaveRef.current) persist(pendingSaveRef.current);
+      });
   }, [initialCourseId, initialThreadId]);
 
   const requestAnswer = useCallback(async (turnId: string, prompt: string, cid: string) => {
@@ -148,6 +165,7 @@ export default function ThreadView({
       }
       const data = await response.json() as { turns?: Turn[] };
       if (data.turns?.length) {
+        skipNextPersistRef.current = true;
         setTurns(data.turns);
         setCourseId(data.turns.at(-1)?.courseId || initialCourseId || courses[0]?.id || "");
       } else if (initialQuestion) {
@@ -165,7 +183,11 @@ export default function ThreadView({
 
   useEffect(() => {
     if (initializedThreadId.current === initialThreadId && turns.length > 0) {
-      void persist(turns).catch((error) => console.error(error));
+      if (skipNextPersistRef.current) {
+        skipNextPersistRef.current = false;
+        return;
+      }
+      persist(turns);
     }
   }, [initialThreadId, persist, turns]);
 
