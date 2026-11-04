@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SignOutButton } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -164,7 +165,6 @@ export default function ThreadSidebar({
         >
           <nav className="mb-4 space-y-0.5">
             {[
-              { label: "Chats", icon: "chat_bubble", href: "/dashboard/thread" },
               { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
             ].map((item) => {
               const active =
@@ -266,8 +266,23 @@ export default function ThreadSidebar({
         </div>
 
         <div className={`${collapsed ? "w-[52px] px-1.5" : "w-[240px]"} shrink-0 border-t border-border p-2`}>
-          <div
-            className={`flex items-center gap-2 rounded-lg py-1.5 ${
+          <Link
+            href="/dashboard/settings"
+            onClick={onCloseMobile}
+            title={collapsed ? "Settings" : undefined}
+            className={`mb-1 flex min-h-8 items-center gap-2.5 rounded-lg px-2.5 py-1.5 font-label-sm text-label-sm text-text-muted transition-colors hover:bg-surface-container hover:text-on-surface ${
+              collapsed ? "justify-center px-0" : ""
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">settings</span>
+            <span className={collapsed ? "hidden" : ""}>Settings</span>
+          </Link>
+          <Link
+            href="/dashboard/settings"
+            onClick={onCloseMobile}
+            title={collapsed ? "Profile" : undefined}
+            aria-label="Open profile settings"
+            className={`flex items-center gap-2 rounded-lg py-1.5 transition-colors hover:bg-surface-container ${
               collapsed ? "justify-center px-0" : "px-2"
             }`}
           >
@@ -278,7 +293,20 @@ export default function ThreadSidebar({
               <p className="truncate font-label-sm text-label-sm text-on-surface">{userName}</p>
               <p className="truncate font-code-tag text-[10px] text-text-muted">{userEmail}</p>
             </div>
-          </div>
+          </Link>
+          <SignOutButton redirectUrl="/">
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              title={collapsed ? "Log out" : undefined}
+              className={`mt-1 flex min-h-8 w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 font-label-sm text-label-sm text-text-muted transition-colors hover:bg-error-container hover:text-on-error-container ${
+                collapsed ? "justify-center px-0" : ""
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+              <span className={collapsed ? "hidden" : ""}>Log out</span>
+            </button>
+          </SignOutButton>
         </div>
       </aside>
     </>

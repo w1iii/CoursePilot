@@ -28,7 +28,31 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#15370d",
+          colorBackground: "#fff9eb",
+          borderRadius: "0.5rem",
+          fontFamily: "var(--font-dm-sans), system-ui, sans-serif",
+        },
+        elements: {
+          card: "border border-[rgba(21,55,13,0.15)] shadow-[0_20px_60px_rgba(21,55,13,0.1)]",
+          headerTitle: "font-display text-primary-container",
+          headerSubtitle: "text-text-muted",
+          formButtonPrimary:
+            "bg-primary-container hover:bg-primary-hover text-dark-text shadow-sm",
+          formFieldInput: "border-border bg-surface",
+          footerActionLink: "text-primary-container hover:text-primary-hover",
+          identityPreviewEditButton: "text-primary-container hover:text-primary-hover",
+        },
+        options: {
+          socialButtonsVariant: "blockButton",
+          socialButtonsPlacement: "top",
+          showOptionalFields: false,
+        },
+      }}
+    >
       <html
         lang="en"
         className={`${dmSans.variable} ${dmMono.variable} ${fraunces.variable} h-full antialiased`}

@@ -53,15 +53,9 @@ export default function Home() {
             <Show when="signed-out">
               <Link
                 href="/sign-in"
-                className="hidden font-label-md text-label-md text-on-surface-variant transition-colors hover:text-primary sm:inline-flex"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/sign-up"
                 className="inline-flex items-center justify-center rounded-lg bg-primary-container px-5 py-3 font-label-md text-label-md text-dark-text shadow-[0_1px_2px_rgba(21,55,13,0.08)] transition-colors hover:bg-primary-hover hover:text-on-primary"
               >
-                Get started
+                Login
               </Link>
             </Show>
             <Show when="signed-in">
