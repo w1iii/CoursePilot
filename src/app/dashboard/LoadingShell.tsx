@@ -34,6 +34,7 @@ function LoadingSidebar() {
         </div>
       </div>
       <div className="w-[240px] shrink-0 border-t border-border p-2">
+        <div className="mb-1 h-8 w-full animate-pulse rounded-lg bg-surface-container" />
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 animate-pulse rounded-full bg-secondary-container" />
           <div className="space-y-1">
@@ -41,6 +42,7 @@ function LoadingSidebar() {
             <div className="h-2 w-28 animate-pulse rounded bg-surface-container" />
           </div>
         </div>
+        <div className="mt-1 h-8 w-full animate-pulse rounded-lg bg-surface-container" />
       </div>
     </aside>
   );

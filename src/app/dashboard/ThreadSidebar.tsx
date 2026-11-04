@@ -278,10 +278,10 @@ export default function ThreadSidebar({
             <span className={collapsed ? "hidden" : ""}>Settings</span>
           </Link>
           <Link
-            href="/dashboard/settings"
+            href="/dashboard/profile"
             onClick={onCloseMobile}
             title={collapsed ? "Profile" : undefined}
-            aria-label="Open profile settings"
+            aria-label="Open profile"
             className={`flex items-center gap-2 rounded-lg py-1.5 transition-colors hover:bg-surface-container ${
               collapsed ? "justify-center px-0" : "px-2"
             }`}
