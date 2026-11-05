@@ -20,7 +20,6 @@ export default function AnnouncementsFeed({ announcements }: Props) {
         <h2 id="announcements-heading" className="font-headline-sm text-headline-sm text-primary-container">
           Announcements
         </h2>
-        <span className="paper-kicker text-text-muted">Campus bulletin</span>
       </div>
 
       {announcements.length === 0 ? (

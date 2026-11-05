@@ -21,7 +21,6 @@ export default function DeadlineChanges({ changes }: Props) {
         >
           Deadline changes
         </h2>
-        <span className="paper-kicker text-text-muted">The wire</span>
       </div>
 
       {changes.length === 0 ? (
