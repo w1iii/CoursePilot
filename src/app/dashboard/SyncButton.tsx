@@ -45,28 +45,28 @@ export default function SyncButton({ connected }: { connected: boolean }) {
         onClick={sync}
         disabled={loading || !connected}
         title={connected ? undefined : "Connect Canvas first"}
-        className="inline-flex items-center gap-2 rounded-xl bg-primary-container px-space-xl py-3 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-2 border border-primary-container bg-primary-container px-3 py-2 font-code-tag text-[10px] uppercase tracking-[0.16em] text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className={`material-symbols-outlined text-[18px] ${loading ? "animate-spin" : ""}`}>
+        <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>
           sync
         </span>
-        {loading ? "Weaving Canvas…" : "Sync now"}
+        {loading ? "Weaving…" : "Sync now"}
       </button>
 
       {!connected && (
-        <p className="font-body-sm text-body-sm text-text-muted">
+        <p className="font-code-tag text-[10px] uppercase tracking-[0.14em] text-text-muted">
           Connect Canvas before syncing.
         </p>
       )}
 
       {error && (
-        <p className="rounded-lg border border-error/30 bg-error-container/50 px-space-sm py-1 text-body-sm text-on-error-container">
+        <p className="border border-error/30 bg-error-container/50 px-space-sm py-1 font-body-sm text-body-sm text-on-error-container">
           {error}
         </p>
       )}
 
       {result && (
-        <div className="text-right font-body-sm text-body-sm text-text-muted">
+        <div className="max-w-xs text-right font-code-tag text-[10px] leading-4 uppercase tracking-[0.12em] text-text-muted">
           <p>
             Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
             announcements.
