@@ -8,17 +8,20 @@ import {
   topPriorities,
 } from "@/lib/dashboard";
 import StatStrip from "./StatStrip";
+import SectionNav from "./SectionNav";
 import TaskLedger from "./TaskLedger";
+import type { CanvasAccountStatus } from "@/lib/canvas-account";
 import type { Course, DashboardTask } from "./types";
 
 interface Props {
   initialTasks: DashboardTask[];
   courses: Course[];
   today: string;
+  edition: string;
+  canvas: CanvasAccountStatus;
   masthead: React.ReactNode;
   news: React.ReactNode;
   rail: React.ReactNode;
-  colophon: React.ReactNode;
 }
 
 const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
@@ -27,14 +30,22 @@ const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
   low: "text-text-muted border-border",
 };
 
+function shortTimestamp(value: string | null): string {
+  if (!value) return "never";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "never";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export default function DashboardPaper({
   initialTasks,
   courses,
   today,
+  edition,
+  canvas,
   masthead,
   news,
   rail,
-  colophon,
 }: Props) {
   const [tasks, setTasks] = useState(initialTasks);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +56,18 @@ export default function DashboardPaper({
   const lead = useMemo(() => nextUp(tasks, now), [tasks, now]);
   const indexedCourses = useMemo(
     () => courses.filter((course) => Boolean(course.ragIndexedAt)).length,
+    [courses],
+  );
+  const openCount = useMemo(
+    () => tasks.filter((task) => task.status !== "completed").length,
+    [tasks],
+  );
+  const documentCount = useMemo(
+    () => courses.reduce((total, course) => total + (course.ragDocumentCount ?? 0), 0),
+    [courses],
+  );
+  const failureCount = useMemo(
+    () => courses.reduce((total, course) => total + (course.ragFailureCount ?? 0), 0),
     [courses],
   );
 
@@ -139,6 +162,8 @@ export default function DashboardPaper({
             },
           ]}
         />
+
+        <SectionNav />
 
         <div className="mt-space-lg grid grid-cols-1 gap-space-lg lg:grid-cols-12 lg:gap-0">
           <section className="lg:col-span-7 lg:pr-space-lg xl:col-span-6" aria-labelledby="lead-heading">
@@ -270,7 +295,19 @@ export default function DashboardPaper({
           />
         </div>
 
-        {colophon}
+        <footer className="mt-space-lg flex flex-wrap items-center justify-between gap-space-sm border-t border-primary-container/25 pt-space-sm">
+          <p className="paper-kicker text-text-muted">
+            Habi · {edition} · {openCount} open
+          </p>
+          <p className="paper-kicker text-text-muted">
+            Canvas {canvas.connected && !canvas.needsReconnect ? "connected" : "not connected"} ·
+            validated {shortTimestamp(canvas.lastValidatedAt)}
+          </p>
+          <p className="paper-kicker text-text-muted">
+            {indexedCourses}/{courses.length} courses indexed · {documentCount} documents
+            {failureCount > 0 ? ` · ${failureCount} issues` : ""}
+          </p>
+        </footer>
       </div>
     </div>
   );

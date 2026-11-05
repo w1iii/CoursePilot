@@ -14,7 +14,7 @@ export default function CourseIndex({ courses, tasks }: Props) {
   const remaining = Math.max(0, courses.length - visible.length);
 
   return (
-    <section aria-labelledby="course-index-heading" className="border-t border-primary-container/25 pt-space-sm">
+    <section id="courses" aria-labelledby="course-index-heading" className="border-t border-primary-container/25 pt-space-sm">
       <div className="flex items-baseline justify-between gap-2">
         <h2 id="course-index-heading" className="font-headline-sm text-headline-sm text-primary-container">
           Course index

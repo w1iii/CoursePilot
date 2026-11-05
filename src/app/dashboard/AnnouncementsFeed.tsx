@@ -15,7 +15,7 @@ function postedLabel(value: string | null): string {
 
 export default function AnnouncementsFeed({ announcements }: Props) {
   return (
-    <section aria-labelledby="announcements-heading">
+    <section id="announcements" aria-labelledby="announcements-heading">
       <div className="flex items-baseline justify-between gap-2 border-b border-primary-container/25 pb-1">
         <h2 id="announcements-heading" className="font-headline-sm text-headline-sm text-primary-container">
           Announcements

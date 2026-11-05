@@ -85,12 +85,6 @@ function semesterLabel(now: Date): string {
   return `${term} ${now.getFullYear()}`;
 }
 
-function shortTimestamp(value: string | null): string {
-  if (!value) return "never";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "never";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -231,24 +225,15 @@ export default async function DashboardPage() {
   );
   const firstName = displayName.split(/\s+/)[0];
 
-  const openCount = tasks.filter((task) => task.status !== "completed").length;
-  const indexedCount = courses.filter((course) => Boolean(course.ragIndexedAt)).length;
-  const documentCount = courses.reduce(
-    (total, course) => total + (course.ragDocumentCount ?? 0),
-    0,
-  );
-  const failureCount = courses.reduce(
-    (total, course) => total + (course.ragFailureCount ?? 0),
-    0,
-  );
-
   return (
     <DashboardShell userName={firstName} userEmail={user.email}>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div id="dashboard-scroll" className="min-h-0 flex-1 overflow-y-auto">
         <DashboardPaper
           initialTasks={tasks}
           courses={courses}
           today={now.toISOString()}
+          edition={edition}
+          canvas={canvas}
           masthead={
             <PaperMasthead
               userName={firstName}
