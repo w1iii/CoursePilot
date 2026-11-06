@@ -105,7 +105,6 @@ export async function PUT(request: Request, { params }: Params) {
     if (deleteError) throw new Error(deleteError.message);
     const messages = turns.flatMap((turn) => {
       const userMessage = {
-        id: turn.id,
         thread_id: id,
         role: "user",
         content: turn.question,
