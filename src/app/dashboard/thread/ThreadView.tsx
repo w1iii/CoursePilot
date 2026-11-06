@@ -159,6 +159,7 @@ export default function ThreadView({
     // and skip the client-side fetch to avoid showing "new chat" first.
     if (initialTurns && initialTurns.length > 0) {
       initializedThreadId.current = initialThreadId;
+      skipNextPersistRef.current = true;
       return;
     }
     initializedThreadId.current = initialThreadId;
