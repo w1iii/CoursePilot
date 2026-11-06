@@ -252,7 +252,7 @@ export default function ThreadSidebar({
                     {group.items.map((thread) => (
                       <div
                         key={thread.id}
-                        className={`group flex min-h-8 items-center gap-1.5 rounded-lg px-2 py-1 font-body-sm text-body-sm transition-colors ${
+                        className={`group flex min-h-8 items-center gap-1 rounded-lg px-2 py-1 font-body-sm text-body-sm transition-colors ${
                           activeThreadId === thread.id
                             ? "bg-secondary-container text-on-secondary-container"
                             : "text-text-muted hover:bg-surface-container hover:text-on-surface"
