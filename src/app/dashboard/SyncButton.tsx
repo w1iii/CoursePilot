@@ -1,56 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSync } from "./SyncProvider";
 
-interface SyncResponse {
-  courses: number;
-  tasks: number;
-  announcements: number;
-  documents: number;
-  ragDocuments: number;
-  ragChunks: number;
-  ragFailures: number;
-  ragSkipped: number;
-  errors: string[];
+function finishLabel(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function SyncButton({ connected }: { connected: boolean }) {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<SyncResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-
-  async function sync() {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const res = await fetch("/api/sync", { method: "POST" });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Sync failed");
-      setResult(json);
-      router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { running, result, error, finishedAt, start } = useSync();
 
   return (
     <div className="flex flex-col items-start gap-space-sm md:items-end">
       <button
         type="button"
-        onClick={sync}
-        disabled={loading || !connected}
+        onClick={() => void start()}
+        disabled={running || !connected}
         title={connected ? undefined : "Connect Canvas first"}
         className="inline-flex items-center gap-2 border border-primary-container bg-primary-container px-3 py-2 font-code-tag text-[10px] uppercase tracking-[0.16em] text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>
+        <span className={`material-symbols-outlined text-[16px] ${running ? "animate-spin" : ""}`}>
           sync
         </span>
-        {loading ? "Weaving…" : "Sync now"}
+        {running ? "Weaving…" : "Sync now"}
       </button>
 
       {!connected && (
@@ -60,12 +39,15 @@ export default function SyncButton({ connected }: { connected: boolean }) {
       )}
 
       {error && (
-        <p className="border border-error/30 bg-error-container/50 px-space-sm py-1 font-body-sm text-body-sm text-on-error-container">
+        <p
+          role="alert"
+          className="border border-error/30 bg-error-container/50 px-space-sm py-1 font-body-sm text-body-sm text-on-error-container"
+        >
           {error}
         </p>
       )}
 
-      {result && (
+      {result && !running && (
         <div className="max-w-xs text-right font-code-tag text-[10px] leading-4 uppercase tracking-[0.12em] text-text-muted">
           <p>
             Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
@@ -85,6 +67,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
               ))}
             </ul>
           )}
+          {finishLabel(finishedAt) && <p className="mt-1">Last sync {finishLabel(finishedAt)}</p>}
         </div>
       )}
     </div>
