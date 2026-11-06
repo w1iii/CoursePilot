@@ -6,6 +6,7 @@ export interface AppUser {
   clerk_user_id: string;
   email: string;
   full_name: string | null;
+  created_at?: string;
 }
 
 export async function requireUser(): Promise<AppUser> {

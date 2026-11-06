@@ -3,8 +3,19 @@
  * Every sound is synthesized at click time so the landing page ships no audio assets.
  */
 
+const SOUND_KEY = "habi:sound-enabled";
+
+function initialSoundEnabled(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.localStorage.getItem(SOUND_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
 let audioCtx: AudioContext | null = null;
-let soundEnabled = true;
+let soundEnabled = initialSoundEnabled();
 
 export function initAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -24,6 +35,11 @@ export function isSoundEnabled() {
 
 export function setSoundEnabled(enabled: boolean) {
   soundEnabled = enabled;
+  try {
+    window.localStorage.setItem(SOUND_KEY, String(enabled));
+  } catch {
+    // Sound remains enabled for this session when storage is unavailable.
+  }
   if (enabled) initAudioContext();
 }
 

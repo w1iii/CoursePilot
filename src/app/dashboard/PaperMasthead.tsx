@@ -40,7 +40,7 @@ export default function PaperMasthead({
 
         <div className="flex flex-wrap items-center gap-space-sm">
           <Link
-            href="/dashboard/settings"
+            href="/dashboard/settings#canvas"
             className={`paper-stamp ${connected ? "text-secondary" : "text-error"}`}
             title={
               connected

@@ -16,9 +16,10 @@ export interface CanvasStatus {
 interface Props {
   initialStatus: CanvasStatus;
   defaultBaseUrl: string;
+  embedded?: boolean;
 }
 
-export default function CanvasConnect({ initialStatus, defaultBaseUrl }: Props) {
+export default function CanvasConnect({ initialStatus, defaultBaseUrl, embedded = false }: Props) {
   const [status, setStatus] = useState(initialStatus);
   const [showForm, setShowForm] = useState(!initialStatus.connected || initialStatus.needsReconnect);
   const [baseUrl, setBaseUrl] = useState(initialStatus.baseUrl ?? defaultBaseUrl);
@@ -90,7 +91,7 @@ export default function CanvasConnect({ initialStatus, defaultBaseUrl }: Props) 
     "rounded-lg border border-border bg-surface px-space-sm py-2 font-body-sm text-body-sm text-on-surface placeholder:text-text-muted focus:border-secondary focus:outline-none";
 
   return (
-    <section id="canvas" className="rounded-2xl border border-border bg-surface p-space-lg shadow-sm">
+    <section id="canvas" className={embedded ? "" : "rounded-2xl border border-border bg-surface p-space-lg shadow-sm"}>
       <div className="flex flex-col gap-space-md sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
