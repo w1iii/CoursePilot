@@ -19,16 +19,16 @@ function WeaveMark() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect width="32" height="32" rx="8" fill="#15370D" />
+      <rect width="32" height="32" rx="8" fill="var(--color-rule)" />
       <path
         d="M16 5.5 26.5 16 16 26.5 5.5 16 16 5.5Z"
-        stroke="#FFF2B4"
+        stroke="var(--color-background)"
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      <path d="M16 10.5 21.5 16 16 21.5 10.5 16 16 10.5Z" fill="#C0AA62" />
-      <path d="M16 13.2 18.8 16 16 18.8 13.2 16 16 13.2Z" fill="#15370D" />
-      <path d="M5.5 16h21M16 5.5v21" stroke="#FFF2B4" strokeOpacity="0.35" strokeWidth="0.8" />
+      <path d="M16 10.5 21.5 16 16 21.5 10.5 16 16 10.5Z" fill="var(--color-accent)" />
+      <path d="M16 13.2 18.8 16 16 18.8 13.2 16 16 13.2Z" fill="var(--color-rule)" />
+      <path d="M5.5 16h21M16 5.5v21" stroke="var(--color-background)" strokeOpacity="0.35" strokeWidth="0.8" />
     </svg>
   );
 }
@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <>
       {/* ============ HEADER ============ */}
-      <header className="fixed inset-x-0 top-0 z-50 bg-background/85 shadow-[0_1px_8px_rgba(21,55,13,0.06)] backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-50 bg-background/85 shadow-[0_1px_8px_var(--shadow-color)] backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-[1120px] items-center justify-between px-gutter">
           <Link href="/" className="flex items-center gap-space-md">
             <WeaveMark />
@@ -53,7 +53,7 @@ export default function Home() {
             <Show when="signed-out">
               <Link
                 href="/sign-in"
-                className="inline-flex items-center justify-center rounded-lg bg-primary-container px-5 py-3 font-label-md text-label-md text-dark-text shadow-[0_1px_2px_rgba(21,55,13,0.08)] transition-colors hover:bg-primary-hover hover:text-on-primary"
+                className="inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 font-label-md text-label-md text-on-accent shadow-sm transition-colors hover:bg-accent-hover"
               >
                 Login
               </Link>
@@ -61,7 +61,7 @@ export default function Home() {
             <Show when="signed-in">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center justify-center rounded-lg bg-primary-container px-5 py-3 font-label-md text-label-md text-dark-text shadow-[0_1px_2px_rgba(21,55,13,0.08)] transition-colors hover:bg-primary-hover hover:text-on-primary"
+                className="inline-flex items-center justify-center rounded-lg bg-accent px-5 py-3 font-label-md text-label-md text-on-accent shadow-sm transition-colors hover:bg-accent-hover"
               >
                 Open dashboard
               </Link>
@@ -82,12 +82,12 @@ export default function Home() {
           <div className="relative w-full overflow-hidden">
             {/* decorative inabel weave background */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="weft-breathe absolute inset-0 bg-[radial-gradient(#15370d_1px,transparent_1px)] opacity-[0.05] [background-size:16px_16px]" />
+              <div className="weft-breathe absolute inset-0 bg-[radial-gradient(var(--color-rule)_1px,transparent_1px)] opacity-[0.05] [background-size:16px_16px]" />
               <div
                 className="absolute inset-0 opacity-[0.04]"
                 style={{
                   backgroundImage:
-                    "repeating-linear-gradient(45deg, #15370D 0, #15370D 1px, transparent 0, transparent 50%), repeating-linear-gradient(-45deg, #728E6D 0, #728E6D 1px, transparent 0, transparent 50%)",
+                    "repeating-linear-gradient(45deg, var(--color-rule) 0, var(--color-rule) 1px, transparent 0, transparent 50%), repeating-linear-gradient(-45deg, var(--color-accent) 0, var(--color-accent) 1px, transparent 0, transparent 50%)",
                   backgroundSize: "24px 24px",
                 }}
               />
@@ -101,14 +101,14 @@ export default function Home() {
                 <path
                   className="thread-flow"
                   d="M -100 120 C 240 80, 480 260, 820 180 C 1120 110, 1320 280, 1550 200"
-                  stroke="#15370D"
+                  stroke="var(--color-rule)"
                   strokeOpacity="0.10"
                   strokeWidth="1.5"
                 />
                 <path
                   className="thread-flow"
                   d="M -80 180 C 260 260, 580 90, 920 220 C 1200 320, 1380 160, 1580 240"
-                  stroke="#728E6D"
+                  stroke="var(--color-accent)"
                   strokeOpacity="0.08"
                   strokeWidth="2"
                   style={{ animationDuration: "44s", animationDirection: "reverse" }}
@@ -116,7 +116,7 @@ export default function Home() {
                 <path
                   className="thread-flow"
                   d="M -120 260 C 200 200, 520 340, 880 240 C 1180 160, 1400 320, 1600 280"
-                  stroke="#c0aa62"
+                  stroke="var(--color-highlight-strong)"
                   strokeOpacity="0.10"
                   strokeWidth="1.5"
                   style={{ animationDuration: "32s" }}
@@ -124,7 +124,7 @@ export default function Home() {
                 <path
                   className="thread-flow"
                   d="M -60 340 C 300 380, 620 200, 960 300 C 1240 380, 1420 230, 1560 320"
-                  stroke="#15370D"
+                  stroke="var(--color-rule)"
                   strokeOpacity="0.06"
                   strokeWidth="1.2"
                   style={{ animationDuration: "52s" }}
@@ -148,7 +148,7 @@ export default function Home() {
                     <Show when="signed-out">
                       <Link
                         href="/sign-up"
-                        className="group inline-flex items-center justify-center rounded-lg bg-primary-container px-6 py-3.5 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover hover:text-on-primary"
+                        className="group inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3.5 font-label-md text-label-md text-on-accent shadow-sm transition-all hover:bg-accent-hover"
                       >
                         <span>Connect Canvas</span>
                         <span className="material-symbols-outlined ml-2 text-lg leading-none transition-transform group-hover:translate-x-0.5">
@@ -159,7 +159,7 @@ export default function Home() {
                     <Show when="signed-in">
                       <Link
                         href="/dashboard"
-                        className="group inline-flex items-center justify-center rounded-lg bg-primary-container px-6 py-3.5 font-label-md text-label-md text-dark-text shadow-sm transition-all hover:bg-primary-hover hover:text-on-primary"
+                        className="group inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3.5 font-label-md text-label-md text-on-accent shadow-sm transition-all hover:bg-accent-hover"
                       >
                         <span>Connect Canvas</span>
                         <span className="material-symbols-outlined ml-2 text-lg leading-none transition-transform group-hover:translate-x-0.5">
@@ -197,7 +197,7 @@ export default function Home() {
                 <path
                   className="thread-flow"
                   d="M 0 16 Q 300 4, 600 16 T 1200 16"
-                  stroke="#728E6D"
+                  stroke="var(--color-accent)"
                   strokeOpacity="0.15"
                   strokeWidth="1"
                   style={{ animationDuration: "40s" }}
@@ -205,7 +205,7 @@ export default function Home() {
                 <path
                   className="thread-flow"
                   d="M 0 16 Q 300 28, 600 16 T 1200 16"
-                  stroke="#c0aa62"
+                  stroke="var(--color-highlight-strong)"
                   strokeOpacity="0.12"
                   strokeWidth="1"
                   style={{ animationDuration: "30s", animationDirection: "reverse" }}
@@ -455,7 +455,7 @@ export default function Home() {
           <section className="mx-auto w-full max-w-[1120px] px-gutter pb-space-4xl pt-space-2xl">
             <Reveal>
             <div className="relative flex flex-col items-center overflow-hidden rounded-xl bg-primary-container p-space-2xl text-center text-dark-text sm:p-space-4xl">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#fae194_1px,transparent_1px)] opacity-10 [background-size:20px_20px]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(var(--color-highlight)_1px,transparent_1px)] opacity-10 [background-size:20px_20px]" />
               <span className="mb-space-xs font-code-tag text-code-tag font-semibold uppercase tracking-widest text-dark-secondary">
                 Ready for an unhurried term?
               </span>
@@ -503,7 +503,7 @@ export default function Home() {
       </main>
 
       {/* ============ FOOTER ============ */}
-      <footer className="mt-space-4xl w-full bg-surface-container-low py-space-4xl shadow-[0_1px_8px_rgba(21,55,13,0.04)]">
+      <footer className="mt-space-4xl w-full bg-surface-container-low py-space-4xl shadow-[0_1px_8px_var(--shadow-color)]">
         <div className="mx-auto max-w-[1120px] px-gutter">
           <div className="flex flex-col justify-between gap-space-3xl pb-space-3xl md:flex-row md:items-start">
             <div className="max-w-sm space-y-space-sm">

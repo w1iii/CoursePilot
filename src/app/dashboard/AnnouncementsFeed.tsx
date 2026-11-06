@@ -43,9 +43,6 @@ export default function AnnouncementsFeed({ announcements }: Props) {
                   <span className="font-code-tag text-[10px] text-text-muted/70">
                     {postedLabel(announcement.postedAt)}
                   </span>
-                  {urgent && (
-                    <span className="paper-stamp text-tertiary">Important</span>
-                  )}
                 </div>
                 <h3 className="mt-1 font-body-md text-[15px] font-semibold leading-snug text-on-surface">
                   {announcement.title}

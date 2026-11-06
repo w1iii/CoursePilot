@@ -38,7 +38,7 @@ export default function CourseIndex({ courses, tasks }: Props) {
                 <span
                   aria-hidden="true"
                   className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                    issues ? "bg-error" : indexed ? "bg-secondary" : "bg-tertiary"
+                    issues ? "bg-error" : indexed ? "bg-secondary" : "bg-outline"
                   }`}
                 />
                 <div className="min-w-0 flex-1">

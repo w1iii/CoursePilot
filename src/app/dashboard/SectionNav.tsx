@@ -143,7 +143,7 @@ export default function SectionNav() {
                 aria-current={isActive ? "true" : undefined}
                 className={`paper-kicker relative block px-1 pb-1.5 pt-1 text-center transition-colors ${
                   isActive
-                    ? "text-primary-container"
+                    ? "text-accent"
                     : "text-text-muted hover:text-on-surface"
                 }`}
               >
@@ -151,7 +151,7 @@ export default function SectionNav() {
                 <span
                   aria-hidden="true"
                   className={`absolute inset-x-0 bottom-0 h-[2px] transition-colors ${
-                    isActive ? "bg-primary-container" : "bg-transparent"
+                    isActive ? "bg-accent" : "bg-transparent"
                   }`}
                 />
               </button>

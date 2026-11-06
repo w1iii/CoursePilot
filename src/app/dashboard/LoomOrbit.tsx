@@ -16,7 +16,15 @@ interface Props {
   compact?: boolean;
 }
 
-const NODE_COLORS = ["#15370D", "#728E6D", "#2C4F22", "#4B6547", "#6F5D1E", "#1F4A14", "#C0AA62"];
+const NODE_COLORS = [
+  "var(--color-rule)",
+  "var(--color-accent)",
+  "var(--color-link)",
+  "var(--color-text-muted)",
+  "var(--color-secondary)",
+  "var(--color-outline)",
+  "var(--color-accent)",
+];
 const ICONS = ["code", "biotech", "calculate", "history_edu", "hub", "menu_book", "science"];
 const INNER_ANGLES = [30, 150, 270];
 const OUTER_ANGLES = [90, 210, 330];
@@ -52,7 +60,7 @@ export default function LoomOrbit({
 
       while (linePool.length < nodes.length) {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("stroke", "#728e6d");
+        line.setAttribute("stroke", "var(--color-text-muted)");
         line.setAttribute("stroke-width", "1.2");
         line.setAttribute("stroke-dasharray", "3, 4");
         line.setAttribute("opacity", "0.4");
@@ -137,8 +145,8 @@ export default function LoomOrbit({
       <svg className="loom-orbit__threads" ref={svgRef} xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="threadGrad" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" stopColor="#728E6D" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#E5CD82" stopOpacity="0.25" />
+            <stop offset="0%" stopColor="var(--color-text-muted)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="var(--color-highlight)" stopOpacity="0.25" />
           </linearGradient>
         </defs>
       </svg>

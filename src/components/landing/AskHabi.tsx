@@ -162,7 +162,7 @@ export default function AskHabi() {
             >
               <div className="h-1.5 w-1.5 rounded-full bg-surface-tint" />
               <span>Canvas Vector Index: Synced</span>
-              <div className="anim-shuttle-pulse pointer-events-none absolute inset-0 bg-linear-to-r from-transparent via-white/50 to-transparent" />
+              <div className="anim-shuttle-pulse pointer-events-none absolute inset-0 bg-surface-container/40" />
             </button>
           </div>
 

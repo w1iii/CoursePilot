@@ -26,7 +26,7 @@ interface Props {
 
 const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
   high: "text-error border-error/50",
-  medium: "text-tertiary border-tertiary/60",
+  medium: "text-secondary border-secondary/60",
   low: "text-text-muted border-border",
 };
 
@@ -168,7 +168,7 @@ export default function DashboardPaper({
         <div className="mt-space-lg grid grid-cols-1 gap-space-lg lg:grid-cols-12 lg:gap-0">
           <section className="lg:col-span-7 lg:pr-space-lg xl:col-span-6" aria-labelledby="lead-heading">
             <div className="flex items-baseline justify-between gap-2 border-b border-primary-container/25 pb-1">
-              <h2 id="lead-heading" className="paper-kicker text-tertiary">
+              <h2 id="lead-heading" className="paper-kicker text-accent">
                 Today&apos;s lead
               </h2>
             </div>
@@ -203,7 +203,7 @@ export default function DashboardPaper({
                   <button
                     type="button"
                     onClick={() => void toggleTask(lead)}
-                    className="ml-auto border border-primary-container px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-primary-container transition-colors hover:bg-primary-container hover:text-dark-text"
+                    className="ml-auto border border-accent px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-accent transition-colors hover:bg-accent hover:text-on-accent"
                   >
                     Mark complete
                   </button>
@@ -225,7 +225,7 @@ export default function DashboardPaper({
                 <h2 className="font-headline-sm text-headline-sm text-primary-container">
                   Priority queue
                 </h2>
-                <span className="paper-kicker text-text-muted">
+                <span className="paper-kicker text-accent">
                   Five to watch
                 </span>
               </div>

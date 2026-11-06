@@ -326,7 +326,7 @@ export default function ThreadView({
         </div>
         <div className="shrink-0 border-border bg-background px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 md:px-6">
           <form onSubmit={submit} className="mx-auto w-full max-w-[720px]">
-            <div className="rounded-[20px] border border-border bg-surface p-1.5 shadow-[0_8px_28px_rgba(21,55,13,0.08)]">
+            <div className="rounded-[20px] border border-border bg-surface p-1.5 shadow-[0_8px_28px_var(--shadow-color)]">
               <div className="flex items-end gap-2">
                 <textarea
                   ref={inputRef}
@@ -361,7 +361,7 @@ export default function ThreadView({
                     <span className="material-symbols-outlined text-[16px]">stop</span>
                   </button>
                 ) : (
-                  <button type="submit" disabled={!question.trim() || !courseId} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-container text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
+                  <button type="submit" disabled={!question.trim() || !courseId} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
                     <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
                   </button>
                 )}

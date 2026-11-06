@@ -56,7 +56,7 @@ export default function Workflow() {
       {/* Connecting warp strand behind cards */}
       <div className="absolute left-16 right-16 top-8 -z-0 hidden h-0.5 bg-secondary/15 md:block">
         <div
-          className="h-full bg-linear-to-r from-surface-tint via-tertiary-fixed-dim to-primary-container transition-all duration-500"
+          className="h-full bg-accent transition-all duration-500"
           style={{ opacity: active ? 0.3 + active * 0.25 : 0.4 }}
         />
       </div>

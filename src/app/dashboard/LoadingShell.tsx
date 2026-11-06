@@ -54,7 +54,6 @@ export default function LoadingShell({ children }: { children: React.ReactNode }
       <LoadingSidebar />
       <main className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-          <div className="ambient-mesh-canvas absolute -inset-[30%] opacity-40" />
           <div className="ambient-woven-dots absolute inset-0 opacity-40" />
         </div>
         <div className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</div>

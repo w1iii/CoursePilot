@@ -24,7 +24,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
         onClick={() => void start()}
         disabled={running || !connected}
         title={connected ? undefined : "Connect Canvas first"}
-        className="inline-flex items-center gap-2 border border-primary-container bg-primary-container px-3 py-2 font-code-tag text-[10px] uppercase tracking-[0.16em] text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-2 border border-accent bg-accent px-3 py-2 font-code-tag text-[10px] uppercase tracking-[0.16em] text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className={`material-symbols-outlined text-[16px] ${running ? "animate-spin" : ""}`}>
           sync

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { resolveTheme, toggleTheme, type ResolvedTheme } from "@/lib/theme";
 
 export interface SavedThread {
   id: string;
@@ -41,6 +42,31 @@ export default function ThreadSidebar({
   const pathname = usePathname();
   const [threads, setThreads] = useState<SavedThread[]>([]);
   const [search, setSearch] = useState("");
+  const [theme, setTheme] = useState<ResolvedTheme>("light");
+
+  useEffect(() => {
+    const syncTheme = () => setTheme(resolveTheme());
+    syncTheme();
+
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    query.addEventListener("change", syncTheme);
+
+    return () => {
+      observer.disconnect();
+      query.removeEventListener("change", syncTheme);
+    };
+  }, []);
+
+  function handleThemeToggle() {
+    setTheme(toggleTheme());
+    onCloseMobile();
+  }
 
   useEffect(() => {
     const refresh = async () => {
@@ -100,7 +126,7 @@ export default function ThreadSidebar({
           collapsed ? "w-[52px]" : "w-[240px]"
         } ${
           mobileOpen
-            ? "fixed inset-y-0 left-0 w-[min(260px,85vw)] translate-x-0 shadow-[8px_0_28px_rgba(21,55,13,0.16)]"
+            ? "fixed inset-y-0 left-0 w-[min(260px,85vw)] translate-x-0 shadow-[8px_0_28px_var(--shadow-color)]"
             : "fixed inset-y-0 left-0 -translate-x-full md:static md:translate-x-0 md:shadow-none"
         } md:flex`}
       >
@@ -147,14 +173,14 @@ export default function ThreadSidebar({
           <Link
             href="/dashboard/thread"
             onClick={onCloseMobile}
-            className={`group flex min-h-9 items-center gap-2 rounded-lg bg-primary-container px-2.5 py-2 font-label-md text-label-md text-dark-text shadow-sm transition-colors hover:bg-primary-hover ${
+            className={`group flex min-h-9 items-center gap-2 rounded-lg bg-accent px-2.5 py-2 font-label-md text-label-md text-on-accent shadow-sm transition-colors hover:bg-accent-hover ${
               collapsed ? "justify-center px-0" : ""
             }`}
             title={collapsed ? "New chat" : undefined}
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             <span className={collapsed ? "hidden" : ""}>New chat</span>
-            <span className="ml-auto hidden rounded bg-white/15 px-1.5 py-0.5 font-code-tag text-[10px] text-dark-text/80 group-hover:inline">
+            <span className="ml-auto hidden rounded bg-on-accent/15 px-1.5 py-0.5 font-code-tag text-[10px] text-on-accent/80 group-hover:inline">
               ⌘K
             </span>
           </Link>
@@ -226,7 +252,7 @@ export default function ThreadSidebar({
                     {group.items.map((thread) => (
                       <div
                         key={thread.id}
-                        className={`group flex min-h-8 items-center gap-1.5 rounded-lg px-2 py-1.5 font-body-sm text-body-sm transition-colors ${
+                        className={`group flex min-h-8 items-center gap-1.5 rounded-lg px-2 py-1 font-body-sm text-body-sm transition-colors ${
                           activeThreadId === thread.id
                             ? "bg-secondary-container text-on-secondary-container"
                             : "text-text-muted hover:bg-surface-container hover:text-on-surface"
@@ -266,6 +292,22 @@ export default function ThreadSidebar({
         </div>
 
         <div className={`${collapsed ? "w-[52px] px-1.5" : "w-[240px]"} shrink-0 border-t border-border p-2`}>
+          <button
+            type="button"
+            onClick={handleThemeToggle}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className={`mb-1 flex min-h-8 w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 font-label-sm text-label-sm text-text-muted transition-colors hover:bg-surface-container hover:text-on-surface ${
+              collapsed ? "justify-center px-0" : ""
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {theme === "dark" ? "light_mode" : "dark_mode"}
+            </span>
+            <span className={collapsed ? "hidden" : ""}>
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </span>
+          </button>
           <Link
             href="/dashboard/settings"
             onClick={onCloseMobile}
@@ -276,23 +318,6 @@ export default function ThreadSidebar({
           >
             <span className="material-symbols-outlined text-[18px]">settings</span>
             <span className={collapsed ? "hidden" : ""}>Settings</span>
-          </Link>
-          <Link
-            href="/dashboard/profile"
-            onClick={onCloseMobile}
-            title={collapsed ? "Profile" : undefined}
-            aria-label="Open profile"
-            className={`flex items-center gap-2 rounded-lg py-1.5 transition-colors hover:bg-surface-container ${
-              collapsed ? "justify-center px-0" : "px-2"
-            }`}
-          >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-container text-xs font-semibold text-on-secondary-container">
-              {userName.slice(0, 1).toUpperCase()}
-            </div>
-            <div className={`min-w-0 ${collapsed ? "hidden" : ""}`}>
-              <p className="truncate font-label-sm text-label-sm text-on-surface">{userName}</p>
-              <p className="truncate font-code-tag text-[10px] text-text-muted">{userEmail}</p>
-            </div>
           </Link>
           <SignOutButton redirectUrl="/">
             <button

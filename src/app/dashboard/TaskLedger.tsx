@@ -28,7 +28,7 @@ const TASKS_PER_PAGE = 5;
 
 const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
   high: "text-error border-error/50",
-  medium: "text-tertiary border-tertiary/60",
+  medium: "text-secondary border-secondary/60",
   low: "text-text-muted border-border",
 };
 
@@ -137,7 +137,7 @@ export default function TaskLedger({
             type="button"
             onClick={() => setShowForm((value) => !value)}
             disabled={courses.length === 0}
-            className="inline-flex items-center gap-1.5 border border-primary-container bg-primary-container px-3 py-2 font-code-tag text-[10px] uppercase tracking-[0.16em] text-dark-text transition-colors hover:bg-primary-hover disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 border border-accent bg-accent px-3 py-2 font-code-tag text-[10px] uppercase tracking-[0.16em] text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
               {showForm ? "close" : "add"}
@@ -202,7 +202,7 @@ export default function TaskLedger({
           <button
             type="submit"
             disabled={busy}
-            className="h-9 border border-primary-container bg-primary-container px-4 font-code-tag text-[10px] uppercase tracking-[0.16em] text-dark-text transition-colors hover:bg-primary-hover disabled:opacity-50"
+            className="h-9 border border-accent bg-accent px-4 font-code-tag text-[10px] uppercase tracking-[0.16em] text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             {busy ? "Adding…" : "Add"}
           </button>
@@ -235,7 +235,7 @@ export default function TaskLedger({
               aria-pressed={priorityFilter === filter}
               className={`border-b-2 pb-1 font-code-tag text-[10px] uppercase tracking-[0.16em] transition-colors ${
                 priorityFilter === filter
-                  ? "border-primary-container text-primary-container"
+                  ? "border-accent text-accent"
                   : "border-transparent text-text-muted hover:text-on-surface"
               }`}
             >

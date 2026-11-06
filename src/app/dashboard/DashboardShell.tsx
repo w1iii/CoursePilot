@@ -69,7 +69,7 @@ export default function DashboardShell({ children, userName, userEmail, activeTh
         ref={toggleRef}
         type="button"
         onClick={() => setMobileOpen(true)}
-        className="fixed left-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-lg bg-primary-container p-2 text-dark-text shadow-sm md:hidden"
+        className="fixed left-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-lg bg-accent p-2 text-on-accent shadow-sm transition-colors hover:bg-accent-hover md:hidden"
         aria-label="Open navigation"
       >
         <span className="material-symbols-outlined text-[20px]">menu</span>

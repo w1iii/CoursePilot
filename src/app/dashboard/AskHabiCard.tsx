@@ -8,7 +8,7 @@ export default function AskHabiCard() {
       aria-label="Ask Habi — start a new chat"
     >
       <div className="flex items-center justify-between gap-2 border-b border-primary-container/25 pb-2">
-        <span className="paper-kicker text-tertiary">Ask Habi</span>
+        <span className="paper-kicker text-accent">Ask Habi</span>
         <span
           className="material-symbols-outlined text-[18px] text-primary-container transition-transform group-hover:translate-x-1"
           aria-hidden="true"
@@ -23,7 +23,7 @@ export default function AskHabiCard() {
       <p className="mt-2 font-body-sm text-body-sm text-text-muted">
         Open a new chat. Ask about deadlines, modules, or what to work on next.
       </p>
-      <p className="mt-3 font-code-tag text-[10px] uppercase tracking-[0.16em] text-primary-container">
+      <p className="mt-3 font-code-tag text-[10px] uppercase tracking-[0.16em] text-accent">
         Start a new conversation
       </p>
     </Link>

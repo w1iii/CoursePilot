@@ -105,21 +105,21 @@ export default function HeroLoom() {
               >
                 <path
                   d="M 10 30 Q 80 120, 160 40 T 230 140"
-                  stroke="#ba1a1a"
+                  stroke="var(--color-accent)"
                   strokeDasharray="4 6"
                   strokeOpacity="0.4"
                   strokeWidth="1.5"
                 />
                 <path
                   d="M 20 160 C 60 70, 130 190, 190 60 S 240 90, 240 90"
-                  stroke="#c0aa62"
+                  stroke="var(--color-highlight-strong)"
                   strokeDasharray="3 5"
                   strokeOpacity="0.35"
                   strokeWidth="1.5"
                 />
                 <path
                   d="M -10 90 Q 70 20, 140 130 T 250 80"
-                  stroke="#15370d"
+                  stroke="var(--color-rule)"
                   strokeDasharray="2 4"
                   strokeOpacity="0.25"
                   strokeWidth="1.2"
@@ -136,7 +136,7 @@ export default function HeroLoom() {
               </span>
             </div>
             <div className="relative z-10 space-y-space-xs">
-              <div className="rotate-[-1.5deg] rounded bg-surface/90 p-2.5 text-left shadow-[0_1px_2px_rgba(21,55,13,0.04)]">
+              <div className="rotate-[-1.5deg] rounded bg-surface/90 p-2.5 text-left shadow-[0_1px_2px_var(--shadow-color)]">
                 <div className="flex items-center justify-between">
                   <span className="font-label-sm text-label-sm font-semibold text-warning">
                     CS 161 PS4
@@ -149,7 +149,7 @@ export default function HeroLoom() {
                   Submit via Gradescope before 11:59
                 </p>
               </div>
-              <div className="rotate-[1.2deg] rounded bg-surface/90 p-2.5 text-left opacity-85 shadow-[0_1px_2px_rgba(21,55,13,0.04)]">
+              <div className="rotate-[1.2deg] rounded bg-surface/90 p-2.5 text-left opacity-85 shadow-[0_1px_2px_var(--shadow-color)]">
                 <div className="flex items-center justify-between">
                   <span className="font-label-sm text-label-sm font-semibold text-tertiary">
                     11 Unread Notes
@@ -162,7 +162,7 @@ export default function HeroLoom() {
                   Syllabus addendum posted in BIO
                 </p>
               </div>
-              <div className="rotate-[-1deg] rounded bg-surface/80 p-2 text-left opacity-75 shadow-[0_1px_2px_rgba(21,55,13,0.04)]">
+              <div className="rotate-[-1deg] rounded bg-surface/80 p-2 text-left opacity-75 shadow-[0_1px_2px_var(--shadow-color)]">
                 <span className="font-label-sm text-xs font-semibold text-on-surface-variant">
                   HIST 210 reading list (40 pgs)
                 </span>
@@ -183,7 +183,7 @@ export default function HeroLoom() {
                 : "opacity-[0.45] grayscale-[40%]"
             }`}
           >
-            <div className="absolute inset-y-0 left-0 w-0.5 bg-linear-to-b from-primary-container via-surface-tint to-tertiary-fixed-dim opacity-70" />
+            <div className="absolute inset-y-0 left-0 w-0.5 bg-accent opacity-70" />
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1 font-label-sm text-label-sm font-semibold uppercase tracking-wider text-surface-tint">
                 <span className="material-symbols-outlined text-sm leading-none">check_circle</span>{" "}
@@ -192,7 +192,7 @@ export default function HeroLoom() {
               <span className="whitespace-nowrap font-code-tag text-code-tag text-surface-tint">Calm Pace</span>
             </div>
             <div className="space-y-space-xs" key={weaveKey}>
-              <div className="anim-weave-1 relative overflow-hidden rounded bg-surface-bright py-2 pl-2.5 pr-2 text-left shadow-[0_1px_2px_rgba(21,55,13,0.04)]">
+              <div className="anim-weave-1 relative overflow-hidden rounded bg-surface-bright py-2 pl-2.5 pr-2 text-left shadow-[0_1px_2px_var(--shadow-color)]">
                 <div className="absolute inset-y-0 left-0 w-1 bg-primary-container" />
                 <div className="flex items-center justify-between">
                   <span className="font-label-sm text-label-sm font-semibold text-primary-container">
@@ -204,7 +204,7 @@ export default function HeroLoom() {
                 </div>
                 <p className="font-body-sm text-[11px] text-text-muted">Block 2 of 3 scheduled</p>
               </div>
-              <div className="anim-weave-2 relative overflow-hidden rounded bg-surface-bright py-2 pl-2.5 pr-2 text-left shadow-[0_1px_2px_rgba(21,55,13,0.04)]">
+              <div className="anim-weave-2 relative overflow-hidden rounded bg-surface-bright py-2 pl-2.5 pr-2 text-left shadow-[0_1px_2px_var(--shadow-color)]">
                 <div className="absolute inset-y-0 left-0 w-1 bg-tertiary-fixed-dim" />
                 <div className="flex items-center justify-between">
                   <span className="font-label-sm text-label-sm font-semibold text-primary-container">
@@ -216,7 +216,7 @@ export default function HeroLoom() {
                 </div>
                 <p className="font-body-sm text-[11px] text-text-muted">Annotated summary ready</p>
               </div>
-              <div className="anim-weave-3 relative overflow-hidden rounded bg-surface-bright py-2 pl-2.5 pr-2 text-left shadow-[0_1px_2px_rgba(21,55,13,0.04)]">
+              <div className="anim-weave-3 relative overflow-hidden rounded bg-surface-bright py-2 pl-2.5 pr-2 text-left shadow-[0_1px_2px_var(--shadow-color)]">
                 <div className="absolute inset-y-0 left-0 w-1 bg-surface-tint" />
                 <div className="flex items-center justify-between">
                   <span className="font-label-sm text-label-sm font-semibold text-primary-container">
@@ -254,7 +254,7 @@ export default function HeroLoom() {
           }}
           className="relative mt-space-md flex w-full items-center justify-between overflow-hidden rounded-lg bg-surface-bright/90 px-space-md py-space-xs pt-space-sm text-left text-primary-container"
         >
-          <div className="anim-shuttle pointer-events-none absolute inset-y-0 w-24 bg-linear-to-r from-transparent via-surface-container/60 to-transparent" />
+          <div className="anim-shuttle pointer-events-none absolute inset-y-0 w-24 bg-surface-container/60" />
           <span className="relative z-10 flex items-center gap-1.5 font-body-sm text-body-sm text-text-muted">
             <span className="material-symbols-outlined text-base leading-none text-secondary">
               auto_awesome

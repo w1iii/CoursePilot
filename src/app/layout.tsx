@@ -31,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${dmSans.variable} ${dmMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <head>
@@ -41,18 +42,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){try{var t=localStorage.getItem("habi:theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t;}}catch(e){}})();',
+          }}
+        />
       </head>
       <body className="flex min-h-full flex-col bg-background font-body-md text-body-md text-on-surface">
         <ClerkProvider
           appearance={{
             variables: {
-              colorPrimary: "#15370d",
+              colorPrimary: "#b3261e",
               colorBackground: "#fff9eb",
               borderRadius: "0.5rem",
               fontFamily: "var(--font-dm-sans), system-ui, sans-serif",
             },
             elements: {
-              card: "border border-[rgba(21,55,13,0.15)] shadow-[0_20px_60px_rgba(21,55,13,0.1)]",
+              card: "border border-[rgba(26,24,20,0.15)] shadow-[0_20px_60px_rgba(26,24,20,0.12)]",
               headerTitle: "font-display text-primary-container",
               headerSubtitle: "text-text-muted",
               formButtonPrimary:

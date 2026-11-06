@@ -48,7 +48,6 @@ export default async function ThreadPage({ searchParams }: PageProps) {
   return (
     <>
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="ambient-mesh-canvas absolute -inset-[30%] opacity-60" />
         <div className="ambient-woven-dots absolute inset-0 opacity-60" />
       </div>
 

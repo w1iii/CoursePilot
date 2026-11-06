@@ -144,7 +144,7 @@ export default function CanvasConnect({ initialStatus, defaultBaseUrl, embedded 
             <span className="font-label-sm text-label-sm text-on-surface-variant">Personal access token</span>
             <input type="password" value={token} onChange={(event) => setToken(event.target.value)} className={inputClass + " w-full"} placeholder="Paste your Canvas token" required />
           </label>
-          <button type="submit" disabled={busy || !baseUrl.trim() || !token.trim()} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary-container px-4 font-label-md text-label-md text-dark-text transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={busy || !baseUrl.trim() || !token.trim()} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-accent px-4 font-label-md text-label-md text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50">
             <span className={`material-symbols-outlined text-[18px] ${busy ? "animate-spin" : ""}`}>{busy ? "progress_activity" : "link"}</span>
             {busy ? "Connecting…" : "Connect Canvas"}
           </button>
