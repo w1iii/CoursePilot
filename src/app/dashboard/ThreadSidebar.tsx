@@ -248,11 +248,11 @@ export default function ThreadSidebar({
                   <p className="px-2 pb-1 text-[11px] leading-4 text-text-muted">
                     {group.label}
                   </p>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {group.items.map((thread) => (
                       <div
                         key={thread.id}
-                        className={`group flex min-h-8 items-center gap-1 rounded-lg px-2 py-1 font-body-sm text-body-sm transition-colors ${
+                        className={`group flex min-h-7 items-center gap-1 rounded-lg px-2 py-0.5 font-body-sm text-xs transition-colors ${
                           activeThreadId === thread.id
                             ? "bg-secondary-container text-on-secondary-container"
                             : "text-text-muted hover:bg-surface-container hover:text-on-surface"
@@ -271,11 +271,11 @@ export default function ThreadSidebar({
                         <button
                           type="button"
                           onClick={() => deleteThread(thread.id)}
-                          className="shrink-0 rounded-md p-1 text-text-muted opacity-0 transition-opacity hover:bg-error-container hover:text-on-error-container group-hover:opacity-100 focus-visible:opacity-100"
+                          className="shrink-0 rounded p-0.5 text-text-muted opacity-0 transition-opacity hover:bg-error-container hover:text-on-error-container group-hover:opacity-100 focus-visible:opacity-100"
                           aria-label={`Delete ${thread.title}`}
                           title="Delete chat"
                         >
-                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                          <span className="material-symbols-outlined text-[8px]">delete</span>
                         </button>
                       </div>
                     ))}
