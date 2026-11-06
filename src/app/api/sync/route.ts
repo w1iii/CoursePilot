@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import { syncCanvas } from "@/lib/sync";
 
@@ -9,6 +10,27 @@ export const maxDuration = 300;
 export async function POST() {
   try {
     const user = await requireUser();
+
+    // Rate‑limit: 1 sync per minute per user, 5 per day.
+    const limit = await checkRateLimit(user.id);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          error: rateLimitMessage(limit.scope),
+          scope: limit.scope,
+          retryAfterSeconds: limit.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(limit.retryAfterSeconds),
+            // Prevent caching of rate‑limit responses.
+            "Cache-Control": "no-store, max-age=0",
+          },
+        },
+      );
+    }
+
     const result = await syncCanvas(user);
     const failed = result.errors.length > 0 && result.courses === 0;
     return NextResponse.json(

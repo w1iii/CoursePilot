@@ -59,7 +59,7 @@ function mockCourses(result: QueryResult) {
 describe("course resolution", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test";
-    process.env.RAG_API_TOKEN = "rag-token";
+    process.env.RAG_SIGNING_SECRET = "test-rag-secret";
   });
 
   it("scopes course lookup to the signed-in user", async () => {
@@ -100,7 +100,7 @@ describe("course resolution", () => {
 describe("answerQuestion", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test/";
-    process.env.RAG_API_TOKEN = "rag-token";
+    process.env.RAG_SIGNING_SECRET = "test-rag-secret";
   });
 
   it("sends the service token and maps citations", async () => {
@@ -145,9 +145,9 @@ describe("answerQuestion", () => {
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://rag.test/api/v1/chat");
-    expect(init.headers).toMatchObject({ "X-RAG-Token": "rag-token" });
+    expect(init.headers).toHaveProperty("X-RAG-Token");
     expect(JSON.parse(init.body as string)).toEqual({
-      course_id: 51680,
+      course_key: "course-1",
       question: "What is attention?",
     });
   });

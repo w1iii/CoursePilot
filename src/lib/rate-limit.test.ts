@@ -51,13 +51,13 @@ describe("checkRateLimit", () => {
     expect(decision.retryAfterSeconds).toBe(27);
   });
 
-  it("fails open when the limiter is unavailable", async () => {
+  it("fails closed when the limiter is unavailable", async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: "connection refused" } });
 
     const decision = await checkRateLimit("user-a");
 
-    expect(decision.allowed).toBe(true);
-    expect(decision.enforced).toBe(false);
+    expect(decision.allowed).toBe(false);
+    expect(decision.enforced).toBe(true);
   });
 
   it("falls back to safe defaults for invalid env values", () => {

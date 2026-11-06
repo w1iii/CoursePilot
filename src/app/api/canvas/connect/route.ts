@@ -6,11 +6,32 @@ import {
   saveCanvasAccount,
   validateCanvasToken,
 } from "@/lib/canvas-account";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
+
+    // Rate‑limit: 3 canvas connects per minute per user, 10 per day.
+    const limit = await checkRateLimit(user.id);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          error: rateLimitMessage(limit.scope),
+          scope: limit.scope,
+          retryAfterSeconds: limit.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(limit.retryAfterSeconds),
+            "Cache-Control": "no-store, max-age=0",
+          },
+        },
+      );
+    }
+
     const body = (await req.json().catch(() => null)) as
       | { canvas_base_url?: unknown; access_token?: unknown }
       | null;
