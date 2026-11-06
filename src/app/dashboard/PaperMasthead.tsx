@@ -30,35 +30,11 @@ export default function PaperMasthead({
           <p className="font-display text-[22px] leading-tight text-primary-container sm:text-[26px]">
             Magandang araw, {userName}.
           </p>
-          <p className="mt-0.5 font-body-sm text-body-sm text-text-muted">
-            Your semester, set in type.
-          </p>
           <p className="paper-kicker mt-2 text-text-muted md:hidden">
             {dateLabel} · {edition}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-space-sm">
-          <Link
-            href="/dashboard/settings#canvas"
-            className={`paper-stamp ${connected ? "text-secondary" : "text-error"}`}
-            title={
-              connected
-                ? "Canvas connected"
-                : canvas.needsReconnect
-                  ? "Canvas token needs reconnecting"
-                  : "Canvas not connected"
-            }
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-            {canvas.needsReconnect
-              ? "Reconnect Canvas"
-              : connected
-                ? "Canvas connected"
-                : "Connect Canvas"}
-          </Link>
-          <SyncButton connected={connected} />
-        </div>
       </div>
     </header>
   );

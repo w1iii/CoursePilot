@@ -122,7 +122,6 @@ export default function TaskLedger({
     <section id="tasks" aria-labelledby="ledger-heading">
       <div className="flex flex-wrap items-end justify-between gap-space-sm border-b border-primary-container/25 pb-1">
         <div>
-          <p className="paper-kicker text-tertiary">The ledger</p>
           <h2
             id="ledger-heading"
             className="mt-0.5 font-display text-[30px] leading-tight text-primary-container"

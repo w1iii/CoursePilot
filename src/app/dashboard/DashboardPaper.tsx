@@ -295,19 +295,6 @@ export default function DashboardPaper({
           />
         </div>
 
-        <footer className="mt-space-lg flex flex-wrap items-center justify-between gap-space-sm border-t border-primary-container/25 pt-space-sm">
-          <p className="paper-kicker text-text-muted">
-            Habi · {edition} · {openCount} open
-          </p>
-          <p className="paper-kicker text-text-muted">
-            Canvas {canvas.connected && !canvas.needsReconnect ? "connected" : "not connected"} ·
-            validated {shortTimestamp(canvas.lastValidatedAt)}
-          </p>
-          <p className="paper-kicker text-text-muted">
-            {indexedCourses}/{courses.length} courses indexed · {documentCount} documents
-            {failureCount > 0 ? ` · ${failureCount} issues` : ""}
-          </p>
-        </footer>
       </div>
     </div>
   );
