@@ -41,9 +41,44 @@ export default async function ThreadPage({ searchParams }: PageProps) {
   const displayName = normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "weaver",
   );
-  const threadId = params.tid && /^[0-9a-f-]{36}$/i.test(params.tid)
+
+  // If a thread ID is provided in the URL, fetch the thread data immediately
+  // so the conversation is visible on initial render instead of showing "new chat" first.
+  let initialTurns: any[] | undefined;
+  let threadId = params.tid && /^[0-9a-f-]{36}$/i.test(params.tid)
     ? params.tid
-    : randomUUID();
+    : null;
+
+  if (threadId) {
+    const { data: thread, error: threadError } = await sb
+      .from("chat_threads")
+      .select("id, title, updated_at")
+      .eq("id", threadId)
+      .eq("user_id", user.id)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (!threadError && thread) {
+      const { data: messages, error: messagesError } = await sb
+        .from("chat_messages")
+        .select("id, role, content, metadata, created_at")
+        .eq("thread_id", threadId)
+        .order("created_at", { ascending: true });
+      if (!messagesError && messages) {
+        initialTurns = messages.map((msg: any) => ({
+          id: typeof msg.metadata?.turnId === "string" ? msg.metadata.turnId : String(msg.id),
+          question: String(msg.content),
+          courseId: typeof msg.metadata?.courseId === "string" ? msg.metadata.courseId : "",
+          createdAt: String(msg.created_at),
+          status: "done" as const,
+          response: null,
+        }));
+      }
+    }
+    // fallback to new UUID if thread not found
+    if (!initialTurns) threadId = randomUUID();
+  } else {
+    threadId = randomUUID();
+  }
 
   return (
     <>
@@ -58,8 +93,8 @@ export default async function ThreadPage({ searchParams }: PageProps) {
         initialQuestion={params.q?.trim() ?? ""}
         initialCourseId={params.course ?? courseOptions[0]?.id ?? ""}
         initialThreadId={threadId}
+        initialTurns={initialTurns}
       />
-
     </>
   );
 }

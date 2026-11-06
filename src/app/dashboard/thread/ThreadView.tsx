@@ -45,6 +45,7 @@ interface Props {
   initialQuestion: string;
   initialCourseId: string;
   initialThreadId: string;
+  initialTurns?: Turn[];
 }
 
 function renderText(text: string) {
@@ -75,8 +76,9 @@ export default function ThreadView({
   initialQuestion,
   initialCourseId,
   initialThreadId,
+  initialTurns,
 }: Props) {
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurns] = useState<Turn[]>(initialTurns ?? []);
   const [question, setQuestion] = useState("");
   const [courseId, setCourseId] = useState(initialCourseId || courses[0]?.id || "");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -153,6 +155,12 @@ export default function ThreadView({
 
   useEffect(() => {
     if (initializedThreadId.current === initialThreadId) return;
+    // If initialTurns are provided (thread data fetched server-side), use them
+    // and skip the client-side fetch to avoid showing "new chat" first.
+    if (initialTurns && initialTurns.length > 0) {
+      initializedThreadId.current = initialThreadId;
+      return;
+    }
     initializedThreadId.current = initialThreadId;
     controllerRef.current?.abort();
     setTurns([]);
