@@ -42,6 +42,7 @@ export function normalizeCanvasBaseUrl(raw: string): string {
     throw new Error("Canvas URL must use https");
   }
   if (url.username || url.password) throw new Error("Canvas URL must not contain credentials");
+  if (url.search || url.hash) throw new Error("Canvas URL must not contain query or fragment");
 
   const path = url.pathname.replace(/\/+$/, "");
   return `${url.origin}${path}`;
@@ -51,39 +52,24 @@ export function defaultCanvasBaseUrl(): string {
   return normalizeCanvasBaseUrl(process.env.CANVAS_API_URL ?? DEFAULT_API_URL);
 }
 
-function canvasErrorDetail(text: string): string {
-  const plain = text
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return plain.slice(0, 240);
+export async function hardenedCanvasBaseUrl(raw: string): Promise<string> {
+  const normalized = normalizeCanvasBaseUrl(raw);
+  await validateCanvasUrl(normalized);
+  return normalized;
 }
 
 async function canvasFetch<T>(
   credentials: CanvasCredentials,
   path: string,
-  init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(`${credentials.baseUrl}/api/v1${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${credentials.token}`,
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    // Canvas paginates via Link header; keep it simple for now.
-    next: { revalidate: 0 },
-  });
-
-  if (res.status === 401 || res.status === 403) {
+  // Revalidate even stored URLs; socket lookup is pinned to same validated IP.
+  const baseUrl = normalizeCanvasBaseUrl(credentials.baseUrl);
+  const response = await canvasRequest(`${baseUrl}/api/v1${path}`, credentials.token) as
+    { status: number; body?: T };
+  if (response.status === 401 || response.status === 403) {
     throw new CanvasAuthError();
   }
-  if (!res.ok) {
-    throw new Error(
-      `Canvas API error ${res.status} for ${path}: ${canvasErrorDetail(await res.text())}`,
-    );
-  }
-  return (await res.json()) as T;
+  return response.body as T;
 }
 
 export interface CanvasUser {
@@ -148,3 +134,4 @@ export async function listAnnouncements(
     `/courses/${courseId}/discussion_topics?per_page=100&only_announcements=true`,
   );
 }
+import { canvasRequest, validateCanvasUrl } from "@/lib/canvas-network";

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
+import { safeErrorMessage } from "@/lib/error-safety";
 import {
   answerQuestion,
   CourseSelectionError,
@@ -33,6 +34,11 @@ export async function POST(req: NextRequest) {
 
     const limit = await checkRateLimit(user.id);
     if (!limit.allowed) {
+      if (!limit.enforced) {
+        return NextResponse.json({ error: "Rate limiter unavailable" }, {
+          status: 503, headers: { "Cache-Control": "no-store" },
+        });
+      }
       return NextResponse.json(
         {
           error: rateLimitMessage(limit.scope),
@@ -41,7 +47,7 @@ export async function POST(req: NextRequest) {
         },
         {
           status: 429,
-          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+          headers: { "Retry-After": String(limit.retryAfterSeconds), "Cache-Control": "no-store" },
         },
       );
     }
@@ -56,7 +62,7 @@ export async function POST(req: NextRequest) {
         feature: "ask",
         status: "error",
         latencyMs: elapsedMs(startedAt),
-        error: (err as Error).message,
+        error: safeErrorMessage(),
       });
       throw err;
     }
@@ -81,10 +87,10 @@ export async function POST(req: NextRequest) {
       );
     }
     if (err instanceof RagServiceError) {
-      console.error("ask RAG service error", err.message);
-      return NextResponse.json({ error: err.message }, { status: err.status });
+      console.error("ask RAG service status", err.status);
+      return NextResponse.json({ error: "Assistant unavailable" }, { status: 502 });
     }
-    console.error("ask error", err);
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    console.error("ask error", err instanceof Error ? err.name : "unknown");
+    return NextResponse.json({ error: safeErrorMessage() }, { status: 500 });
   }
 }

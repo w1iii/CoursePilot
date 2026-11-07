@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { signRagToken } from "@/lib/ai/rag-token";
 
 const DEFAULT_TIMEOUT_MS = 180_000;
 const DEFAULT_MAX_ATTEMPTS = 2;
@@ -57,24 +58,33 @@ async function errorDetail(res: Response): Promise<string> {
  * the RAG service.
  */
 export async function ingestCanvasCourse(input: {
+  userId: string;
+  courseKey: string;
   canvasCourseId: number;
   canvasBaseUrl: string;
   canvasAccessToken: string;
 }): Promise<RagCourseIngestion> {
-  const token = env("RAG_ADMIN_TOKEN");
-
   let lastError: Error | null = null;
   for (let attempt = 1; attempt <= maxAttempts(); attempt += 1) {
+    // Re-sign per attempt: ingestion can outlive a single short-lived token.
+    const token = signRagToken({
+      userId: input.userId,
+      courseKey: input.courseKey,
+      scope: "ingest",
+      ttlSeconds: 300,
+    });
+
     let res: Response;
     try {
       res = await fetch(`${ragBaseUrl()}/api/v1/ingestion/canvas-course`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { "X-Admin-Token": token } : {}),
+          "X-RAG-Token": token,
         },
         body: JSON.stringify({
-          course_id: input.canvasCourseId,
+          course_key: input.courseKey,
+          canvas_course_id: input.canvasCourseId,
           canvas_base_url: input.canvasBaseUrl,
           canvas_access_token: input.canvasAccessToken,
         }),

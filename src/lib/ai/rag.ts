@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase";
+import { signRagToken } from "@/lib/ai/rag-token";
 
 export interface CourseOption {
   id: string;
@@ -136,15 +137,19 @@ export async function answerQuestion(
 
   let res: Response;
   try {
-    const token = env("RAG_API_TOKEN");
+    const token = signRagToken({
+      userId,
+      courseKey: course.id,
+      scope: "chat",
+    });
     res = await fetch(`${ragBaseUrl()}/api/v1/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { "X-RAG-Token": token } : {}),
+        "X-RAG-Token": token,
       },
       body: JSON.stringify({
-        course_id: course.canvas_course_id,
+        course_key: course.id,
         question,
       }),
       signal: AbortSignal.timeout(ragTimeoutMs()),

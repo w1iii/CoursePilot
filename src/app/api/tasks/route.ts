@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 const VALID_TYPES = new Set(["assignment", "quiz", "exam", "project", "activity", "reading"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -9,6 +10,31 @@ const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
 export async function GET() {
   try {
     const user = await requireUser();
+
+    // Shared per-user budget across limited routes (configured in rate-limit.ts).
+    const limit = await checkRateLimit(user.id);
+    if (!limit.allowed) {
+      if (!limit.enforced) {
+        return NextResponse.json({ error: "Rate limiter unavailable" }, {
+          status: 503, headers: { "Cache-Control": "no-store" },
+        });
+      }
+      return NextResponse.json(
+        {
+          error: rateLimitMessage(limit.scope),
+          scope: limit.scope,
+          retryAfterSeconds: limit.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(limit.retryAfterSeconds),
+            "Cache-Control": "no-store, max-age=0",
+          },
+        },
+      );
+    }
+
     const sb = supabaseAdmin();
 
     const { data: courses, error: coursesError } = await sb

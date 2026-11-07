@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import ThreadView from "./ThreadView";
 import { randomUUID } from "crypto";
+import type { ComponentProps } from "react";
 
 interface PageProps {
   searchParams: Promise<{ q?: string; course?: string; tid?: string }>;
@@ -44,7 +45,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
 
   // If a thread ID is provided in the URL, fetch the thread data immediately
   // so the conversation is visible on initial render instead of showing "new chat" first.
-  let initialTurns: any[] | undefined;
+  let initialTurns: ComponentProps<typeof ThreadView>["initialTurns"];
   let threadId = params.tid && /^[0-9a-f-]{36}$/i.test(params.tid)
     ? params.tid
     : null;
@@ -64,13 +65,15 @@ export default async function ThreadPage({ searchParams }: PageProps) {
         .eq("thread_id", threadId)
         .order("created_at", { ascending: true });
       if (!messagesError && messages) {
-        initialTurns = messages.map((msg: any) => ({
+        initialTurns = messages.map((msg: {
+          id: string; metadata: Record<string, unknown> | null;
+          content: string; created_at: string;
+        }) => ({
           id: typeof msg.metadata?.turnId === "string" ? msg.metadata.turnId : String(msg.id),
           question: String(msg.content),
           courseId: typeof msg.metadata?.courseId === "string" ? msg.metadata.courseId : "",
           createdAt: String(msg.created_at),
           status: "done" as const,
-          response: null,
         }));
       }
     }

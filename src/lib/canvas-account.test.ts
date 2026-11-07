@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { supabaseAdminMock, fromMock } = vi.hoisted(() => ({
   supabaseAdminMock: vi.fn(),
@@ -64,6 +64,7 @@ function mockTable(result: QueryResult) {
 }
 
 describe("canvas account credentials", () => {
+  afterEach(() => vi.unstubAllEnvs());
   beforeEach(() => {
     fromMock.mockReset();
     delete process.env.CANVAS_ALLOW_ENV_TOKEN;
@@ -98,6 +99,16 @@ describe("canvas account credentials", () => {
     const resolved = await getCanvasCredentials("user-a");
     expect(resolved.source).toBe("env");
     expect(resolved.credentials.token).toBe("shared-token");
+  });
+
+  it("rejects shared Canvas credentials in production", async () => {
+    mockTable({ data: null, error: null });
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.CANVAS_ALLOW_ENV_TOKEN = "true";
+    process.env.CANVAS_ACCESS_TOKEN = "shared-token";
+    await expect(getCanvasCredentials("user-a")).rejects.toThrow(
+      "Shared Canvas environment token is forbidden in production",
+    );
   });
 
   it("flags a rejected token for reconnection", async () => {

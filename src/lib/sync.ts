@@ -163,6 +163,8 @@ async function ingestDueCourses(
     const startedAt = Date.now();
     try {
       const ingestion = await ingestCanvasCourse({
+        userId,
+        courseKey: course.id,
         canvasCourseId: course.canvas_course_id,
         canvasBaseUrl: credentials.baseUrl,
         canvasAccessToken: credentials.token,

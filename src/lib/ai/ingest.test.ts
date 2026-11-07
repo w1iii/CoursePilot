@@ -17,7 +17,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 describe("RAG ingestion client", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test/";
-    process.env.RAG_ADMIN_TOKEN = "admin-secret";
+    process.env.RAG_SIGNING_SECRET = "test-signing-secret";
     process.env.RAG_INGEST_MAX_ATTEMPTS = "2";
     process.env.RAG_INGEST_TIMEOUT_MS = "5000";
   });
@@ -26,7 +26,7 @@ describe("RAG ingestion client", () => {
     vi.unstubAllGlobals();
   });
 
-  it("sends transient Canvas credentials with the admin token", async () => {
+  it("sends transient Canvas credentials with a signed course token", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(
@@ -40,6 +40,7 @@ describe("RAG ingestion client", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await ingestCanvasCourse({
+      userId: "user-a", courseKey: "course-a",
       canvasCourseId: 51680,
       canvasBaseUrl: "https://usls.instructure.com",
       canvasAccessToken: "canvas-token",
@@ -50,12 +51,10 @@ describe("RAG ingestion client", () => {
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://rag.test/api/v1/ingestion/canvas-course");
-    expect(init.headers).toMatchObject({
-      "Content-Type": "application/json",
-      "X-Admin-Token": "admin-secret",
-    });
+    expect(init.headers).toMatchObject({ "Content-Type": "application/json" });
+    expect((init.headers as Record<string, string>)["X-RAG-Token"].split(".")).toHaveLength(2);
     expect(JSON.parse(init.body as string)).toEqual({
-      course_id: 51680,
+      course_key: "course-a", canvas_course_id: 51680,
       canvas_base_url: "https://usls.instructure.com",
       canvas_access_token: "canvas-token",
     });
@@ -69,6 +68,7 @@ describe("RAG ingestion client", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await ingestCanvasCourse({
+      userId: "user-a", courseKey: "course-a",
       canvasCourseId: 1,
       canvasBaseUrl: "https://example.edu",
       canvasAccessToken: "t",
@@ -86,6 +86,7 @@ describe("RAG ingestion client", () => {
 
     await expect(
       ingestCanvasCourse({
+        userId: "user-a", courseKey: "course-a",
         canvasCourseId: 1,
         canvasBaseUrl: "https://example.edu",
         canvasAccessToken: "t",
@@ -103,6 +104,7 @@ describe("RAG ingestion client", () => {
 
     await expect(
       ingestCanvasCourse({
+        userId: "user-a", courseKey: "course-a",
         canvasCourseId: 1,
         canvasBaseUrl: "https://example.edu",
         canvasAccessToken: "t",

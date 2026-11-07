@@ -53,6 +53,9 @@ export async function loadCanvasAccount(userId: string): Promise<CanvasAccountRo
 
 function envCanvasCredentials(): CanvasCredentials | null {
   if (env("CANVAS_ALLOW_ENV_TOKEN") !== "true") return null;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Shared Canvas environment token is forbidden in production");
+  }
 
   const token = env("CANVAS_ACCESS_TOKEN");
   if (!token) return null;

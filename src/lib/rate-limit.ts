@@ -10,7 +10,7 @@ export interface RateLimitDecision {
   allowed: boolean;
   scope: RateLimitScope | null;
   retryAfterSeconds: number;
-  /** False when the limiter could not run and the request was allowed through. */
+  /** False when infrastructure unavailable; callers return 503, not 429. */
   enforced: boolean;
 }
 
@@ -36,38 +36,65 @@ interface RateLimitRow {
  * Count one request for the user and decide whether it is within limits.
  *
  * Uses the Postgres `check_rate_limit` function so concurrent serverless
- * instances share the same counters. Infrastructure failures fail open: the
- * user is never locked out because the limiter itself broke.
+ * instances share the same counters.
+ *
+ * Infrastructure failures now fail closed: if the RPC call itself errors,
+ * the request is denied (not allowed through as before).
  */
 export async function checkRateLimit(userId: string): Promise<RateLimitDecision> {
   const { perMinute, perDay } = rateLimitConfig();
 
-  const { data, error } = await supabaseAdmin().rpc("check_rate_limit", {
-    p_user_id: userId,
-    p_minute_limit: perMinute,
-    p_day_limit: perDay,
-  });
+  let allowed = false;
+  let scope: RateLimitScope | null = null;
+  let retryAfterSeconds = 0;
 
-  if (error) {
-    console.error("rate limit check failed", error.message);
-    return { allowed: true, scope: null, retryAfterSeconds: 0, enforced: false };
-  }
+  try {
+    const { data, error } = await supabaseAdmin().rpc("check_rate_limit", {
+      p_user_id: userId,
+      p_minute_limit: perMinute,
+      p_day_limit: perDay,
+    });
 
-  const row = (Array.isArray(data) ? data[0] : data) as RateLimitRow | null | undefined;
-  if (!row) {
-    return { allowed: true, scope: null, retryAfterSeconds: 0, enforced: false };
+    if (error) {
+      console.error("rate limit check failed", error.message);
+      // Fail closed – deny the request rather than letting it through.
+      return { allowed: false, scope: null, retryAfterSeconds: 0, enforced: false };
+    }
+
+    const row = (Array.isArray(data) ? data[0] : data) as RateLimitRow | null | undefined;
+    if (!row) {
+      // No row returned – deny closed rather than allow open.
+      return { allowed: false, scope: null, retryAfterSeconds: 0, enforced: false };
+    }
+
+    if (typeof row.allowed !== "boolean" ||
+        (row.exceeded_scope !== null && row.exceeded_scope !== "minute" && row.exceeded_scope !== "day") ||
+        typeof row.retry_after_seconds !== "number" || !Number.isFinite(row.retry_after_seconds)) {
+      return { allowed: false, scope: null, retryAfterSeconds: 0, enforced: false };
+    }
+    allowed = row.allowed;
+    scope = row.exceeded_scope ?? null;
+    retryAfterSeconds = Math.max(0, Math.floor(row.retry_after_seconds ?? 0));
+    if (!allowed && (!scope || retryAfterSeconds < 1)) {
+      return { allowed: false, scope: null, retryAfterSeconds: 0, enforced: false };
+    }
+  } catch (err) {
+    // Unexpected exception – fail closed.
+    console.error("rate limit unexpected error", err);
+    return { allowed: false, scope: null, retryAfterSeconds: 0, enforced: false };
   }
 
   return {
-    allowed: row.allowed,
-    scope: row.allowed ? null : row.exceeded_scope,
-    retryAfterSeconds: Math.max(0, Math.floor(row.retry_after_seconds ?? 0)),
+    allowed,
+    scope,
+    retryAfterSeconds,
     enforced: true,
   };
 }
 
 export function rateLimitMessage(scope: RateLimitScope | null): string {
-  return scope === "day"
-    ? "Daily question limit reached. Try again tomorrow."
-    : "Too many questions in a short time. Wait a moment and try again.";
+  if (!scope) return "";
+  if (scope === "day") return "Daily limit exceeded – retry after";
+  if (scope === "minute") return "Too many requests – retry after";
+  return "";
 }
