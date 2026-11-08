@@ -35,6 +35,10 @@ describe("RAG ingestion client", () => {
           chunk_count: 12,
           failure_count: 1,
           skipped_count: 2,
+          modules: [{
+            failures: [{ source_key: "file:1", error: "parse failed" }],
+            skipped: ["Assignment:essay", "Quiz:quiz"],
+          }],
         }),
       );
     vi.stubGlobal("fetch", fetchMock);
@@ -46,7 +50,11 @@ describe("RAG ingestion client", () => {
       canvasAccessToken: "canvas-token",
     });
 
-    expect(result).toEqual({ documents: 4, chunks: 12, failures: 1, skipped: 2 });
+    expect(result).toEqual({
+      documents: 4, chunks: 12, failures: 1, skipped: 2,
+      failureDetails: ["file:1: parse failed"],
+      skippedDetails: ["Assignment:essay", "Quiz:quiz"],
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];

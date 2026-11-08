@@ -12,6 +12,8 @@ export interface SyncResult {
   ragChunks: number;
   ragFailures: number;
   ragSkipped: number;
+  ragFailureDetails: string[];
+  ragSkippedDetails: string[];
   errors: string[];
 }
 

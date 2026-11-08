@@ -34,6 +34,8 @@ export interface SyncResult {
   ragChunks: number;
   ragFailures: number;
   ragSkipped: number;
+  ragFailureDetails: string[];
+  ragSkippedDetails: string[];
   errors: string[];
 }
 
@@ -70,6 +72,8 @@ export async function syncCanvas(user: AppUser): Promise<SyncResult> {
     ragChunks: 0,
     ragFailures: 0,
     ragSkipped: 0,
+    ragFailureDetails: [],
+    ragSkippedDetails: [],
     errors: [],
   };
 
@@ -174,6 +178,8 @@ async function ingestDueCourses(
       result.ragChunks += ingestion.chunks;
       result.ragFailures += ingestion.failures;
       result.ragSkipped += ingestion.skipped;
+      result.ragFailureDetails.push(...ingestion.failureDetails);
+      result.ragSkippedDetails.push(...ingestion.skippedDetails);
 
       await logAiRequest({
         userId,
@@ -188,14 +194,20 @@ async function ingestDueCourses(
 
       if (ingestion.failures > 0) {
         result.errors.push(
-          `RAG ingestion for ${course.course_name}: ${ingestion.failures} item(s) failed`,
+          `RAG ingestion for ${course.course_name}: ${ingestion.failures} item(s) failed` +
+            (ingestion.failureDetails.length
+              ? ` (${ingestion.failureDetails.slice(0, 3).join("; ")})`
+              : ""),
         );
       }
 
       const { error: updateError } = await sb
         .from("courses")
         .update({
-          ...(ingestion.failures === 0 ? { rag_indexed_at: new Date().toISOString() } : {}),
+          // A completed crawl may contain permanent parse failures. Record the
+          // attempt so those items do not force a full-course crawl every sync;
+          // transient failures retry when the normal re-index window expires.
+          rag_indexed_at: new Date().toISOString(),
           rag_document_count: ingestion.documents,
           rag_chunk_count: ingestion.chunks,
           rag_failure_count: ingestion.failures,

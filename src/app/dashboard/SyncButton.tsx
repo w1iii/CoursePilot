@@ -67,6 +67,12 @@ export default function SyncButton({ connected }: { connected: boolean }) {
               ))}
             </ul>
           )}
+          {result.ragSkippedDetails.length > 0 && (
+            <p className="mt-1 text-left">
+              Skipped: {result.ragSkippedDetails.slice(0, 5).join(", ")}
+              {result.ragSkippedDetails.length > 5 ? "…" : ""}
+            </p>
+          )}
           {finishLabel(finishedAt) && <p className="mt-1">Last sync {finishLabel(finishedAt)}</p>}
         </div>
       )}

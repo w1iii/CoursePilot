@@ -9,6 +9,8 @@ export interface RagCourseIngestion {
   chunks: number;
   failures: number;
   skipped: number;
+  failureDetails: string[];
+  skippedDetails: string[];
 }
 
 export function ragIngestionEnabled(): boolean {
@@ -112,6 +114,10 @@ export async function ingestCanvasCourse(input: {
     }
 
     const json = (await res.json()) as {
+      modules?: Array<{
+        failures?: Array<{ source_key?: string; error?: string }>;
+        skipped?: string[];
+      }>;
       document_count?: number;
       chunk_count?: number;
       failure_count?: number;
@@ -123,6 +129,12 @@ export async function ingestCanvasCourse(input: {
       chunks: json.chunk_count ?? 0,
       failures: json.failure_count ?? 0,
       skipped: json.skipped_count ?? 0,
+      failureDetails: (json.modules ?? []).flatMap((module) =>
+        (module.failures ?? []).map((failure) =>
+          `${failure.source_key ?? "Canvas item"}: ${failure.error ?? "unknown error"}`,
+        ),
+      ),
+      skippedDetails: (json.modules ?? []).flatMap((module) => module.skipped ?? []),
     };
   }
 
