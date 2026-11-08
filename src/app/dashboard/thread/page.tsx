@@ -3,6 +3,9 @@ import { supabaseAdmin } from "@/lib/supabase";
 import ThreadView from "./ThreadView";
 import { randomUUID } from "crypto";
 import type { ComponentProps } from "react";
+import { messagesToTurns } from "@/lib/thread-turns";
+import { redirect } from "next/navigation";
+import { isThreadId, newThreadHref } from "@/lib/thread-navigation";
 
 interface PageProps {
   searchParams: Promise<{ q?: string; course?: string; tid?: string }>;
@@ -20,6 +23,9 @@ function normalizeName(value: string): string {
 export default async function ThreadPage({ searchParams }: PageProps) {
   const user = await requireUser();
   const params = await searchParams;
+  if (!isThreadId(params.tid)) {
+    redirect(newThreadHref(randomUUID(), params));
+  }
   const sb = supabaseAdmin();
 
   const { data: courses, error: coursesError } = await sb
@@ -43,44 +49,29 @@ export default async function ThreadPage({ searchParams }: PageProps) {
     user.full_name?.trim() || user.email.split("@")[0] || "weaver",
   );
 
-  // If a thread ID is provided in the URL, fetch the thread data immediately
-  // so the conversation is visible on initial render instead of showing "new chat" first.
+  // Hydrate existing conversations; new canonical IDs have no persisted row yet.
   let initialTurns: ComponentProps<typeof ThreadView>["initialTurns"];
-  let threadId = params.tid && /^[0-9a-f-]{36}$/i.test(params.tid)
-    ? params.tid
-    : null;
+  const threadId = params.tid;
 
-  if (threadId) {
-    const { data: thread, error: threadError } = await sb
-      .from("chat_threads")
-      .select("id, title, updated_at")
-      .eq("id", threadId)
-      .eq("user_id", user.id)
-      .is("archived_at", null)
-      .maybeSingle();
-    if (!threadError && thread) {
-      const { data: messages, error: messagesError } = await sb
-        .from("chat_messages")
-        .select("id, role, content, metadata, created_at")
-        .eq("thread_id", threadId)
-        .order("created_at", { ascending: true });
-      if (!messagesError && messages) {
-        initialTurns = messages.map((msg: {
-          id: string; metadata: Record<string, unknown> | null;
-          content: string; created_at: string;
-        }) => ({
-          id: typeof msg.metadata?.turnId === "string" ? msg.metadata.turnId : String(msg.id),
-          question: String(msg.content),
-          courseId: typeof msg.metadata?.courseId === "string" ? msg.metadata.courseId : "",
-          createdAt: String(msg.created_at),
-          status: "done" as const,
-        }));
-      }
+  const { data: thread, error: threadError } = await sb
+    .from("chat_threads")
+    .select("id, title, updated_at")
+    .eq("id", threadId)
+    .eq("user_id", user.id)
+    .is("archived_at", null)
+    .maybeSingle();
+  if (threadError) throw new Error(`Failed to load chat thread: ${threadError.message}`);
+  if (thread) {
+    const { data: messages, error: messagesError } = await sb
+      .from("chat_messages")
+      .select("id, role, content, metadata, created_at")
+      .eq("thread_id", threadId)
+      .order("created_at", { ascending: true })
+      .order("role", { ascending: false });
+    if (messagesError) throw new Error(`Failed to load chat messages: ${messagesError.message}`);
+    if (messages) {
+      initialTurns = messagesToTurns(messages as Array<Record<string, unknown>>) as ComponentProps<typeof ThreadView>["initialTurns"];
     }
-    // fallback to new UUID if thread not found
-    if (!initialTurns) threadId = randomUUID();
-  } else {
-    threadId = randomUUID();
   }
 
   return (
@@ -90,6 +81,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
       </div>
 
       <ThreadView
+        key={threadId}
         userName={displayName}
         userEmail={user.email}
         courses={courseOptions}

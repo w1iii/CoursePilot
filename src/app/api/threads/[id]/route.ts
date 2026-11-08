@@ -1,42 +1,27 @@
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
+import { messagesToTurns, type ThreadTurn } from "@/lib/thread-turns";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
-interface IncomingTurn {
-  id: string;
-  question: string;
-  courseId: string;
-  createdAt: string;
-  status: "loading" | "done" | "error";
-  response?: Record<string, unknown>;
-  error?: string;
-}
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function toTurns(messages: Array<Record<string, unknown>>) {
-  const turns = new Map<string, IncomingTurn>();
-  for (const message of messages) {
-    const metadata = (message.metadata ?? {}) as Record<string, unknown>;
-    const turnId = typeof metadata.turnId === "string" ? metadata.turnId : String(message.id);
-    const existing = turns.get(turnId);
-    if (message.role === "user") {
-      turns.set(turnId, {
-        id: turnId,
-        question: String(message.content),
-        courseId: typeof metadata.courseId === "string" ? metadata.courseId : "",
-        createdAt: String(message.created_at),
-        status: "loading",
-      });
-    } else if (existing) {
-      existing.status = metadata.status === "error" ? "error" : "done";
-      if (metadata.status === "error") existing.error = String(message.content);
-      else existing.response = metadata.response as Record<string, unknown>;
-    }
-  }
-  return Array.from(turns.values());
+function validTurn(value: unknown): value is ThreadTurn {
+  if (!value || typeof value !== "object") return false;
+  const turn = value as Partial<ThreadTurn>;
+  return typeof turn.id === "string" && turn.id.length <= 100 && turn.id.length > 0 &&
+    typeof turn.question === "string" && turn.question.length > 0 && turn.question.length <= 2000 &&
+    typeof turn.courseId === "string" && (!turn.courseId || UUID.test(turn.courseId)) &&
+    typeof turn.createdAt === "string" && !Number.isNaN(Date.parse(turn.createdAt)) &&
+    ["loading", "done", "error"].includes(turn.status ?? "") &&
+    (turn.error === undefined || (typeof turn.error === "string" && turn.error.length <= 8000)) &&
+    (turn.response === undefined || (turn.response !== null && typeof turn.response === "object" &&
+      !Array.isArray(turn.response) && typeof turn.response.answer === "string" &&
+      turn.response.answer.length <= 8000 && JSON.stringify(turn.response).length <= 32000));
 }
 
 export async function GET(_: Request, { params }: Params) {
@@ -58,9 +43,10 @@ export async function GET(_: Request, { params }: Params) {
       .from("chat_messages")
       .select("id, role, content, metadata, created_at")
       .eq("thread_id", id)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })
+      .order("role", { ascending: false });
     if (messagesError) throw new Error(messagesError.message);
-    return NextResponse.json({ ...thread, turns: toTurns((messages ?? []) as Array<Record<string, unknown>>) });
+    return NextResponse.json({ ...thread, turns: messagesToTurns((messages ?? []) as Array<Record<string, unknown>>) });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     console.error("thread load error", error);
@@ -72,37 +58,32 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     const user = await requireUser();
     const { id } = await params;
-    const body = await request.json() as { title?: string; courseId?: string; turns?: IncomingTurn[] };
-    const turns = Array.isArray(body.turns) ? body.turns : [];
-    const title = body.title?.trim() || turns[0]?.question?.slice(0, 52) || "New chat";
-    const now = new Date().toISOString();
-    const sb = supabaseAdmin();
-    const { data: existing, error: existingError } = await sb
-      .from("chat_threads")
-      .select("id, user_id")
-      .eq("id", id)
-      .maybeSingle();
-    if (existingError) throw new Error(existingError.message);
-    if (existing && existing.user_id !== user.id) {
-      return NextResponse.json({ error: "Thread not found" }, { status: 404 });
-    }
-    if (existing === null && turns.length === 0) {
-      return NextResponse.json({ error: "Thread not found" }, { status: 404 });
-    }
-    const { error: threadError } = await sb.from("chat_threads").upsert(
-      {
-        id,
-        user_id: user.id,
-        course_id: body.courseId || turns.at(-1)?.courseId || null,
-        title,
-        updated_at: now,
-      },
-      { onConflict: "id" },
+    const limit = await checkRateLimit(user.id);
+    if (!limit.allowed) return NextResponse.json(
+      { error: limit.enforced ? "Chat write limit exceeded" : "Rate limiter unavailable" },
+      { status: limit.enforced ? 429 : 503, headers: { "Cache-Control": "no-store" } },
     );
-    if (threadError) throw new Error(threadError.message);
-
-    const { error: deleteError } = await sb.from("chat_messages").delete().eq("thread_id", id);
-    if (deleteError) throw new Error(deleteError.message);
+    if (!UUID.test(id) || Number(request.headers.get("content-length") ?? 0) > 512_000) {
+      return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
+    }
+    const raw = await request.text();
+    if (raw.length > 512_000) return NextResponse.json({ error: "Chat too large" }, { status: 413 });
+    const body = JSON.parse(raw) as { title?: unknown; courseId?: unknown; turns?: unknown };
+    if (!body || typeof body !== "object" || !Array.isArray(body.turns) || body.turns.length > 100 ||
+      !body.turns.every(validTurn) || (body.title !== undefined && (typeof body.title !== "string" || body.title.length > 120)) ||
+      (body.courseId != null && (typeof body.courseId !== "string" || !UUID.test(body.courseId)))) {
+      return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
+    }
+    const turns = body.turns as ThreadTurn[];
+    const courseId = (body.courseId || turns.at(-1)?.courseId || null) as string | null;
+    const title = (typeof body.title === "string" ? body.title.trim() : "") || turns[0]?.question.slice(0, 52) || "New chat";
+    const sb = supabaseAdmin();
+    if (courseId) {
+      const { data: course, error: courseError } = await sb.from("courses").select("id")
+        .eq("id", courseId).eq("user_id", user.id).maybeSingle();
+      if (courseError) throw new Error(courseError.message);
+      if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
     const messages = turns.flatMap((turn) => {
       const userMessage = {
         id: crypto.randomUUID(),
@@ -124,15 +105,16 @@ export async function PUT(request: Request, { params }: Params) {
             content: assistantContent,
             status: turn.status === "error" ? "error" : "complete",
             metadata: { turnId: turn.id, status: turn.status, response: turn.response ?? null },
-            created_at: turn.createdAt,
+            created_at: new Date(Date.parse(turn.createdAt) + 1).toISOString(),
           }
         : null;
       return assistantMessage ? [userMessage, assistantMessage] : [userMessage];
     });
-    if (messages.length) {
-      const { error: messageError } = await sb.from("chat_messages").insert(messages);
-      if (messageError) throw new Error(messageError.message);
-    }
+    const { error } = await sb.rpc("save_chat_thread", {
+      p_thread_id: id, p_user_id: user.id, p_course_id: courseId,
+      p_title: title, p_messages: messages,
+    });
+    if (error) throw new Error(error.message);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
