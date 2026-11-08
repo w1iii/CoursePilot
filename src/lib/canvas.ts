@@ -6,10 +6,19 @@ export interface CanvasCredentials {
 }
 
 export class CanvasAuthError extends Error {
-  constructor(message = "Canvas rejected the access token") {
+  constructor(readonly statusCode?: number, message = "Canvas rejected the access token") {
     super(message);
     this.name = "CanvasAuthError";
   }
+}
+
+/** Accept a raw Canvas token or a copied `Bearer <token>` header value. */
+export function normalizeCanvasAccessToken(raw: string): string {
+  let token = raw.trim();
+  const quoted = token.match(/^(["'])([\s\S]*)\1$/);
+  if (quoted) token = quoted[2].trim();
+  token = token.replace(/^Bearer\s+/i, "").trim();
+  return token;
 }
 
 /** Normalize a Canvas host: https, no trailing slash, no query/hash. */
@@ -67,7 +76,7 @@ async function canvasFetch<T>(
   const response = await canvasRequest(`${baseUrl}/api/v1${path}`, credentials.token) as
     { status: number; body?: T };
   if (response.status === 401 || response.status === 403) {
-    throw new CanvasAuthError();
+    throw new CanvasAuthError(response.status);
   }
   return response.body as T;
 }
@@ -84,7 +93,9 @@ async function canvasPages<T>(credentials: CanvasCredentials, path: string): Pro
     const response = await canvasRequest(next, credentials.token) as {
       status: number; body?: unknown; link?: string | string[];
     };
-    if (response.status === 401 || response.status === 403) throw new CanvasAuthError();
+    if (response.status === 401 || response.status === 403) {
+      throw new CanvasAuthError(response.status);
+    }
     if (!Array.isArray(response.body)) throw new Error("Invalid Canvas collection response");
     items.push(...response.body as T[]);
     if (items.length > 5000) throw new Error("Canvas collection limit exceeded");

@@ -45,12 +45,15 @@ describe("Canvas network isolation", () => {
     expect(request).toHaveBeenCalledWith(expect.any(URL), expect.objectContaining({
       maxRedirections: 0, headers: expect.objectContaining({ Authorization: "Bearer token" }),
     }));
+    expect(request.mock.calls[0][1].headers["User-Agent"]).toBe("CoursePilot/1.0");
     const pinned = agentOptions.mock.calls[0][0].connect.lookup;
     const callback = vi.fn();
     pinned("canvas.edu", {}, callback);
     expect(callback).toHaveBeenCalledWith(null, "8.8.8.8", 4);
+    pinned("canvas.edu", { all: true }, callback);
+    expect(callback).toHaveBeenLastCalledWith(null, [{ address: "8.8.8.8", family: 4 }]);
     pinned("internal", {}, callback);
-    expect(callback.mock.calls[1][0]).toBeInstanceOf(Error);
+    expect(callback.mock.calls[2][0]).toBeInstanceOf(Error);
     expect(agentClose).toHaveBeenCalledOnce();
   });
 });

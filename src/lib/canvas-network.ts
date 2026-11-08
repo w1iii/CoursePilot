@@ -54,9 +54,12 @@ export async function canvasRequest(url: string, token: string): Promise<unknown
   const address = await pinnedAddress(target);
   const agent = new Agent({
     connect: {
-      lookup: (hostname, _options, callback) => {
+      lookup: (hostname, options, callback) => {
         if (hostname !== target.hostname) {
           callback(new Error("Canvas connection host changed"), "", 4);
+        } else if (options.all) {
+          // Node's lookup callback uses an address array when all=true.
+          callback(null, [address]);
         } else {
           callback(null, address.address, address.family);
         }
@@ -67,7 +70,12 @@ export async function canvasRequest(url: string, token: string): Promise<unknown
     const response = await request(target, {
       dispatcher: agent,
       method: "GET",
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        // Canvas/WAF frontends can reject Undici's default `undici` agent.
+        "User-Agent": "CoursePilot/1.0",
+      },
       maxRedirections: 0,
       signal: AbortSignal.timeout(15_000),
     });

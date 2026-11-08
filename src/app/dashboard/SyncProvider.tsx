@@ -41,12 +41,47 @@ const initialState: SyncState = {
 
 const SyncContext = createContext<SyncContextValue | null>(null);
 
+function numberOrZero(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function normalizeSyncResult(value: unknown): SyncResult | null {
+  if (!value || typeof value !== "object") return null;
+  const result = value as Record<string, unknown>;
+
+  return {
+    courses: numberOrZero(result.courses),
+    tasks: numberOrZero(result.tasks),
+    announcements: numberOrZero(result.announcements),
+    documents: numberOrZero(result.documents),
+    ragDocuments: numberOrZero(result.ragDocuments),
+    ragChunks: numberOrZero(result.ragChunks),
+    ragFailures: numberOrZero(result.ragFailures),
+    ragSkipped: numberOrZero(result.ragSkipped),
+    ragFailureDetails: stringArray(result.ragFailureDetails),
+    ragSkippedDetails: stringArray(result.ragSkippedDetails),
+    errors: stringArray(result.errors),
+  };
+}
+
 function readStoredState(): Partial<SyncState> | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<SyncState>;
-    return parsed && typeof parsed === "object" ? parsed : null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object") return null;
+    const stored = parsed as Record<string, unknown>;
+
+    return {
+      result: normalizeSyncResult(stored.result),
+      error: typeof stored.error === "string" ? stored.error : null,
+      startedAt: typeof stored.startedAt === "string" ? stored.startedAt : null,
+      finishedAt: typeof stored.finishedAt === "string" ? stored.finishedAt : null,
+    };
   } catch {
     return null;
   }
@@ -114,14 +149,20 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
 
     try {
       const response = await fetch("/api/sync", { method: "POST" });
-      const json = (await response.json()) as SyncResult & { error?: string };
+      const json = (await response.json()) as unknown;
       if (!response.ok) {
-        throw new Error(json.error ?? "Sync failed");
+        const message =
+          json && typeof json === "object" && "error" in json && typeof json.error === "string"
+            ? json.error
+            : "Sync failed";
+        throw new Error(message);
       }
+      const result = normalizeSyncResult(json);
+      if (!result) throw new Error("Sync returned an invalid response");
 
       setState({
         running: false,
-        result: json,
+        result,
         error: null,
         startedAt,
         finishedAt: new Date().toISOString(),

@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeCanvasBaseUrl } from "@/lib/canvas";
+import { normalizeCanvasAccessToken, normalizeCanvasBaseUrl } from "@/lib/canvas";
+
+describe("normalizeCanvasAccessToken", () => {
+  it("accepts raw tokens and copied Bearer header values", () => {
+    expect(normalizeCanvasAccessToken("  15373~abc123  ")).toBe("15373~abc123");
+    expect(normalizeCanvasAccessToken("Bearer 15373~abc123")).toBe("15373~abc123");
+    expect(normalizeCanvasAccessToken('"Bearer 15373~abc123"')).toBe("15373~abc123");
+  });
+});
 
 describe("normalizeCanvasBaseUrl", () => {
   it("adds https and strips trailing slashes", () => {

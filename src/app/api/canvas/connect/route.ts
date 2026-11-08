@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { CanvasAuthError, hardenedCanvasBaseUrl } from "@/lib/canvas";
+import {
+  CanvasAuthError,
+  hardenedCanvasBaseUrl,
+  normalizeCanvasAccessToken,
+} from "@/lib/canvas";
 import {
   saveCanvasAccount,
   validateCanvasToken,
@@ -42,7 +46,9 @@ export async function POST(req: NextRequest) {
       | null;
 
     const rawUrl = typeof body?.canvas_base_url === "string" ? body.canvas_base_url : "";
-    const rawToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+    const rawToken = typeof body?.access_token === "string"
+      ? normalizeCanvasAccessToken(body.access_token)
+      : "";
 
     if (!rawToken) {
       return NextResponse.json({ error: "Canvas access token is required" }, { status: 400 });
@@ -63,6 +69,11 @@ export async function POST(req: NextRequest) {
       canvasUser = await validateCanvasToken(baseUrl, rawToken);
     } catch (err) {
       if (err instanceof CanvasAuthError) {
+        console.warn("Canvas token validation rejected", {
+          host: new URL(baseUrl).host,
+          tokenLength: rawToken.length,
+          status: err.statusCode,
+        });
         return NextResponse.json(
           { error: "Canvas rejected that access token. Check the token and try again." },
           { status: 401 },
