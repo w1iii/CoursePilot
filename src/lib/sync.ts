@@ -195,7 +195,7 @@ async function ingestDueCourses(
       const { error: updateError } = await sb
         .from("courses")
         .update({
-          rag_indexed_at: new Date().toISOString(),
+          ...(ingestion.failures === 0 ? { rag_indexed_at: new Date().toISOString() } : {}),
           rag_document_count: ingestion.documents,
           rag_chunk_count: ingestion.chunks,
           rag_failure_count: ingestion.failures,
@@ -226,6 +226,7 @@ async function syncAssignments(
   result: SyncResult,
 ): Promise<void> {
   try {
+    const errorsBefore = result.errors.length;
     const assignments = (await listAssignments(credentials, cc.id)).filter(
       (a) => a.workflow_state !== "deleted",
     );
@@ -246,12 +247,13 @@ async function syncAssignments(
         removed_at: null,
       };
 
-      const { data: existing } = await sb
+      const { data: existing, error: existingError } = await sb
         .from("academic_tasks")
         .select("id, due_date")
         .eq("course_id", courseId)
         .eq("canvas_task_id", a.id)
         .maybeSingle();
+      if (existingError) throw new Error(`Task lookup failed: ${existingError.message}`);
 
       const dueDateChanged =
         existing?.due_date &&
@@ -279,7 +281,9 @@ async function syncAssignments(
       else result.tasks += 1;
     }
 
-    await markMissingTasksRemoved(sb, courseId, seenIds, result);
+    if (result.errors.length === errorsBefore) {
+      await markMissingTasksRemoved(sb, courseId, seenIds, result);
+    }
   } catch (err) {
     reportCanvasError(err, `Assignments fetch failed (${cc.name})`, result);
   }
@@ -316,6 +320,7 @@ async function syncAnnouncements(
   result: SyncResult,
 ): Promise<void> {
   try {
+    const errorsBefore = result.errors.length;
     const announcements = (await listAnnouncements(credentials, cc.id)).filter(
       (ann) => ann.workflow_state !== "deleted",
     );
@@ -345,7 +350,9 @@ async function syncAnnouncements(
       else result.announcements += 1;
     }
 
-    await markMissingAnnouncementsRemoved(sb, courseId, seenIds, result);
+    if (result.errors.length === errorsBefore) {
+      await markMissingAnnouncementsRemoved(sb, courseId, seenIds, result);
+    }
   } catch (err) {
     reportCanvasError(err, `Announcements fetch failed (${cc.name})`, result);
   }

@@ -79,7 +79,21 @@ export async function canvasRequest(url: string, token: string): Promise<unknown
       await response.body.dump();
       throw new Error(`Canvas API returned HTTP ${response.statusCode}`);
     }
-    return { status: response.statusCode, body: await response.body.json() };
+    const chunks: Buffer[] = [];
+    let size = 0;
+    for await (const chunk of response.body) {
+      const bytes = Buffer.from(chunk);
+      size += bytes.length;
+      if (size > 8 * 1024 * 1024) {
+        throw new Error("Canvas response exceeds 8 MiB");
+      }
+      chunks.push(bytes);
+    }
+    return {
+      status: response.statusCode,
+      body: JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown,
+      link: response.headers.link,
+    };
   } finally {
     await agent.close();
   }

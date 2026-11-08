@@ -72,6 +72,36 @@ async function canvasFetch<T>(
   return response.body as T;
 }
 
+async function canvasPages<T>(credentials: CanvasCredentials, path: string): Promise<T[]> {
+  const base = normalizeCanvasBaseUrl(credentials.baseUrl);
+  const apiRoot = new URL(`${base}/api/v1/`);
+  let next: string | null = `${base}/api/v1${path}`;
+  const seen = new Set<string>();
+  const items: T[] = [];
+  while (next) {
+    if (seen.size >= 50 || seen.has(next)) throw new Error("Canvas pagination limit exceeded");
+    seen.add(next);
+    const response = await canvasRequest(next, credentials.token) as {
+      status: number; body?: unknown; link?: string | string[];
+    };
+    if (response.status === 401 || response.status === 403) throw new CanvasAuthError();
+    if (!Array.isArray(response.body)) throw new Error("Invalid Canvas collection response");
+    items.push(...response.body as T[]);
+    if (items.length > 5000) throw new Error("Canvas collection limit exceeded");
+    const link = Array.isArray(response.link) ? response.link.join(",") : response.link ?? "";
+    const nextLink = link.split(/,(?=\s*<)/).find((entry) => /(?:^|;)\s*rel\s*=\s*"?next"?\s*(?:;|$)/i.test(entry));
+    if (!nextLink) { next = null; continue; }
+    const match = nextLink.match(/<([^>]+)>/);
+    if (!match) throw new Error("Invalid Canvas pagination link");
+    const target: URL = new URL(match[1], next);
+    if (target.origin !== apiRoot.origin || !target.pathname.startsWith(apiRoot.pathname)) {
+      throw new Error("Canvas pagination points outside API origin");
+    }
+    next = target.href;
+  }
+  return items;
+}
+
 export interface CanvasUser {
   id: number;
   name: string;
@@ -109,7 +139,7 @@ export async function getCanvasSelf(credentials: CanvasCredentials): Promise<Can
 }
 
 export async function listCourses(credentials: CanvasCredentials): Promise<CanvasCourse[]> {
-  return canvasFetch<CanvasCourse[]>(
+  return canvasPages<CanvasCourse>(
     credentials,
     "/courses?enrollment_state=active&per_page=100",
   );
@@ -119,7 +149,7 @@ export async function listAssignments(
   credentials: CanvasCredentials,
   courseId: number,
 ): Promise<CanvasAssignment[]> {
-  return canvasFetch<CanvasAssignment[]>(
+  return canvasPages<CanvasAssignment>(
     credentials,
     `/courses/${courseId}/assignments?per_page=100&order_by=due_at`,
   );
@@ -129,7 +159,7 @@ export async function listAnnouncements(
   credentials: CanvasCredentials,
   courseId: number,
 ): Promise<CanvasAnnouncement[]> {
-  return canvasFetch<CanvasAnnouncement[]>(
+  return canvasPages<CanvasAnnouncement>(
     credentials,
     `/courses/${courseId}/discussion_topics?per_page=100&only_announcements=true`,
   );
