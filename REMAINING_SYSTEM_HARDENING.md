@@ -1,5 +1,13 @@
 # Remaining System Hardening Tasks
 
+## 2026-11-08 audit-fix rollout (local code; deployment pending)
+
+- Deploy `supabase/schema.sql` changes **before** web API deployment: `save_chat_thread` RPC and function grants. Check for duplicate `(course_id, canvas_task_id)` rows before creating the new unique index; resolve duplicates with an approved, backed-up migration, never delete them automatically. Verify `check_rate_limit` and `save_chat_thread` EXECUTE grants for `anon`, `authenticated`, and `service_role` in staging.
+- Web fixes: bounded complete Canvas pagination (no reconcile on fetch/write failure), atomic chat writes via RPC, role-aware history loading, size validation and chat write throttling; partial RAG indexes remain due for retry. Confirm these with staging accounts before rollout.
+- RAG fixes: ingestion token now binds Canvas course ID (deploy both services together), module-specific Canvas document IDs, stale document cleanup **only after complete successful course crawl**, bounded Canvas pagination/retry delay and readiness 503. Existing shared-document IDs need a successful full-course reindex before old versions disappear; do not run tenant-key migration or purge without authoritative mapping and tested backup.
+- RAG ingest transport: production requires HTTPS for non-local RAG endpoints; confirm TLS and secret configuration before deployment. Local development can use loopback HTTP.
+- Still pending: staging/production grant verification, tenant mapping/backups and isolation checks, live SSRF probes, deployment env inspection. Source changes do not establish deployed safety.
+
 This runbook tracks remaining operational work and code-level work not yet applied.
 Statuses below are a starting point; verify against deployed code and configuration
 before acting. Perform operational verification in staging with test accounts and

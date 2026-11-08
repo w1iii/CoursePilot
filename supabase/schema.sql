@@ -82,6 +82,9 @@ create index if not exists academic_tasks_due_date_idx
   on public.academic_tasks (due_date);
 create index if not exists academic_tasks_open_idx
   on public.academic_tasks (course_id, removed_at);
+create unique index if not exists academic_tasks_canvas_unique_idx
+  on public.academic_tasks (course_id, canvas_task_id)
+  where canvas_task_id is not null;
 
 -- ---------------------------------------------------------------------------
 -- Announcements  (One Course -> Many Announcements)
@@ -186,6 +189,49 @@ create table if not exists public.chat_messages (
 create index if not exists chat_messages_thread_created_idx
   on public.chat_messages (thread_id, created_at);
 
+-- Deploy this RPC before deploying the thread API that calls it.
+create or replace function public.save_chat_thread(
+  p_thread_id uuid, p_user_id uuid, p_course_id uuid, p_title text, p_messages jsonb
+) returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_owner uuid;
+begin
+  if jsonb_typeof(p_messages) is distinct from 'array' or
+     jsonb_array_length(p_messages) > 200 or length(p_title) > 120 then
+    raise exception 'Invalid thread';
+  end if;
+  if p_course_id is not null and not exists (
+    select 1 from public.courses where id = p_course_id and user_id = p_user_id
+  ) then
+    raise exception 'Course not found';
+  end if;
+
+  select user_id into v_owner from public.chat_threads where id = p_thread_id for update;
+  if v_owner is not null and v_owner <> p_user_id then
+    raise exception 'Thread not found';
+  end if;
+  if v_owner is null then
+    if jsonb_array_length(p_messages) = 0 then raise exception 'Thread not found'; end if;
+    insert into public.chat_threads (id, user_id, course_id, title)
+    values (p_thread_id, p_user_id, p_course_id, p_title);
+  else
+    update public.chat_threads set course_id = p_course_id, title = p_title, updated_at = now()
+    where id = p_thread_id;
+  end if;
+
+  delete from public.chat_messages where thread_id = p_thread_id;
+  insert into public.chat_messages (id, thread_id, role, content, status, metadata, created_at)
+  select id, p_thread_id, role, content, status, metadata, created_at
+  from jsonb_to_recordset(p_messages) as m(
+    id uuid, role text, content text, status text, metadata jsonb, created_at timestamptz
+  );
+end;
+$$;
+revoke all on function public.save_chat_thread(uuid, uuid, uuid, text, jsonb) from public, anon, authenticated;
+grant execute on function public.save_chat_thread(uuid, uuid, uuid, text, jsonb) to service_role;
+
 -- Atomically count a request and report whether it is within the limits.
 -- Blocked requests only bump the minute counter, so spam cannot extend a
 -- day-level lockout. Old windows are pruned opportunistically.
@@ -246,6 +292,8 @@ begin
   return query select true, null::text, 0;
 end;
 $$;
+revoke all on function public.check_rate_limit(uuid, integer, integer) from public, anon, authenticated;
+grant execute on function public.check_rate_limit(uuid, integer, integer) to service_role;
 
 -- ---------------------------------------------------------------------------
 -- RAG documents/chunks live in the separate CoursePilot-RAG database.
