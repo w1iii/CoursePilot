@@ -10,19 +10,24 @@ export function signRagToken(input: {
   courseKey: string;
   scope: RagScope;
   ttlSeconds?: number;
+  canvasCourseId?: number;
 }): string {
-  const { userId, courseKey, scope, ttlSeconds = 120 } = input;
+  const { userId, courseKey, scope, ttlSeconds = 120, canvasCourseId } = input;
   if (!userId || !courseKey || courseKey.length > 64) {
     throw new Error("RAG token requires a user and valid course key");
   }
   if (!Number.isInteger(ttlSeconds) || ttlSeconds < 1 || ttlSeconds > 300) {
     throw new Error("RAG token TTL must be between 1 and 300 seconds");
   }
+  if (scope === "ingest" && (!Number.isSafeInteger(canvasCourseId) || (canvasCourseId ?? 0) <= 0)) {
+    throw new Error("Ingestion token requires a Canvas course ID");
+  }
   const now = Math.floor(Date.now() / 1000);
   const payload = Buffer.from(JSON.stringify({
     sub: userId,
     course: courseKey,
     scope,
+    ...(scope === "ingest" ? { canvas_course_id: canvasCourseId } : {}),
     iat: now,
     exp: now + ttlSeconds,
   })).toString("base64url");

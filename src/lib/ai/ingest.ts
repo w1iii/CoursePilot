@@ -26,7 +26,13 @@ export function ragReindexHours(): number {
 }
 
 function ragBaseUrl(): string {
-  return (env("RAG_API_URL") ?? "http://localhost:8000").replace(/\/$/, "");
+  const url = (env("RAG_API_URL") ?? "http://localhost:8000").replace(/\/$/, "");
+  const parsed = new URL(url);
+  if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:" &&
+      !(parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")) {
+    throw new Error("RAG ingestion requires HTTPS in production");
+  }
+  return url;
 }
 
 function timeoutMs(): number {
@@ -71,6 +77,7 @@ export async function ingestCanvasCourse(input: {
       userId: input.userId,
       courseKey: input.courseKey,
       scope: "ingest",
+      canvasCourseId: input.canvasCourseId,
       ttlSeconds: 300,
     });
 
