@@ -348,7 +348,7 @@ export default function ThreadView({
                     }
                   }}
                   rows={1}
-                  maxLength={12000}
+                  maxLength={2000}
                   placeholder="Message Habi..."
                   className="max-h-[180px] min-h-[32px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-1.5 font-body-md text-body-md leading-relaxed text-on-surface outline-none placeholder:text-text-muted"
                 />

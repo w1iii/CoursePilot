@@ -10,7 +10,7 @@ import {
 import { elapsedMs, logAiRequest } from "@/lib/ai/log";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
-const MAX_QUESTION_CHARS = 12000;
+const MAX_QUESTION_CHARS = 2000;
 
 export async function POST(req: NextRequest) {
   try {
