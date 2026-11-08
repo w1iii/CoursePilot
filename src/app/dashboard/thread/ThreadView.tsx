@@ -48,25 +48,50 @@ interface Props {
   initialTurns?: Turn[];
 }
 
-function renderText(text: string) {
-  return text.split("\n").map((line, index) => {
-    const heading = line.match(/^#{1,3}\s+(.+)/);
-    const bullet = line.match(/^[-*]\s+(.+)/);
-    const numbered = line.match(/^\d+\.\s+(.+)/);
-    const content = heading?.[1] ?? bullet?.[1] ?? numbered?.[1] ?? line;
-    const formatted = content.split(/(`[^`]+`)/g).map((part, partIndex) =>
-      part.startsWith("`") ? (
-        <code key={partIndex} className="rounded bg-surface-container px-1.5 py-0.5 font-mono text-[0.9em] text-primary-container">
-          {part.slice(1, -1)}
-        </code>
-      ) : (
-        part
-      ),
-    );
-    if (heading) return <h3 key={index} className="mt-5 font-headline-sm text-headline-sm">{formatted}</h3>;
-    if (bullet || numbered) return <li key={index} className="ml-5 list-disc pl-1">{formatted}</li>;
-    return <p key={index} className="min-h-[1.65em]">{formatted}</p>;
+function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
+  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (part.startsWith("`")) return <code key={key} className="rounded bg-surface-container px-1 py-0.5 font-mono text-[0.9em] text-primary-container">{part.slice(1, -1)}</code>;
+    if (part.startsWith("**")) return <strong key={key} className="font-semibold text-on-surface">{part.slice(2, -2)}</strong>;
+    if (part.startsWith("*")) return <em key={key}>{part.slice(1, -1)}</em>;
+    return part;
   });
+}
+
+function renderText(text: string) {
+  const blocks: React.ReactNode[] = [];
+  let list: { ordered: boolean; lines: string[] } | null = null;
+  const flushList = () => {
+    if (!list) return;
+    const List = list.ordered ? "ol" : "ul";
+    blocks.push(<List key={`list-${blocks.length}`} className={`my-2 space-y-1 pl-5 ${list.ordered ? "list-decimal" : "list-disc"}`}>
+      {list.lines.map((line, index) => <li key={index} className="pl-1">{renderInline(line, `li-${blocks.length}-${index}`)}</li>)}
+    </List>);
+    list = null;
+  };
+
+  text.split("\n").forEach((line, index) => {
+    const heading = line.match(/^#{1,3}\s+(.+)/);
+    const item = line.match(/^\s*(?:(- |\* )|(\d+\. ))(.+)/);
+    if (item) {
+      const ordered = Boolean(item[2]);
+      if (list && list.ordered !== ordered) flushList();
+      list ??= { ordered, lines: [] };
+      list.lines.push(item[3]);
+      return;
+    }
+    flushList();
+    if (!line.trim()) return;
+    if (heading) blocks.push(<h3 key={`heading-${index}`} className="mb-1 mt-4 text-[14px] font-semibold leading-snug text-on-surface">{renderInline(heading[1], `heading-${index}`)}</h3>);
+    else blocks.push(<p key={`paragraph-${index}`} className="my-2">{renderInline(line, `paragraph-${index}`)}</p>);
+  });
+  flushList();
+  return blocks;
+}
+
+function cleanCitationMarkers(text: string) {
+  return text.replace(/\s*\[[^\[\]]+\]/g, "").replace(/[ \t]{2,}/g, " ").trim();
 }
 
 export default function ThreadView({
@@ -289,7 +314,7 @@ export default function ThreadView({
               {turns.map((turn) => (
                 <div key={turn.id} className="space-y-5">
                   <div className="flex justify-end">
-                    <div className="max-w-[85%] rounded-2xl bg-surface-container-high px-4 py-3 font-body-md text-body-md leading-relaxed text-on-surface">
+                    <div className="max-w-[85%] rounded-2xl bg-surface-container-high px-4 py-3 text-[13px] leading-relaxed text-on-surface">
                       {turn.question}
                     </div>
                   </div>
@@ -312,8 +337,21 @@ export default function ThreadView({
                   {turn.response && (
                     <div className="group flex gap-3">
                       <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container font-display text-sm text-dark-text">h</span>
-                      <div className="min-w-0 flex-1 break-words font-body-md text-body-md leading-[1.7] text-on-surface">
-                        <div>{renderText(turn.response.answer)}</div>
+                      <div className="min-w-0 flex-1 break-words text-[13px] leading-[1.65] text-on-surface">
+                        <div>{renderText(cleanCitationMarkers(turn.response.answer))}</div>
+                        {turn.response.sources.length > 0 && (
+                          <div className="mt-3 border-t border-border/70 pt-2.5">
+                            <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted">Sources</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {turn.response.sources.map((source) => (
+                                <span key={source.id} title={source.title} className="inline-flex max-w-full items-center gap-1 rounded-md bg-surface-container px-2 py-1 text-[11px] leading-snug text-text-muted">
+                                  <span className="material-symbols-outlined text-[13px]">description</span>
+                                  <span className="truncate">{source.label || source.title}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         <div className="mt-3 flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
                           <button type="button" onClick={() => void copyAnswer(turn)} className="rounded-md p-1.5 hover:bg-surface-container" title="Copy">
                             <span className="material-symbols-outlined text-[17px]">{copiedId === turn.id ? "check" : "content_copy"}</span>
