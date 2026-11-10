@@ -1,153 +1,223 @@
 # CoursePilot
 
-AI-Powered Academic Dashboard for Canvas LMS.
+AI-powered academic dashboard for Canvas LMS. CoursePilot centralizes courses,
+tasks, announcements, deadline changes, and course-scoped AI assistance.
 
-Full spec: [`docs/CoursePilot.md`](docs/CoursePilot.md)
+> Status: working local demo. Hosted deployment remains pending.
+
+## Features
+
+- Clerk authentication and protected dashboard
+- Encrypted per-user Canvas personal access tokens
+- Canvas course, assignment, and announcement synchronization
+- Deadline-change detection and deterministic task priorities
+- Manual academic tasks and chat history
+- RAG assistant with citations
+- Canvas module ingestion through [CoursePilot-RAG](https://github.com/w1iii/CoursePilot-RAG)
+- Optional scheduled synchronization
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser --> Web[Next.js]
+    Web --> Clerk[Clerk]
+    Web --> DB[(Supabase PostgreSQL)]
+    Web --> Canvas[Canvas REST API]
+    Web --> RAG[CoursePilot-RAG]
+    RAG --> Vector[(Postgres + pgvector)]
+    RAG --> LLM[Gemini / optional Groq]
+```
+
+The web app owns authentication, Canvas metadata, tasks, announcements, chat
+history, and settings. RAG owns document ingestion, embeddings, retrieval, and
+cited answers.
 
 ## Stack
 
-- **Frontend/Backend:** Next.js 15 (App Router), React, TypeScript, Tailwind CSS
-- **Database:** Supabase PostgreSQL (no ORM)
-- **Auth:** Clerk
-- **AI:** External [`CoursePilot-RAG`](../rag/canvas-ai-assistant) service (FastAPI + Gemini + pgvector)
-- **Canvas:** Canvas REST API
+- Next.js 15 App Router, React 19, TypeScript, Tailwind CSS 4
+- Clerk authentication
+- Supabase PostgreSQL with SQL/Supabase Query Builder; no ORM
+- Canvas REST API
+- External FastAPI RAG service with SQLAlchemy and pgvector
 
-## Getting started
+## Quick start
 
-1. Install deps:
+### Prerequisites
 
-   ```bash
-   npm install
-   ```
+Node.js 20+, Supabase, Clerk, Canvas access, Python 3.12+, `uv`, and PostgreSQL
+with pgvector. Tesseract is optional for OCR.
 
-2. Copy env and fill in real values:
+```bash
+git clone https://github.com/w1iii/CoursePilot.git
+git clone https://github.com/w1iii/CoursePilot-RAG.git
 
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Create a Supabase project. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor.
-
-4. Create a Clerk application. Copy publishable + secret keys into `.env`.
-
-5. Generate `TOKEN_ENCRYPTION_KEY` (encrypts per-user Canvas tokens):
-
-   ```bash
-   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-   ```
-
-   Set `CANVAS_API_URL` to your school's Canvas host (prefilled in the connect form).
-   Each user adds their own Canvas personal access token from the dashboard
-   (Canvas → Account → Settings → New Access Token).
-
-6. Start the RAG service in `../rag/canvas-ai-assistant` (it owns the vector DB):
-
-   ```bash
-   cd ../rag/canvas-ai-assistant
-   uv sync
-   cp .env.example .env   # fill DATABASE_URL + GEMINI_API_KEY
-   uv run uvicorn app.main:app --reload --port 8000
-   ```
-
-   Point CoursePilot at it with `RAG_API_URL` (default `http://localhost:8000`).
-
-7. Run:
-
-   ```bash
-   npm run dev
-   ```
-
-## Project layout
-
+cd CoursePilot
+npm ci
+cp .env.example .env
 ```
-src/
-  middleware.ts              Clerk route protection
-  app/
-    page.tsx                 Landing
-    sign-in/ sign-up/        Clerk auth pages
-    dashboard/               Dashboard (tasks, deadlines, announcements, AI assistant)
-    api/
-      canvas/connect/route.ts    POST — validate + store encrypted Canvas token
-      canvas/status/route.ts     GET — connection status (never returns the token)
-      canvas/disconnect/route.ts POST — remove the stored connection
-      sync/route.ts          POST — pull Canvas data → Postgres
-      tasks/route.ts         GET list, POST create manual task
-      tasks/[id]/route.ts    PATCH update, DELETE manual task
-      ask/route.ts           POST RAG question
-      threads/route.ts          GET chat history
-      threads/[id]/route.ts     GET, PUT, DELETE chat thread
-  lib/
-    env.ts                   Env helpers
-    supabase.ts              Service-role client
-    canvas.ts                Canvas API client (per-user credentials)
-    canvas-account.ts        Canvas connection storage + credential resolution
-    crypto.ts                AES-256-GCM token encryption
-    user.ts                  Clerk → users table upsert
-    sync.ts                  Canvas sync pipeline (courses/tasks/announcements)
-    ai/
-      rag.ts                 RAG service client + course resolution
-      ingest.ts              Canvas course → RAG ingestion client
-    rate-limit.ts            Postgres-backed per-user request limits
-supabase/
-  schema.sql                 CoursePilot tables + chat history + RLS
+
+Run [`supabase/schema.sql`](supabase/schema.sql) in Supabase. Create a Clerk
+application and fill its keys. Generate `TOKEN_ENCRYPTION_KEY` with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
+
+Start RAG in another terminal:
+
+```bash
+cd ../CoursePilot-RAG
+uv sync
+cp .env.example .env
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+Then start CoursePilot:
+
+```bash
+cd ../CoursePilot
+npm run dev
+```
+
+Open `http://localhost:3000`, sign in, connect Canvas from Settings, and sync.
+`RAG_SIGNING_SECRET` must match in both services.
+
+## Configuration
+
+Copy `.env.example` to `.env`; never commit secrets.
+
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | — | Clerk browser key |
+| `CLERK_SECRET_KEY` | Yes | — | Clerk server key |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | No | `/sign-in` | Sign-in route |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | No | `/sign-up` | Sign-up route |
+| `SUPABASE_URL` | Yes | — | Supabase URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | — | Server-only database key |
+| `CANVAS_API_URL` | No | `https://canvas.instructure.com` | Default Canvas host |
+| `TOKEN_ENCRYPTION_KEY` | Yes | — | AES-256-GCM key |
+| `CANVAS_ALLOW_ENV_TOKEN` | No | `false` | Local shared-token fallback |
+| `CANVAS_ACCESS_TOKEN` | No | — | Local fallback token |
+| `RAG_API_URL` | No | `http://localhost:8000` | RAG URL |
+| `RAG_TIMEOUT_MS` | No | `30000` | Chat timeout |
+| `RAG_SIGNING_SECRET` | Yes with RAG | — | Shared HMAC secret |
+| `RAG_INGESTION_ENABLED` | No | `true` | Ingest during sync |
+| `RAG_INGEST_MAX_COURSES` | No | `3` | Courses per sync |
+| `RAG_REINDEX_HOURS` | No | `24` | Re-index interval |
+| `RAG_INGEST_TIMEOUT_MS` | No | `180000` | Ingestion timeout |
+| `RAG_INGEST_MAX_ATTEMPTS` | No | `2` | Ingestion retries |
+| `RATE_LIMIT_PER_MINUTE` | No | `10` | Shared minute budget |
+| `RATE_LIMIT_PER_DAY` | No | `200` | Shared daily budget |
+| `CACHE_ENABLED` | No | `true` | Next.js user-read cache |
+| `CRON_SECRET` | For cron | — | Scheduled-sync authorization |
+| `CRON_SYNC_MAX_USERS` | No | `5` | Users per cron request |
+
+Production RAG URLs must use HTTPS. Local loopback HTTP is allowed.
+
+## How it works
+
+1. Clerk authenticates the student.
+2. Canvas connection validates and encrypts the supplied token.
+3. Sync upserts courses, assignments, announcements, and deadline changes.
+4. Due courses send transient Canvas credentials to RAG for ingestion.
+5. RAG parses, chunks, embeds, and stores course material in pgvector.
+6. The assistant signs a short-lived token bound to the user and course.
+7. RAG retrieves matching chunks and returns an answer with citations.
+
+RAG ingestion supports Canvas Pages, Files, subheaders, assignment
+descriptions, and quiz descriptions/questions. External URLs/tools, unknown
+items, and unsupported files are skipped and reported. Failures do not roll
+back Canvas metadata synchronization.
+
+Task priority is deterministic: due date is the main signal, with extra weight
+for exams, projects, and quizzes near their deadline.
 
 ## API surface
 
+User routes require the signed-in Clerk user. The cron route uses `CRON_SECRET`.
+
 | Method | Path | Purpose |
-| ------ | ---- | ------- |
-| POST | `/api/canvas/connect` | Validate and store the user's Canvas token |
-| GET | `/api/canvas/status` | Connection status for the current user |
-| POST | `/api/canvas/disconnect` | Delete the stored Canvas connection |
-| POST | `/api/sync` | Sync Canvas courses/assignments/announcements |
-| GET | `/api/tasks` | List tasks for current user |
-| POST | `/api/tasks` | Create manual academic task |
-| PATCH | `/api/tasks/:id` | Update status/notes/priority/due date |
-| DELETE | `/api/tasks/:id` | Delete manual task (Canvas-synced tasks can't be deleted) |
-| POST | `/api/ask` | RAG question → CoursePilot-RAG answer + citations |
-| GET | `/api/threads` | List the signed-in user's chat threads |
-| GET | `/api/threads/:id` | Load a chat thread and messages |
-| PUT | `/api/threads/:id` | Save a chat thread and messages |
-| DELETE | `/api/threads/:id` | Delete a chat thread |
+| --- | --- | --- |
+| `POST` | `/api/canvas/connect` | Validate and store encrypted Canvas token |
+| `GET` | `/api/canvas/status` | Return connection status; never token |
+| `POST` | `/api/canvas/disconnect` | Remove Canvas connection |
+| `POST` | `/api/sync` | Sync Canvas and due RAG courses |
+| `GET/POST` | `/api/tasks` | List or create tasks |
+| `PATCH/DELETE` | `/api/tasks/:id` | Update or delete manual task |
+| `POST` | `/api/ask` | Ask assistant and receive citations |
+| `GET` | `/api/threads` | List chat threads |
+| `GET/PUT/DELETE` | `/api/threads/:id` | Load, save, or delete thread |
+| `GET` | `/api/cron/sync` | Batch-sync healthy Canvas accounts |
 
-## Canvas → RAG ingestion
+`vercel.json` schedules cron at `0 6 * * *`. The cron secret may be sent as a
+Bearer token or `x-cron-secret` header. Rate-limit budgets return `429` with
+`Retry-After`; unavailable limiter infrastructure returns `503`.
 
-Sync keeps Canvas metadata in Supabase and also indexes course material into the
-RAG service, using the signed-in user's Canvas credentials (sent per request,
-never stored by RAG).
+## Database
 
-- **Scope:** Canvas module **Files** (PDF, HTML, PPTX) and **Pages** only.
-  Assignments, quizzes, external URLs, external tools, and subheaders are skipped.
-- **Cadence:** each sync re-indexes up to `RAG_INGEST_MAX_COURSES` courses whose
-  `rag_indexed_at` is empty or older than `RAG_REINDEX_HOURS`. This spreads a
-  large account across syncs and avoids embedding-quota bursts.
-- **Failures:** item-level failures (oversized files, empty pages, Gemini 429s)
-  are reported in the sync result and retried on the next re-index; they never
-  roll back courses/tasks/announcements.
-- **Disable:** set `RAG_INGESTION_ENABLED=false`.
+Run `supabase/schema.sql` before deployment. It defines `users`,
+`canvas_accounts`, `courses`, `academic_tasks`, `announcements`,
+`deadline_changes`, `ai_requests`, `rate_limit_windows`, `chat_threads`, and
+`chat_messages`, plus `check_rate_limit()` and `save_chat_thread()` RPCs.
 
-## Rate limiting
+Row Level Security is enabled. The service-role key stays server-side.
 
-`/api/ask` is the most expensive route (Gemini embedding + generation), so each
-user gets a minute and a day budget enforced in Postgres:
+## Project layout
 
-- `RATE_LIMIT_PER_MINUTE` (default `10`)
-- `RATE_LIMIT_PER_DAY` (default `200`)
+```text
+src/
+  middleware.ts                 Clerk protection for dashboard pages
+  app/dashboard/                Dashboard, settings, assistant, tasks
+  app/api/                      Canvas, sync, cron, tasks, ask, threads
+  lib/canvas.ts                 Canvas client and network validation
+  lib/canvas-account.ts         Encrypted per-user credentials
+  lib/sync.ts                   Canvas metadata + RAG pipeline
+  lib/ai/                       RAG client, ingestion, tokens, logging
+  lib/priority.ts               Task/announcement scoring
+  lib/rate-limit.ts             Postgres-backed limits
+  lib/cache.ts                  User-scoped Next.js cache
+supabase/schema.sql             Database schema and RPCs
+```
 
-Calls are counted by the `check_rate_limit()` SQL function, so all serverless
-instances share counters without Redis/Upstash. Over-limit requests return
-`429` with a `Retry-After` header. If the limiter itself errors, requests fail
-open rather than locking users out.
+## Security and operations
 
-## Notes
+- Canvas tokens use AES-256-GCM and are never returned to clients.
+- RAG uses short-lived HMAC tokens bound to user, course, and scope.
+- Canvas requests validate public addresses and restrict redirects.
+- Production RAG communication requires HTTPS.
+- CSP, frame, referrer, and permissions headers are configured.
+- Review [`REMAINING_SYSTEM_HARDENING.md`](REMAINING_SYSTEM_HARDENING.md) before deploy.
 
-- All secrets live in `.env` (gitignored). `.env.example` only has variable names.
-- Supabase service-role key stays server-side (route handlers only).
-- RLS is enabled on all tables; app access uses the service role.
-- Canvas tokens are encrypted with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`) and are
-  never returned to the browser after submission. The shared `CANVAS_ACCESS_TOKEN`
-  is only used when `CANVAS_ALLOW_ENV_TOKEN=true` (local development).
-- `/api/ask` resolves the signed-in user's selected course to its Canvas course ID,
-  then calls `POST {RAG_API_URL}/api/v1/chat` with `X-RAG-Token`. RAG course material
-  is ingested by the RAG service (`scripts/ingest_documents.py` or
-  `/api/v1/ingestion/canvas-module`).
+## Development commands
+
+```bash
+npm run dev
+npm run lint
+npm run test
+npx tsc --noEmit
+npm run build
+```
+
+Tests use Vitest and mock external services where appropriate.
+
+## Troubleshooting
+
+- **Canvas 401:** reconnect with a valid token and confirm the Canvas host.
+- **No courses:** connect Canvas, then run sync from the dashboard.
+- **Assistant unavailable:** verify RAG is running and signing secrets match.
+- **No RAG context:** inspect sync results for ingestion failures/skips.
+- **OCR failure:** install Tesseract (`brew install tesseract` on macOS).
+- **Cron 401/503:** configure `CRON_SECRET` and send the expected header.
+
+## Limitations and roadmap
+
+Canvas OAuth, hosted RAG, and Vercel deployment remain pending. Ingestion is
+capped per sync to control latency and embedding usage.
+
+## Related documentation
+
+- [CoursePilot-RAG](https://github.com/w1iii/CoursePilot-RAG)
+- [`docs/CoursePilot.md`](docs/CoursePilot.md) — original academic brief
+- [`PROGRESS.md`](PROGRESS.md)
+- [`REMAINING_SYSTEM_HARDENING.md`](REMAINING_SYSTEM_HARDENING.md)
