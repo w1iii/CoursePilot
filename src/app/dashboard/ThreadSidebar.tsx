@@ -5,6 +5,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { resolveTheme, toggleTheme, type ResolvedTheme } from "@/lib/theme";
+import { cachedJson, invalidateClientCache } from "@/lib/client-cache";
 
 export interface SavedThread {
   id: string;
@@ -69,15 +70,24 @@ export default function ThreadSidebar({
   }
 
   useEffect(() => {
-    const refresh = async () => {
-      const response = await fetch("/api/threads", { cache: "no-store" });
-      if (!response.ok) return;
-      const data = await response.json() as SavedThread[];
-      setThreads(data);
+    let cancelled = false;
+
+    const load = async (force: boolean) => {
+      try {
+        const data = await cachedJson<SavedThread[]>("threads", "/api/threads", { force });
+        if (!cancelled) setThreads(data);
+      } catch {
+        // Keep the current list when the request fails.
+      }
     };
-    void refresh();
+
+    void load(false);
+    const refresh = () => void load(true);
     window.addEventListener(THREADS_CHANGED_EVENT, refresh);
-    return () => window.removeEventListener(THREADS_CHANGED_EVENT, refresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(THREADS_CHANGED_EVENT, refresh);
+    };
   }, []);
 
   const groupedThreads = useMemo(() => {
@@ -102,6 +112,7 @@ export default function ThreadSidebar({
     try {
       const response = await fetch(`/api/threads/${encodeURIComponent(threadId)}`, { method: "DELETE" });
       if (!response.ok) return;
+      invalidateClientCache("threads");
       setThreads((current) => current.filter((thread) => thread.id !== threadId));
       window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
     } catch {

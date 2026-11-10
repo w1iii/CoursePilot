@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
@@ -9,7 +10,11 @@ export interface AppUser {
   created_at?: string;
 }
 
-export async function requireUser(): Promise<AppUser> {
+/**
+ * Resolve the signed-in user. Memoized per request so a layout + page render
+ * does not repeat the Clerk lookup and user upsert.
+ */
+export const requireUser = cache(async (): Promise<AppUser> => {
   const { userId } = await auth();
   if (!userId) {
     throw new UnauthorizedError();
@@ -32,7 +37,7 @@ export async function requireUser(): Promise<AppUser> {
     throw new Error(`Failed to upsert user: ${error?.message ?? "no row returned"}`);
   }
   return data as AppUser;
-}
+});
 
 export class UnauthorizedError extends Error {
   constructor() {

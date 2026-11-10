@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { supabaseAdminMock } = vi.hoisted(() => ({
+const { supabaseAdminMock, cache } = vi.hoisted(() => ({
   supabaseAdminMock: vi.fn(),
+  cache: new Map<string, Promise<unknown>>(),
 }));
 
 vi.mock("@/lib/supabase", () => ({ supabaseAdmin: supabaseAdminMock }));
@@ -17,8 +18,6 @@ vi.mock("next/cache", () => ({
     };
   },
 }));
-
-const cache = new Map<string, Promise<unknown>>();
 
 import {
   answerQuestion,
@@ -76,6 +75,7 @@ describe("course resolution", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test";
     process.env.RAG_SIGNING_SECRET = "test-signing-secret";
+    cache.clear();
   });
 
   it("scopes course lookup to the signed-in user", async () => {
@@ -88,8 +88,16 @@ describe("course resolution", () => {
     expect(builder.eq).toHaveBeenCalledWith("user_id", "user-a");
   });
 
-  it("surfaces course lookup failures", async () => {
-    mockCourses({ data: null, error: { message: "database down" } });
+  it("reuses the cached course list for repeat reads", async () => {
+    const from = mockCourses({ data: [courses[0]], error: null });
+
+    await listCoursesForUser("user-a");
+    await listCoursesForUser("user-a");
+
+    expect(from).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces course lookup failures", async () => {    mockCourses({ data: null, error: { message: "database down" } });
 
     await expect(listCoursesForUser("user-a")).rejects.toThrow(
       "Failed to load courses: database down",

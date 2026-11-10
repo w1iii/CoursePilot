@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { unstable_cache } from "next/cache";
-import { userCacheTag } from "@/lib/cache";
+import { cacheUserRead, userCacheTag } from "@/lib/cache";
 import { env, requireEnv } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase";
 import { signRagToken } from "@/lib/ai/rag-token";
@@ -80,18 +80,20 @@ function ragTimeoutMs(): number {
   return Number.isFinite(configured) && configured > 0 ? configured : 30_000;
 }
 
-export async function listCoursesForUser(userId: string): Promise<CourseOption[]> {
-  const { data, error } = await supabaseAdmin()
-    .from("courses")
-    .select("id, canvas_course_id, course_name, course_code, rag_indexed_at")
-    .eq("user_id", userId)
-    .order("course_name", { ascending: true });
+export function listCoursesForUser(userId: string): Promise<CourseOption[]> {
+  return cacheUserRead("rag-courses", userId, 60, async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("courses")
+      .select("id, canvas_course_id, course_name, course_code, rag_indexed_at")
+      .eq("user_id", userId)
+      .order("course_name", { ascending: true });
 
-  if (error) {
-    throw new Error(`Failed to load courses: ${error.message}`);
-  }
+    if (error) {
+      throw new Error(`Failed to load courses: ${error.message}`);
+    }
 
-  return (data ?? []) as CourseOption[];
+    return (data ?? []) as CourseOption[];
+  });
 }
 
 async function readErrorDetail(res: Response): Promise<string> {

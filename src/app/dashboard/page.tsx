@@ -97,7 +97,7 @@ export default async function DashboardPage() {
       .select("id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count")
       .eq("user_id", user.id)
       .limit(50)),
-    getCanvasStatus(user.id),
+    cacheUserRead("canvas-status", user.id, 60, () => getCanvasStatus(user.id)),
   ]);
 
   if (coursesResult.error) {
