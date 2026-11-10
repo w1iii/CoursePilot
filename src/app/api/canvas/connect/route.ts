@@ -12,6 +12,7 @@ import {
 } from "@/lib/canvas-account";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { requireUser, UnauthorizedError } from "@/lib/user";
+import { invalidateUserCache } from "@/lib/cache";
 
 export async function POST(req: NextRequest) {
   try {
@@ -88,6 +89,7 @@ export async function POST(req: NextRequest) {
       token: rawToken,
       canvasUser,
     });
+    invalidateUserCache(user.id);
 
     return NextResponse.json({
       connected: true,

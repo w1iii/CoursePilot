@@ -5,6 +5,7 @@ import { defaultCanvasBaseUrl } from "@/lib/canvas";
 import { getCanvasStatus } from "@/lib/canvas-account";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
+import { cacheUserRead } from "@/lib/cache";
 import CanvasConnect from "../CanvasConnect";
 import DashboardShell from "../DashboardShell";
 import type { Course } from "../types";
@@ -83,15 +84,15 @@ export default async function SettingsPage() {
   const sb = supabaseAdmin();
 
   const [canvas, coursesResult] = await Promise.all([
-    getCanvasStatus(user.id),
-    sb
+    cacheUserRead("canvas-status", user.id, 60, () => getCanvasStatus(user.id)),
+    cacheUserRead("settings-courses", user.id, 300, async () => await sb
       .from("courses")
       .select(
         "id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count",
       )
       .eq("user_id", user.id)
       .order("course_name", { ascending: true })
-      .limit(100),
+      .limit(100)),
   ]);
 
   if (coursesResult.error) {

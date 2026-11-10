@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
+import { invalidateUserCache } from "@/lib/cache";
 
 const VALID_STATUSES = new Set(["pending", "completed"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -75,6 +76,7 @@ export async function PATCH(
       .single();
 
     if (error) throw new Error(error.message);
+    invalidateUserCache(user.id);
     return NextResponse.json({ task: data });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
@@ -107,6 +109,7 @@ export async function DELETE(
     const { error } = await sb.from("academic_tasks").delete().eq("id", id);
     if (error) throw new Error(error.message);
 
+    invalidateUserCache(user.id);
     return NextResponse.json({ deleted: true });
   } catch (err) {
     if (err instanceof UnauthorizedError) {

@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase";
 import { syncCanvas } from "@/lib/sync";
 import type { AppUser } from "@/lib/user";
+import { invalidateUserCache } from "@/lib/cache";
 
 // A batch of Canvas syncs plus RAG ingestion can exceed the default budget.
 export const maxDuration = 300;
@@ -103,6 +104,8 @@ export async function GET(req: NextRequest) {
       });
     } catch (err) {
       results.push({ userId: user.id, error: (err as Error).message });
+    } finally {
+      invalidateUserCache(user.id);
     }
   }
 

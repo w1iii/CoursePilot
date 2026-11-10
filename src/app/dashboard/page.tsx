@@ -1,6 +1,7 @@
 import { getCanvasStatus } from "@/lib/canvas-account";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
+import { cacheUserRead } from "@/lib/cache";
 import AnnouncementsFeed from "./AnnouncementsFeed";
 import AskHabiCard from "./AskHabiCard";
 import CourseIndex from "./CourseIndex";
@@ -91,13 +92,11 @@ export default async function DashboardPage() {
   const sb = supabaseAdmin();
 
   const [coursesResult, canvas] = await Promise.all([
-    sb
+    cacheUserRead("dashboard-courses", user.id, 60, async () => await sb
       .from("courses")
-      .select(
-        "id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count",
-      )
+      .select("id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count")
       .eq("user_id", user.id)
-      .limit(50),
+      .limit(50)),
     getCanvasStatus(user.id),
   ]);
 
@@ -114,7 +113,7 @@ export default async function DashboardPage() {
 
   if (courseIds.length > 0) {
     const [tasksResult, announcementsResult, deadlineResult] = await Promise.all([
-      sb
+      cacheUserRead("dashboard-tasks", user.id, 30, async () => await sb
         .from("academic_tasks")
         .select(
           "id, course_id, canvas_task_id, title, description, type, due_date, priority, status, is_manual, notes, courses(course_name, course_code)",
@@ -122,8 +121,8 @@ export default async function DashboardPage() {
         .in("course_id", courseIds)
         .is("removed_at", null)
         .order("due_date", { ascending: true, nullsFirst: false })
-        .limit(50),
-      sb
+        .limit(50)),
+      cacheUserRead("dashboard-announcements", user.id, 60, async () => await sb
         .from("announcements")
         .select(
           "id, title, content, importance_score, posted_at, courses(course_name, course_code)",
@@ -132,15 +131,15 @@ export default async function DashboardPage() {
         .is("removed_at", null)
         .order("importance_score", { ascending: false, nullsFirst: false })
         .order("posted_at", { ascending: false, nullsFirst: false })
-        .limit(5),
-      sb
+        .limit(5)),
+      cacheUserRead("dashboard-deadlines", user.id, 60, async () => await sb
         .from("deadline_changes")
         .select(
           "id, title, old_due_date, new_due_date, detected_at, courses(course_name, course_code)",
         )
         .in("course_id", courseIds)
         .order("detected_at", { ascending: false })
-        .limit(4),
+        .limit(4)),
     ]);
 
     if (tasksResult.error) {

@@ -3,6 +3,7 @@ import { requireUser, UnauthorizedError } from "@/lib/user";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import { syncCanvas } from "@/lib/sync";
+import { invalidateUserCache } from "@/lib/cache";
 
 // Canvas + RAG ingestion can exceed the default serverless budget.
 export const maxDuration = 300;
@@ -36,7 +37,13 @@ export async function POST() {
       );
     }
 
-    const result = await syncCanvas(user);
+    let result;
+    try {
+      result = await syncCanvas(user);
+    } finally {
+      // Sync may have committed partial updates before failing.
+      invalidateUserCache(user.id);
+    }
     const failed = result.errors.length > 0 && result.courses === 0;
     return NextResponse.json(
       failed ? { error: result.errors[0], ...result } : result,

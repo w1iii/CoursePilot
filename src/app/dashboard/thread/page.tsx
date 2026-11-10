@@ -6,6 +6,7 @@ import type { ComponentProps } from "react";
 import { messagesToTurns } from "@/lib/thread-turns";
 import { redirect } from "next/navigation";
 import { isThreadId, newThreadHref } from "@/lib/thread-navigation";
+import { cacheUserRead } from "@/lib/cache";
 
 interface PageProps {
   searchParams: Promise<{ q?: string; course?: string; tid?: string }>;
@@ -28,11 +29,11 @@ export default async function ThreadPage({ searchParams }: PageProps) {
   }
   const sb = supabaseAdmin();
 
-  const { data: courses, error: coursesError } = await sb
+  const { data: courses, error: coursesError } = await cacheUserRead("thread-courses", user.id, 300, async () => await sb
     .from("courses")
     .select("id, course_code, course_name, instructor")
     .eq("user_id", user.id)
-    .limit(50);
+    .limit(50));
 
   if (coursesError) {
     throw new Error(`Failed to load courses: ${coursesError.message}`);
