@@ -127,6 +127,7 @@ describe("answerQuestion", () => {
     process.env.RAG_API_URL = "http://rag.test/";
     process.env.RAG_API_TOKEN = "rag-token";
     delete process.env.RAG_ANSWER_CACHE_ENABLED;
+    delete process.env.RAG_ANSWER_CACHE_USER_IDS;
     cache.clear();
   });
 
@@ -225,15 +226,35 @@ describe("answerQuestion", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("restricts enabled answer caching to rollout user IDs", async () => {
+    process.env.RAG_ANSWER_CACHE_ENABLED = "true";
+    process.env.RAG_ANSWER_CACHE_USER_IDS = "internal-user";
+    mockCourses({ data: [courses[0]], error: null });
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await answerQuestion("user-a", "same question", "course-1");
+    const second = await answerQuestion("user-a", "same question", "course-1");
+
+    expect(first.cacheHit).toBe(false);
+    expect(second.cacheHit).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("caches successful normalized exact-match answers only when enabled", async () => {
     process.env.RAG_ANSWER_CACHE_ENABLED = "true";
     process.env.RAG_SIGNING_SECRET = "test-signing-secret";
     mockCourses({ data: [courses[0]], error: null });
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }),
+      })),
     );
     vi.stubGlobal("fetch", fetchMock);
 

@@ -81,6 +81,16 @@ function ragTimeoutMs(): number {
   return Number.isFinite(configured) && configured > 0 ? configured : 30_000;
 }
 
+function answerCacheEnabledForUser(userId: string): boolean {
+  if (env("RAG_ANSWER_CACHE_ENABLED") !== "true") return false;
+
+  const allowlist = (env("RAG_ANSWER_CACHE_USER_IDS") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return allowlist.length === 0 || allowlist.includes(userId);
+}
+
 export function listCoursesForUser(userId: string): Promise<CourseOption[]> {
   return cacheUserRead("rag-courses", userId, 60, async () => {
     const { data, error } = await supabaseAdmin()
@@ -148,7 +158,7 @@ export async function answerQuestion(
 ): Promise<RagAnswer> {
   const course = await resolveCourse(userId, courseId);
 
-  if (env("RAG_ANSWER_CACHE_ENABLED") !== "true") {
+  if (!answerCacheEnabledForUser(userId)) {
     const answer = await answerQuestionUncached(userId, question, course);
     return { ...answer, cacheHit: false };
   }
