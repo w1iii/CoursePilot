@@ -24,6 +24,7 @@ import {
 } from "@/lib/priority";
 import { supabaseAdmin } from "@/lib/supabase";
 import type { AppUser } from "@/lib/user";
+import { withUserSyncLock } from "@/lib/sync-lock";
 
 export interface SyncResult {
   courses: number;
@@ -62,6 +63,10 @@ function currentSemester(): string {
  * service (`../rag/canvas-ai-assistant`); `documents` stays 0 here.
  */
 export async function syncCanvas(user: AppUser): Promise<SyncResult> {
+  return withUserSyncLock(user.id, () => performSyncCanvas(user));
+}
+
+async function performSyncCanvas(user: AppUser): Promise<SyncResult> {
   const sb = supabaseAdmin();
   const result: SyncResult = {
     courses: 0,

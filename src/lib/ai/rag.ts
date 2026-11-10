@@ -43,6 +43,7 @@ export interface RagAnswer {
   model: string;
   grounded: boolean;
   course: { id: string; name: string };
+  cacheHit?: boolean;
 }
 
 export class CourseSelectionError extends Error {
@@ -148,7 +149,8 @@ export async function answerQuestion(
   const course = await resolveCourse(userId, courseId);
 
   if (env("RAG_ANSWER_CACHE_ENABLED") !== "true") {
-    return answerQuestionUncached(userId, question, course);
+    const answer = await answerQuestionUncached(userId, question, course);
+    return { ...answer, cacheHit: false };
   }
 
   const normalizedQuestion = question.trim().toLowerCase().replace(/\s+/g, " ");
@@ -157,14 +159,19 @@ export async function answerQuestion(
     .digest("hex");
   const indexVersion = course.rag_indexed_at ?? "unindexed";
 
-  return unstable_cache(
-    () => answerQuestionUncached(userId, normalizedQuestion, course),
+  let cacheLoaderRan = false;
+  const answer = await unstable_cache(
+    async () => {
+      cacheLoaderRan = true;
+      return answerQuestionUncached(userId, normalizedQuestion, course);
+    },
     ["rag-answer-v1", userId, course.id, indexVersion, questionHash],
     {
       revalidate: 86_400,
       tags: [userCacheTag(userId)],
     },
   )();
+  return { ...answer, cacheHit: !cacheLoaderRan };
 }
 
 async function answerQuestionUncached(

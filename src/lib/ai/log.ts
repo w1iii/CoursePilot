@@ -12,6 +12,7 @@ export interface AiRequestLog {
   error?: string | null;
   promptTokens?: number | null;
   completionTokens?: number | null;
+  cacheHit?: boolean;
 }
 
 const MAX_ERROR_CHARS = 500;
@@ -35,6 +36,7 @@ export async function logAiRequest(entry: AiRequestLog): Promise<void> {
         error: entry.error ? entry.error.slice(0, MAX_ERROR_CHARS) : null,
         prompt_tokens: entry.promptTokens ?? null,
         completion_tokens: entry.completionTokens ?? null,
+        cache_hit: entry.cacheHit ?? false,
       });
 
     if (error) {

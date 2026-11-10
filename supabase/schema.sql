@@ -136,8 +136,12 @@ create table if not exists public.ai_requests (
   error             text,
   prompt_tokens     integer,
   completion_tokens integer,
+  cache_hit         boolean not null default false,
   created_at        timestamptz not null default now()
 );
+
+alter table public.ai_requests
+  add column if not exists cache_hit boolean not null default false;
 
 create index if not exists ai_requests_user_created_idx
   on public.ai_requests (user_id, created_at desc);
@@ -158,6 +162,61 @@ create table if not exists public.rate_limit_windows (
 
 create index if not exists rate_limit_windows_start_idx
   on public.rate_limit_windows (window_start);
+
+-- ---------------------------------------------------------------------------
+-- Per-user sync lease. Lease expiry recovers locks after process termination.
+-- ---------------------------------------------------------------------------
+create table if not exists public.sync_locks (
+  user_id uuid primary key references public.users(id) on delete cascade,
+  lock_token uuid not null,
+  expires_at timestamptz not null
+);
+
+create or replace function public.try_acquire_sync_lock(
+  p_user_id uuid,
+  p_lock_token uuid,
+  p_lease_seconds integer default 600
+) returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  insert into public.sync_locks(user_id, lock_token, expires_at)
+  values (p_user_id, p_lock_token, now() + make_interval(secs => greatest(30, least(p_lease_seconds, 1800))))
+  on conflict (user_id) do update
+    set lock_token = excluded.lock_token,
+        expires_at = excluded.expires_at
+    where public.sync_locks.expires_at <= now();
+  get diagnostics affected = row_count;
+  return affected > 0;
+end;
+$$;
+
+create or replace function public.release_sync_lock(
+  p_user_id uuid,
+  p_lock_token uuid
+) returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  delete from public.sync_locks
+  where user_id = p_user_id and lock_token = p_lock_token;
+  get diagnostics affected = row_count;
+  return affected > 0;
+end;
+$$;
+
+revoke all on function public.try_acquire_sync_lock(uuid, uuid, integer) from public, anon, authenticated;
+revoke all on function public.release_sync_lock(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.try_acquire_sync_lock(uuid, uuid, integer) to service_role;
+grant execute on function public.release_sync_lock(uuid, uuid) to service_role;
 
 -- ---------------------------------------------------------------------------
 -- Chat Threads and Messages

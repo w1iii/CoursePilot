@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
         status: "error",
         latencyMs: elapsedMs(startedAt),
         error: safeErrorMessage(),
+        cacheHit: false,
       });
       throw err;
     }
@@ -73,9 +74,12 @@ export async function POST(req: NextRequest) {
       status: "ok",
       latencyMs: elapsedMs(startedAt),
       model: result.model,
+      cacheHit: result.cacheHit ?? false,
     });
 
-    return NextResponse.json(result);
+    const response = { ...result };
+    delete response.cacheHit;
+    return NextResponse.json(response);
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

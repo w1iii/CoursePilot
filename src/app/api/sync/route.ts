@@ -4,6 +4,7 @@ import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import { syncCanvas } from "@/lib/sync";
 import { invalidateUserCache } from "@/lib/cache";
+import { SyncInProgressError } from "@/lib/sync-lock";
 
 // Canvas + RAG ingestion can exceed the default serverless budget.
 export const maxDuration = 300;
@@ -55,6 +56,9 @@ export async function POST() {
     }
     if (err instanceof CanvasNotConnectedError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+    if (err instanceof SyncInProgressError) {
+      return NextResponse.json({ error: err.message }, { status: 409, headers: { "Retry-After": "30" } });
     }
     console.error("sync error", err);
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });

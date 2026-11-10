@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
-import { cacheUserRead, invalidateUserCache } from "@/lib/cache";
+import { cacheUserRead, invalidateUserResourceCache } from "@/lib/cache";
 
 const VALID_TYPES = new Set(["assignment", "quiz", "exam", "project", "activity", "reading"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) throw new Error(error.message);
-    invalidateUserCache(user.id);
+    invalidateUserResourceCache(user.id, "tasks", "dashboard-tasks", "dashboard-deadlines");
     return NextResponse.json({ task: data }, { status: 201 });
   } catch (err) {
     if (err instanceof UnauthorizedError) {

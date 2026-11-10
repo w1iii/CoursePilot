@@ -97,7 +97,8 @@ describe("course resolution", () => {
     expect(from).toHaveBeenCalledTimes(1);
   });
 
-  it("surfaces course lookup failures", async () => {    mockCourses({ data: null, error: { message: "database down" } });
+  it("surfaces course lookup failures", async () => {
+    mockCourses({ data: null, error: { message: "database down" } });
 
     await expect(listCoursesForUser("user-a")).rejects.toThrow(
       "Failed to load courses: database down",
@@ -206,6 +207,24 @@ describe("answerQuestion", () => {
     );
   });
 
+  it("leaves answer caching disabled unless explicitly enabled", async () => {
+    mockCourses({ data: [courses[0]], error: null });
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await answerQuestion("user-a", "same question", "course-1");
+    const second = await answerQuestion("user-a", "same question", "course-1");
+
+    expect(first.cacheHit).toBe(false);
+    expect(second.cacheHit).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("caches successful normalized exact-match answers only when enabled", async () => {
     process.env.RAG_ANSWER_CACHE_ENABLED = "true";
     process.env.RAG_SIGNING_SECRET = "test-signing-secret";
@@ -221,7 +240,9 @@ describe("answerQuestion", () => {
     const first = await answerQuestion("user-a", "What is attention?", "course-1");
     const second = await answerQuestion("user-a", " what IS   attention? ", "course-1");
 
-    expect(first).toEqual(second);
+    expect(first.answer).toEqual(second.answer);
+    expect(first.cacheHit).toBe(false);
+    expect(second.cacheHit).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
