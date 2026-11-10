@@ -1,4 +1,7 @@
-import { env } from "@/lib/env";
+import { createHmac } from "node:crypto";
+import { unstable_cache } from "next/cache";
+import { userCacheTag } from "@/lib/cache";
+import { env, requireEnv } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase";
 import { signRagToken } from "@/lib/ai/rag-token";
 
@@ -7,6 +10,7 @@ export interface CourseOption {
   canvas_course_id: number;
   course_name: string;
   course_code: string | null;
+  rag_indexed_at: string | null;
 }
 
 interface RagCitation {
@@ -79,7 +83,7 @@ function ragTimeoutMs(): number {
 export async function listCoursesForUser(userId: string): Promise<CourseOption[]> {
   const { data, error } = await supabaseAdmin()
     .from("courses")
-    .select("id, canvas_course_id, course_name, course_code")
+    .select("id, canvas_course_id, course_name, course_code, rag_indexed_at")
     .eq("user_id", userId)
     .order("course_name", { ascending: true });
 
@@ -141,6 +145,31 @@ export async function answerQuestion(
 ): Promise<RagAnswer> {
   const course = await resolveCourse(userId, courseId);
 
+  if (env("RAG_ANSWER_CACHE_ENABLED") !== "true") {
+    return answerQuestionUncached(userId, question, course);
+  }
+
+  const normalizedQuestion = question.trim().toLowerCase().replace(/\s+/g, " ");
+  const questionHash = createHmac("sha256", requireEnv("RAG_SIGNING_SECRET"))
+    .update(`${userId}:${course.id}:${normalizedQuestion}`)
+    .digest("hex");
+  const indexVersion = course.rag_indexed_at ?? "unindexed";
+
+  return unstable_cache(
+    () => answerQuestionUncached(userId, normalizedQuestion, course),
+    ["rag-answer-v1", userId, course.id, indexVersion, questionHash],
+    {
+      revalidate: 86_400,
+      tags: [userCacheTag(userId)],
+    },
+  )();
+}
+
+async function answerQuestionUncached(
+  userId: string,
+  question: string,
+  course: CourseOption,
+): Promise<RagAnswer> {
   let res: Response;
   try {
     const token = signRagToken({

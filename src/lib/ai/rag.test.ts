@@ -5,6 +5,20 @@ const { supabaseAdminMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/supabase", () => ({ supabaseAdmin: supabaseAdminMock }));
+vi.mock("next/cache", () => ({
+  unstable_cache: (loader: () => Promise<unknown>, keyParts: string[]) => {
+    const key = keyParts.join(":");
+    return async () => {
+      const cached = cache.get(key);
+      if (cached) return cached;
+      const value = loader();
+      cache.set(key, value);
+      return value;
+    };
+  },
+}));
+
+const cache = new Map<string, Promise<unknown>>();
 
 import {
   answerQuestion,
@@ -41,12 +55,14 @@ const courses = [
     canvas_course_id: 51680,
     course_name: "Artificial Intelligence",
     course_code: "BSCS 4C",
+    rag_indexed_at: "2025-01-01T00:00:00.000Z",
   },
   {
     id: "course-2",
     canvas_course_id: 40001,
     course_name: "Wellness",
     course_code: "GEC 1",
+    rag_indexed_at: "2025-01-01T00:00:00.000Z",
   },
 ];
 
@@ -101,6 +117,8 @@ describe("answerQuestion", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test/";
     process.env.RAG_API_TOKEN = "rag-token";
+    delete process.env.RAG_ANSWER_CACHE_ENABLED;
+    cache.clear();
   });
 
   it("sends the service token and maps citations", async () => {
@@ -178,5 +196,24 @@ describe("answerQuestion", () => {
     await expect(answerQuestion("user-a", "hi", "course-1")).rejects.toThrow(
       "RAG service unreachable",
     );
+  });
+
+  it("caches successful normalized exact-match answers only when enabled", async () => {
+    process.env.RAG_ANSWER_CACHE_ENABLED = "true";
+    process.env.RAG_SIGNING_SECRET = "test-signing-secret";
+    mockCourses({ data: [courses[0]], error: null });
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await answerQuestion("user-a", "What is attention?", "course-1");
+    const second = await answerQuestion("user-a", " what IS   attention? ", "course-1");
+
+    expect(first).toEqual(second);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
