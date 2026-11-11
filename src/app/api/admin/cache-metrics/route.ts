@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
       windowDays,
       cacheEnabled: env("RAG_ANSWER_CACHE_ENABLED") === "true",
       allowlistConfigured: Boolean(env("RAG_ANSWER_CACHE_USER_IDS")),
+      rolloutPercent: Number(env("RAG_ANSWER_CACHE_ROLLOUT_PERCENT") ?? "0"),
       metrics,
     }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {

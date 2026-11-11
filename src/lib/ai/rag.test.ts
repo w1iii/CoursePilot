@@ -128,6 +128,7 @@ describe("answerQuestion", () => {
     process.env.RAG_API_TOKEN = "rag-token";
     delete process.env.RAG_ANSWER_CACHE_ENABLED;
     delete process.env.RAG_ANSWER_CACHE_USER_IDS;
+    delete process.env.RAG_ANSWER_CACHE_ROLLOUT_PERCENT;
     cache.clear();
   });
 
@@ -246,6 +247,26 @@ describe("answerQuestion", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("supports deterministic percentage rollout", async () => {
+    process.env.RAG_ANSWER_CACHE_ENABLED = "true";
+    process.env.RAG_ANSWER_CACHE_ROLLOUT_PERCENT = "100";
+    mockCourses({ data: [courses[0]], error: null });
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await answerQuestion("user-a", "same question", "course-1");
+    const second = await answerQuestion("user-a", "same question", "course-1");
+
+    expect(first.cacheHit).toBe(false);
+    expect(second.cacheHit).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("caches successful normalized exact-match answers only when enabled", async () => {
     process.env.RAG_ANSWER_CACHE_ENABLED = "true";
     process.env.RAG_SIGNING_SECRET = "test-signing-secret";
@@ -264,6 +285,27 @@ describe("answerQuestion", () => {
     expect(first.answer).toEqual(second.answer);
     expect(first.cacheHit).toBe(false);
     expect(second.cacheHit).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("deduplicates simultaneous uncached answers", async () => {
+    mockCourses({ data: [courses[0]], error: null });
+    let resolveFetch: (response: Response) => void = () => {};
+    const fetchMock = vi.fn(() => new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = answerQuestion("user-a", "same question", "course-1");
+    const second = answerQuestion("user-a", " same   question ", "course-1");
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    resolveFetch(new Response(JSON.stringify({ answer: "Answer", grounded: true, model: "model", citations: [] }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }));
+
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+    expect(firstResult.answer).toBe(secondResult.answer);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

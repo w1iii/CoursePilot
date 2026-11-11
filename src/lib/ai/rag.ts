@@ -46,6 +46,10 @@ export interface RagAnswer {
   cacheHit?: boolean;
 }
 
+// Process-local duplicate suppression. Next Data Cache remains source of
+// truth; this only prevents simultaneous misses from hitting RAG twice.
+const inFlightAnswers = new Map<string, Promise<RagAnswer>>();
+
 export class CourseSelectionError extends Error {
   constructor(
     message: string,
@@ -88,7 +92,24 @@ function answerCacheEnabledForUser(userId: string): boolean {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  return allowlist.length === 0 || allowlist.includes(userId);
+  if (allowlist.length > 0) return allowlist.includes(userId);
+
+  const configuredRollout = env("RAG_ANSWER_CACHE_ROLLOUT_PERCENT");
+  // Preserve prior behavior when rollout control is not configured: the
+  // feature flag alone enables cache for all users.
+  if (configuredRollout === undefined) return true;
+  const configuredPercent = Number(configuredRollout);
+  const rolloutPercent = Number.isFinite(configuredPercent)
+    ? Math.min(100, Math.max(0, configuredPercent))
+    : 0;
+  if (rolloutPercent >= 100) return true;
+  if (rolloutPercent <= 0) return false;
+
+  const bucket = createHmac("sha256", requireEnv("RAG_SIGNING_SECRET"))
+    .update(`rag-answer-rollout:${userId}`)
+    .digest()
+    .readUInt32BE(0) % 10_000;
+  return bucket < rolloutPercent * 100;
 }
 
 export function listCoursesForUser(userId: string): Promise<CourseOption[]> {
@@ -157,31 +178,52 @@ export async function answerQuestion(
   courseId?: string,
 ): Promise<RagAnswer> {
   const course = await resolveCourse(userId, courseId);
+  const normalizedQuestion = question.trim().toLowerCase().replace(/\s+/g, " ");
+  const requestKey = `${userId}:${course.id}:${normalizedQuestion}`;
 
   if (!answerCacheEnabledForUser(userId)) {
-    const answer = await answerQuestionUncached(userId, question, course);
-    return { ...answer, cacheHit: false };
+    return runDeduplicated(requestKey, async () => ({
+      ...(await answerQuestionUncached(userId, question, course)),
+      cacheHit: false,
+    }));
   }
 
-  const normalizedQuestion = question.trim().toLowerCase().replace(/\s+/g, " ");
   const questionHash = createHmac("sha256", requireEnv("RAG_SIGNING_SECRET"))
     .update(`${userId}:${course.id}:${normalizedQuestion}`)
     .digest("hex");
   const indexVersion = course.rag_indexed_at ?? "unindexed";
 
-  let cacheLoaderRan = false;
-  const answer = await unstable_cache(
-    async () => {
-      cacheLoaderRan = true;
-      return answerQuestionUncached(userId, normalizedQuestion, course);
-    },
-    ["rag-answer-v1", userId, course.id, indexVersion, questionHash],
-    {
-      revalidate: 86_400,
-      tags: [userCacheTag(userId)],
-    },
-  )();
-  return { ...answer, cacheHit: !cacheLoaderRan };
+  return runDeduplicated(`${requestKey}:${indexVersion}`, async () => {
+    let cacheLoaderRan = false;
+    const answer = await unstable_cache(
+      async () => {
+        cacheLoaderRan = true;
+        return answerQuestionUncached(userId, normalizedQuestion, course);
+      },
+      ["rag-answer-v1", userId, course.id, indexVersion, questionHash],
+      {
+        revalidate: 86_400,
+        tags: [userCacheTag(userId)],
+      },
+    )();
+    return { ...answer, cacheHit: !cacheLoaderRan };
+  });
+}
+
+async function runDeduplicated(
+  key: string,
+  loader: () => Promise<RagAnswer>,
+): Promise<RagAnswer> {
+  const existing = inFlightAnswers.get(key);
+  if (existing) return existing;
+
+  const pending = loader();
+  inFlightAnswers.set(key, pending);
+  try {
+    return await pending;
+  } finally {
+    if (inFlightAnswers.get(key) === pending) inFlightAnswers.delete(key);
+  }
 }
 
 async function answerQuestionUncached(
