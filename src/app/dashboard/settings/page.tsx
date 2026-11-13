@@ -29,6 +29,7 @@ interface RawCourse {
   rag_document_count: number | null;
   rag_chunk_count: number | null;
   rag_failure_count: number | null;
+  selected_for_rag: boolean;
 }
 
 function normalizeName(value: string): string {
@@ -88,7 +89,7 @@ export default async function SettingsPage() {
     cacheUserRead("settings-courses", user.id, 300, async () => await sb
       .from("courses")
       .select(
-        "id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count",
+        "id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag",
       )
       .eq("user_id", user.id)
       .order("course_name", { ascending: true })
@@ -109,6 +110,7 @@ export default async function SettingsPage() {
     ragDocumentCount: course.rag_document_count,
     ragChunkCount: course.rag_chunk_count,
     ragFailureCount: course.rag_failure_count,
+    selectedForRag: course.selected_for_rag,
   }));
 
   const displayName = normalizeName(

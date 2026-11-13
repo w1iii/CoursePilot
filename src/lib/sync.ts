@@ -159,6 +159,7 @@ async function ingestDueCourses(
     .from("courses")
     .select("id, canvas_course_id, course_name")
     .eq("user_id", userId)
+    .eq("selected_for_rag", true)
     .or(`rag_indexed_at.is.null,rag_indexed_at.lt.${cutoff}`)
     .order("rag_indexed_at", { ascending: true, nullsFirst: true })
     .limit(ragIngestMaxCourses());

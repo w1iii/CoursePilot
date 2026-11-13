@@ -53,18 +53,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ClerkProvider
           appearance={{
             variables: {
-              colorPrimary: "#b3261e",
-              colorBackground: "#fff9eb",
+              colorPrimary: "var(--accent)",
+              colorBackground: "var(--surface)",
               borderRadius: "0.5rem",
               fontFamily: "var(--font-dm-sans), system-ui, sans-serif",
             },
             elements: {
-              card: "border border-[rgba(26,24,20,0.15)] shadow-[0_20px_60px_rgba(26,24,20,0.12)]",
+              card: "border border-border bg-surface shadow-[0_20px_60px_var(--shadow-color)]",
               headerTitle: "font-display text-primary-container",
               headerSubtitle: "text-text-muted",
               formButtonPrimary:
                 "bg-primary-container hover:bg-primary-hover text-dark-text shadow-sm",
-              formFieldInput: "border-border bg-surface",
+              formFieldInput: "border-border bg-surface text-on-surface placeholder:text-text-muted",
+              formFieldLabel: "text-on-surface",
+              footerActionText: "text-text-muted",
               footerActionLink: "text-primary-container hover:text-primary-hover",
               identityPreviewEditButton: "text-primary-container hover:text-primary-hover",
             },

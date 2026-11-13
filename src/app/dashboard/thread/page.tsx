@@ -31,8 +31,9 @@ export default async function ThreadPage({ searchParams }: PageProps) {
 
   const { data: courses, error: coursesError } = await cacheUserRead("thread-courses", user.id, 300, async () => await sb
     .from("courses")
-    .select("id, course_code, course_name, instructor")
+    .select("id, course_code, course_name, instructor, rag_indexed_at")
     .eq("user_id", user.id)
+    .eq("selected_for_rag", true)
     .limit(50));
 
   if (coursesError) {
@@ -44,6 +45,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
     name: course.course_name,
     code: course.course_code,
     instructor: course.instructor,
+    indexed: Boolean(course.rag_indexed_at),
   }));
 
   const displayName = normalizeName(

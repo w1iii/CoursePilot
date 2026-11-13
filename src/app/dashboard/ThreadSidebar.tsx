@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { resolveTheme, toggleTheme, type ResolvedTheme } from "@/lib/theme";
 import { cachedJson, invalidateClientCache } from "@/lib/client-cache";
 
@@ -33,14 +33,13 @@ function dateLabel(value: string): string {
 
 export default function ThreadSidebar({
   activeThreadId,
-  userName,
-  userEmail,
   mobileOpen,
   onCloseMobile,
   collapsed,
   onToggleCollapse,
 }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [threads, setThreads] = useState<SavedThread[]>([]);
   const [search, setSearch] = useState("");
   const [theme, setTheme] = useState<ResolvedTheme>("light");
@@ -183,7 +182,12 @@ export default function ThreadSidebar({
         <div className={`${collapsed ? "w-[52px] px-1.5" : "w-[240px]"} shrink-0 p-2`}>
           <Link
             href="/dashboard/thread"
-            onClick={onCloseMobile}
+            onClick={(event) => {
+              event.preventDefault();
+              onCloseMobile();
+              const id = crypto.randomUUID();
+              router.push(`/dashboard/thread?tid=${encodeURIComponent(id)}`);
+            }}
             className={`group flex min-h-9 items-center gap-2 rounded-lg bg-accent px-2.5 py-2 font-label-md text-label-md text-on-accent shadow-sm transition-colors hover:bg-accent-hover ${
               collapsed ? "justify-center px-0" : ""
             }`}

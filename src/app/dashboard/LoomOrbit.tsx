@@ -6,6 +6,7 @@ export interface OrbitCourse {
   id: string;
   name: string;
   code: string | null;
+  indexed?: boolean;
 }
 
 interface Props {
@@ -118,7 +119,7 @@ export default function LoomOrbit({
               data-orbit-node
               onClick={() => onSelectCourse(course)}
               aria-pressed={active}
-              title={`Ask about ${course.code ?? course.name}`}
+               title={`Ask about ${course.code ?? course.name} · ${course.indexed ? "indexed" : "waiting for index"}`}
               className={`loom-orbit__node orbit-node ${active ? "loom-orbit__node--active" : ""}`}
             >
               <span
@@ -132,6 +133,7 @@ export default function LoomOrbit({
                   {course.code?.split(" ")[0] ?? course.name.split(" ")[0]}
                 </span>
                 <span className="loom-orbit__node-badge block truncate">{course.name}</span>
+                <span className="block truncate text-[9px] opacity-70">{course.indexed ? "Indexed" : "Selected · indexing pending"}</span>
               </span>
             </button>
           </div>

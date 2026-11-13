@@ -1,4 +1,3 @@
-import { getCanvasStatus } from "@/lib/canvas-account";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
 import { cacheUserRead } from "@/lib/cache";
@@ -31,6 +30,7 @@ interface RawCourse {
   rag_document_count: number | null;
   rag_chunk_count: number | null;
   rag_failure_count: number | null;
+  selected_for_rag: boolean;
 }
 
 interface RawTask {
@@ -91,14 +91,11 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const sb = supabaseAdmin();
 
-  const [coursesResult, canvas] = await Promise.all([
-    cacheUserRead("dashboard-courses", user.id, 60, async () => await sb
+  const coursesResult = await cacheUserRead("dashboard-courses", user.id, 60, async () => await sb
       .from("courses")
-      .select("id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count")
+      .select("id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag")
       .eq("user_id", user.id)
-      .limit(50)),
-    cacheUserRead("canvas-status", user.id, 60, () => getCanvasStatus(user.id)),
-  ]);
+      .limit(50));
 
   if (coursesResult.error) {
     throw new Error(`Failed to load courses: ${coursesResult.error.message}`);
@@ -167,6 +164,7 @@ export default async function DashboardPage() {
     ragDocumentCount: course.rag_document_count,
     ragChunkCount: course.rag_chunk_count,
     ragFailureCount: course.rag_failure_count,
+    selectedForRag: course.selected_for_rag,
   }));
 
   const tasks: DashboardTask[] = taskRows.map((task) => ({
@@ -231,14 +229,11 @@ export default async function DashboardPage() {
           initialTasks={tasks}
           courses={courses}
           today={now.toISOString()}
-          edition={edition}
-          canvas={canvas}
           masthead={
             <PaperMasthead
               userName={firstName}
               dateLabel={dateLabel}
               edition={edition}
-              canvas={canvas}
             />
           }
           news={

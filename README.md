@@ -188,6 +188,8 @@ supabase/schema.sql             Database schema and RPCs
 - Production RAG communication requires HTTPS.
 - CSP, frame, referrer, and permissions headers are configured.
 - Review [`REMAINING_SYSTEM_HARDENING.md`](REMAINING_SYSTEM_HARDENING.md) before deploy.
+- Follow the [system operations runbook](../docs/SYSTEM_OPERATIONS.md) for CI,
+  staging promotion, rollback, and launch checks.
 
 ## Development commands
 

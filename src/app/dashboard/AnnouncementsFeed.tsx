@@ -1,4 +1,3 @@
-import { needsAction } from "@/lib/priority";
 import { summarizeAnnouncement } from "@/lib/dashboard";
 import type { Announcement } from "./types";
 
@@ -29,9 +28,6 @@ export default function AnnouncementsFeed({ announcements }: Props) {
       ) : (
         <ol className="divide-y divide-border">
           {announcements.map((announcement) => {
-            const urgent =
-              needsAction(announcement.title, announcement.content) ||
-              (announcement.importanceScore ?? 0) >= 0.6;
             const summary = summarizeAnnouncement(announcement.content);
 
             return (

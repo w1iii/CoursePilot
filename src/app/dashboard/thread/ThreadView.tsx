@@ -7,6 +7,7 @@ import DashboardShell from "../DashboardShell";
 import {
   THREADS_CHANGED_EVENT,
 } from "../ThreadSidebar";
+import { hasPersistedTurns } from "@/lib/thread-turns";
 
 export interface ThreadCourse extends OrbitCourse {
   instructor: string | null;
@@ -182,7 +183,7 @@ export default function ThreadView({
     if (initializedThreadId.current === initialThreadId) return;
     // If initialTurns are provided (thread data fetched server-side), use them
     // and skip the client-side fetch to avoid showing "new chat" first.
-    if (initialTurns && initialTurns.length > 0) {
+    if (hasPersistedTurns(initialTurns)) {
       initializedThreadId.current = initialThreadId;
       skipNextPersistRef.current = true;
       return;
@@ -207,7 +208,7 @@ export default function ThreadView({
       }
     };
     void load();
-  }, [courses, initialCourseId, initialQuestion, initialThreadId, startTurn]);
+  }, [courses, initialCourseId, initialQuestion, initialThreadId, initialTurns, startTurn]);
 
   useEffect(() => {
     if (turns.length > 0) {

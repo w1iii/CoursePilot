@@ -140,3 +140,24 @@ export async function ingestCanvasCourse(input: {
 
   throw lastError ?? new Error("RAG ingestion failed");
 }
+
+export async function deleteRagCourse(input: {
+  userId: string;
+  courseKey: string;
+  canvasCourseId: number;
+}): Promise<void> {
+  const token = signRagToken({
+    userId: input.userId,
+    courseKey: input.courseKey,
+    scope: "delete",
+    canvasCourseId: input.canvasCourseId,
+    ttlSeconds: 120,
+  });
+  const response = await fetch(`${ragBaseUrl()}/api/v1/ingestion/course/${encodeURIComponent(input.courseKey)}`, {
+    method: "DELETE",
+    headers: { "X-RAG-Token": token },
+    signal: AbortSignal.timeout(timeoutMs()),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Could not remove course material from the index");
+}

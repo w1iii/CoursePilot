@@ -1,22 +1,14 @@
-import Link from "next/link";
-import type { CanvasAccountStatus } from "@/lib/canvas-account";
-import SyncButton from "./SyncButton";
-
 interface Props {
   userName: string;
   dateLabel: string;
   edition: string;
-  canvas: CanvasAccountStatus;
 }
 
 export default function PaperMasthead({
   userName,
   dateLabel,
   edition,
-  canvas,
 }: Props) {
-  const connected = canvas.connected && !canvas.needsReconnect;
-
   return (
     <header className="border-b-[3px] border-double border-primary-container pb-space-sm">
       <div className="flex flex-wrap items-end justify-between gap-space-sm">

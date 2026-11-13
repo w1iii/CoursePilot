@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import { requireEnv } from "@/lib/env";
 
-type RagScope = "chat" | "ingest";
+type RagScope = "chat" | "ingest" | "delete";
 
 /** Short-lived service token, bound to one user, internal course ID and operation. */
 export function signRagToken(input: {
@@ -19,15 +19,15 @@ export function signRagToken(input: {
   if (!Number.isInteger(ttlSeconds) || ttlSeconds < 1 || ttlSeconds > 300) {
     throw new Error("RAG token TTL must be between 1 and 300 seconds");
   }
-  if (scope === "ingest" && (!Number.isSafeInteger(canvasCourseId) || (canvasCourseId ?? 0) <= 0)) {
-    throw new Error("Ingestion token requires a Canvas course ID");
+  if ((scope === "ingest" || scope === "delete") && (!Number.isSafeInteger(canvasCourseId) || (canvasCourseId ?? 0) <= 0)) {
+    throw new Error("Course operation token requires a Canvas course ID");
   }
   const now = Math.floor(Date.now() / 1000);
   const payload = Buffer.from(JSON.stringify({
     sub: userId,
     course: courseKey,
     scope,
-    ...(scope === "ingest" ? { canvas_course_id: canvasCourseId } : {}),
+    ...(scope === "ingest" || scope === "delete" ? { canvas_course_id: canvasCourseId } : {}),
     iat: now,
     exp: now + ttlSeconds,
   })).toString("base64url");

@@ -8,6 +8,7 @@ export interface Course {
   ragDocumentCount: number | null;
   ragChunkCount: number | null;
   ragFailureCount: number | null;
+  selectedForRag?: boolean;
 }
 
 export interface DashboardTask {

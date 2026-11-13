@@ -8,6 +8,10 @@ export interface ThreadTurn {
   error?: string;
 }
 
+export function hasPersistedTurns<T>(turns: T[] | undefined): boolean {
+  return Boolean(turns?.length);
+}
+
 export function messagesToTurns(messages: Array<Record<string, unknown>>): ThreadTurn[] {
   const turns = new Map<string, ThreadTurn>();
   for (const message of messages) {

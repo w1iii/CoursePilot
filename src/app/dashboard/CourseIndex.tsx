@@ -19,7 +19,7 @@ export default function CourseIndex({ courses, tasks }: Props) {
         <h2 id="course-index-heading" className="font-headline-sm text-headline-sm text-primary-container">
           Course index
         </h2>
-        <span className="paper-kicker text-text-muted">{courses.length} enrolled</span>
+          <span className="paper-kicker text-text-muted">{courses.filter((course) => course.selectedForRag).length} in Loom</span>
       </div>
 
       {courses.length === 0 ? (
@@ -38,7 +38,7 @@ export default function CourseIndex({ courses, tasks }: Props) {
                 <span
                   aria-hidden="true"
                   className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                    issues ? "bg-error" : indexed ? "bg-secondary" : "bg-outline"
+                    issues ? "bg-error" : course.selectedForRag ? "bg-emerald-600" : indexed ? "bg-secondary" : "bg-outline"
                   }`}
                 />
                 <div className="min-w-0 flex-1">
@@ -50,7 +50,7 @@ export default function CourseIndex({ courses, tasks }: Props) {
                   </p>
                 </div>
                 <span className="paper-kicker shrink-0 text-[9px] text-text-muted">
-                  {issues ? "Issues" : indexed ? "Indexed" : "Queued"}
+                  {issues ? "Issues" : !course.selectedForRag ? "Not selected" : indexed ? "Indexed" : "Queued"}
                 </span>
               </li>
             );

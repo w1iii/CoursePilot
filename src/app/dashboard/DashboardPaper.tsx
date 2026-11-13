@@ -10,15 +10,12 @@ import {
 import StatStrip from "./StatStrip";
 import SectionNav from "./SectionNav";
 import TaskLedger from "./TaskLedger";
-import type { CanvasAccountStatus } from "@/lib/canvas-account";
 import type { Course, DashboardTask } from "./types";
 
 interface Props {
   initialTasks: DashboardTask[];
   courses: Course[];
   today: string;
-  edition: string;
-  canvas: CanvasAccountStatus;
   masthead: React.ReactNode;
   news: React.ReactNode;
   rail: React.ReactNode;
@@ -30,19 +27,10 @@ const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
   low: "text-text-muted border-border",
 };
 
-function shortTimestamp(value: string | null): string {
-  if (!value) return "never";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "never";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 export default function DashboardPaper({
   initialTasks,
   courses,
   today,
-  edition,
-  canvas,
   masthead,
   news,
   rail,
@@ -58,19 +46,6 @@ export default function DashboardPaper({
     () => courses.filter((course) => Boolean(course.ragIndexedAt)).length,
     [courses],
   );
-  const openCount = useMemo(
-    () => tasks.filter((task) => task.status !== "completed").length,
-    [tasks],
-  );
-  const documentCount = useMemo(
-    () => courses.reduce((total, course) => total + (course.ragDocumentCount ?? 0), 0),
-    [courses],
-  );
-  const failureCount = useMemo(
-    () => courses.reduce((total, course) => total + (course.ragFailureCount ?? 0), 0),
-    [courses],
-  );
-
   async function updateTask(id: string, updates: Record<string, string>) {
     const response = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
       method: "PATCH",

@@ -118,6 +118,7 @@ export function listCoursesForUser(userId: string): Promise<CourseOption[]> {
       .from("courses")
       .select("id, canvas_course_id, course_name, course_code, rag_indexed_at")
       .eq("user_id", userId)
+      .eq("selected_for_rag", true)
       .order("course_name", { ascending: true });
 
     if (error) {

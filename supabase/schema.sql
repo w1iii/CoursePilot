@@ -10,8 +10,11 @@ create table if not exists public.users (
   clerk_user_id  text not null unique,
   email          text not null,
   full_name      text,
+  onboarding_completed_at timestamptz,
   created_at     timestamptz not null default now()
 );
+
+alter table public.users add column if not exists onboarding_completed_at timestamptz;
 
 -- ---------------------------------------------------------------------------
 -- Canvas Accounts  (One User -> One Connection per Canvas Host)
@@ -49,9 +52,14 @@ create table if not exists public.courses (
   rag_document_count int,
   rag_chunk_count   int,
   rag_failure_count int,
+  selected_for_rag boolean not null default false,
   created_at        timestamptz not null default now(),
   unique (user_id, canvas_course_id)
 );
+
+alter table public.courses add column if not exists selected_for_rag boolean not null default false;
+
+update public.courses set selected_for_rag = true where rag_indexed_at is not null;
 
 -- ---------------------------------------------------------------------------
 -- Academic Tasks  (One Course -> Many Academic Tasks)
