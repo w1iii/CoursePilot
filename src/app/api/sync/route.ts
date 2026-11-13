@@ -46,10 +46,13 @@ export async function POST() {
       invalidateUserCache(user.id);
     }
     const failed = result.errors.length > 0 && result.courses === 0;
-    return NextResponse.json(
-      failed ? { error: result.errors[0], ...result } : result,
-      { status: failed ? 502 : 200 },
-    );
+    return NextResponse.json({
+      ...result,
+      errors: result.errors.length ? ["Some data could not be synchronized."] : [],
+      ragFailureDetails: [],
+      ragSkippedDetails: [],
+      ...(failed ? { error: "Canvas synchronization failed" } : {}),
+    }, { status: failed ? 502 : 200, headers: { "Cache-Control": "private, no-store" } });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -60,7 +63,7 @@ export async function POST() {
     if (err instanceof SyncInProgressError) {
       return NextResponse.json({ error: err.message }, { status: 409, headers: { "Retry-After": "30" } });
     }
-    console.error("sync error", err);
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    console.error("sync failed", err instanceof Error ? err.name : "unknown");
+    return NextResponse.json({ error: "Canvas synchronization failed" }, { status: 500 });
   }
 }

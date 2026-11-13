@@ -4,6 +4,7 @@ import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { cacheUserRead, invalidateUserResourceCache } from "@/lib/cache";
+import { enforceTaskWriteLimit, optionalDate, optionalText, readTaskJson, RequestValidationError } from "@/lib/task-api";
 
 const VALID_TYPES = new Set(["assignment", "quiz", "exam", "project", "activity", "reading"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -64,28 +65,46 @@ export async function GET() {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    console.error("task list failed", err instanceof Error ? err.name : "unknown");
+    return NextResponse.json({ error: "Failed to load tasks" }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
-    const body = await req.json();
+    const limited = await enforceTaskWriteLimit(user.id);
+    if (limited) return limited;
+    let body: Record<string, unknown>;
+    try {
+      body = await readTaskJson(req) as Record<string, unknown>;
+    } catch (err) {
+      if (err instanceof RequestValidationError) {
+        return NextResponse.json({ error: err.message }, { status: err.message === "Request body too large" ? 413 : 400 });
+      }
+      throw err;
+    }
 
     const { title, courseId, description, type, dueDate, priority, notes } = body ?? {};
-    if (!title || typeof title !== "string") {
-      return NextResponse.json({ error: "title is required" }, { status: 400 });
+    const allowedFields = new Set(["title", "courseId", "description", "type", "dueDate", "priority", "notes"]);
+    if (Object.keys(body).some((key) => !allowedFields.has(key))) {
+      throw new RequestValidationError("Unknown task field");
     }
-    if (!courseId || typeof courseId !== "string") {
-      return NextResponse.json({ error: "courseId is required" }, { status: 400 });
+    if (typeof title !== "string" || !title.trim() || title.length > 255) {
+      throw new RequestValidationError("title is required and must be at most 255 characters");
     }
-    if (type && !VALID_TYPES.has(type)) {
-      return NextResponse.json({ error: `type must be one of: ${[...VALID_TYPES].join(", ")}` }, { status: 400 });
+    if (typeof courseId !== "string" || !/^[0-9a-f-]{36}$/i.test(courseId)) {
+      throw new RequestValidationError("courseId must be a valid ID");
     }
-    if (priority && !VALID_PRIORITIES.has(priority)) {
-      return NextResponse.json({ error: `priority must be one of: ${[...VALID_PRIORITIES].join(", ")}` }, { status: 400 });
+    if (type !== undefined && type !== null && (typeof type !== "string" || !VALID_TYPES.has(type))) {
+      throw new RequestValidationError(`type must be one of: ${[...VALID_TYPES].join(", ")}`);
     }
+    if (priority !== undefined && priority !== null && (typeof priority !== "string" || !VALID_PRIORITIES.has(priority))) {
+      throw new RequestValidationError(`priority must be one of: ${[...VALID_PRIORITIES].join(", ")}`);
+    }
+    const safeDescription = optionalText(description, "description", 20_000);
+    const safeNotes = optionalText(notes, "notes", 8_000);
+    const safeDueDate = optionalDate(dueDate);
 
     const sb = supabaseAdmin();
     const { data: course } = await sb
@@ -102,12 +121,12 @@ export async function POST(req: NextRequest) {
       .from("academic_tasks")
       .insert({
         course_id: courseId,
-        title,
-        description: description ?? null,
+        title: title.trim(),
+        description: safeDescription,
         type: type ?? "assignment",
-        due_date: dueDate ?? null,
+        due_date: safeDueDate,
         priority: priority ?? "medium",
-        notes: notes ?? null,
+        notes: safeNotes,
         is_manual: true,
       })
       .select()
@@ -120,6 +139,10 @@ export async function POST(req: NextRequest) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    if (err instanceof RequestValidationError) {
+      return NextResponse.json({ error: err.message }, { status: err.message === "Request body too large" ? 413 : 400 });
+    }
+    console.error("task create failed", err instanceof Error ? err.name : "unknown");
+    return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
   }
 }

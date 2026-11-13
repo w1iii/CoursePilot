@@ -10,6 +10,37 @@ interface Params {
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MAX_THREAD_BODY_BYTES = 512_000;
+
+async function boundedBody(request: Request): Promise<string | null> {
+  const declared = Number(request.headers.get("content-length") ?? 0);
+  if (declared > MAX_THREAD_BODY_BYTES) return null;
+  const reader = request.body?.getReader();
+  if (!reader) return null;
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_THREAD_BODY_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+}
 
 function validTurn(value: unknown): value is ThreadTurn {
   if (!value || typeof value !== "object") return false;
@@ -47,7 +78,9 @@ export async function GET(_: Request, { params }: Params) {
       .order("created_at", { ascending: true })
       .order("role", { ascending: false });
     if (messagesError) throw new Error(messagesError.message);
-    return NextResponse.json({ ...thread, turns: messagesToTurns((messages ?? []) as Array<Record<string, unknown>>) });
+    return NextResponse.json({ ...thread, turns: messagesToTurns((messages ?? []) as Array<Record<string, unknown>>) }, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     console.error("thread load error", error);
@@ -67,9 +100,19 @@ export async function PUT(request: Request, { params }: Params) {
     if (!UUID.test(id) || Number(request.headers.get("content-length") ?? 0) > 512_000) {
       return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
     }
-    const raw = await request.text();
-    if (raw.length > 512_000) return NextResponse.json({ error: "Chat too large" }, { status: 413 });
-    const body = JSON.parse(raw) as { title?: unknown; courseId?: unknown; turns?: unknown };
+    let raw: string | null;
+    try {
+      raw = await boundedBody(request);
+    } catch {
+      return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
+    }
+    if (raw === null) return NextResponse.json({ error: "Chat too large" }, { status: 413 });
+    let body: { title?: unknown; courseId?: unknown; turns?: unknown };
+    try {
+      body = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
+    }
     if (!body || typeof body !== "object" || !Array.isArray(body.turns) || body.turns.length > 100 ||
       !body.turns.every(validTurn) || (body.title !== undefined && (typeof body.title !== "string" || body.title.length > 120)) ||
       (body.courseId != null && (typeof body.courseId !== "string" || !UUID.test(body.courseId)))) {

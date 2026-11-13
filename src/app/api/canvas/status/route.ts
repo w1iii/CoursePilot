@@ -13,6 +13,7 @@ export async function GET() {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    console.error("canvas status failed", err instanceof Error ? err.name : "unknown");
+    return NextResponse.json({ error: "Failed to load Canvas status" }, { status: 500 });
   }
 }

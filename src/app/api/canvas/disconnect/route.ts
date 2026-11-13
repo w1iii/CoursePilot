@@ -14,6 +14,7 @@ export async function POST() {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    console.error("canvas disconnect failed", err instanceof Error ? err.name : "unknown");
+    return NextResponse.json({ error: "Failed to disconnect Canvas" }, { status: 500 });
   }
 }

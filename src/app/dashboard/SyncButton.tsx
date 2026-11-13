@@ -49,6 +49,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
 
       {result && !running && (
         <div className="max-w-xs text-right font-code-tag text-[10px] leading-4 uppercase tracking-[0.12em] text-text-muted">
+          {finishedAt && <p>Finished {finishLabel(finishedAt)}</p>}
           <p>
             Synced {result.courses} courses, {result.tasks} tasks, {result.announcements}{" "}
             announcements.

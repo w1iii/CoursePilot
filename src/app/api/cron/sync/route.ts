@@ -32,7 +32,7 @@ function authorized(req: NextRequest): boolean {
 
 function maxUsers(): number {
   const raw = Number(env("CRON_SYNC_MAX_USERS") ?? "5");
-  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 5;
+  return Number.isFinite(raw) && raw > 0 ? Math.min(200, Math.floor(raw)) : 5;
 }
 
 /**
@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
     .limit(200);
 
   if (accountsError) {
-    return NextResponse.json({ error: accountsError.message }, { status: 500 });
+    console.error("cron account query failed", accountsError.code ?? "unknown");
+    return NextResponse.json({ error: "Scheduled sync unavailable" }, { status: 500 });
   }
 
   const userIds = [...new Set((accounts ?? []).map((account) => account.user_id))].slice(
@@ -79,35 +80,27 @@ export async function GET(req: NextRequest) {
     .in("id", userIds);
 
   if (usersError) {
-    return NextResponse.json({ error: usersError.message }, { status: 500 });
+    console.error("cron user query failed", usersError.code ?? "unknown");
+    return NextResponse.json({ error: "Scheduled sync unavailable" }, { status: 500 });
   }
 
-  const results: Array<{
-    userId: string;
-    courses?: number;
-    tasks?: number;
-    announcements?: number;
-    ragDocuments?: number;
-    error?: string;
-  }> = [];
+  let succeeded = 0;
+  let failed = 0;
 
   for (const user of (users ?? []) as AppUser[]) {
     try {
       const summary = await syncCanvas(user);
-      results.push({
-        userId: user.id,
-        courses: summary.courses,
-        tasks: summary.tasks,
-        announcements: summary.announcements,
-        ragDocuments: summary.ragDocuments,
-        ...(summary.errors.length > 0 ? { error: summary.errors[0] } : {}),
-      });
+      if (summary.errors.length > 0) failed += 1;
+      else succeeded += 1;
     } catch (err) {
-      results.push({ userId: user.id, error: (err as Error).message });
+      failed += 1;
+      console.error("cron user sync failed", err instanceof Error ? err.name : "unknown");
     } finally {
       invalidateUserCache(user.id);
     }
   }
 
-  return NextResponse.json({ users: results.length, results });
+  return NextResponse.json({ users: succeeded + failed, succeeded, failed }, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
