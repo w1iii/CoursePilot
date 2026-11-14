@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { invalidateUserCache } from "@/lib/cache";
 import { deleteRagCourse, ingestCanvasCourse } from "@/lib/ai/ingest";
 import { getCanvasCredentials } from "@/lib/canvas-account";
+import { listCourses } from "@/lib/canvas";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
 
     if (!body.selected) {
+      // Student deselection revokes their access, not the shared index.
       await deleteRagCourse({ userId: user.id, courseKey: course.id, canvasCourseId: course.canvas_course_id });
       const { error } = await sb.from("courses").update({
         selected_for_rag: false,
@@ -32,10 +34,13 @@ export async function POST(request: Request) {
       }).eq("id", course.id).eq("user_id", user.id);
       if (error) throw error;
     } else {
+      const { credentials, account } = await getCanvasCredentials(user.id);
+      if (account?.invalid_at || !(await listCourses(credentials)).some((item) => item.id === course.canvas_course_id)) {
+        return NextResponse.json({ error: "Course is not active in this Canvas account" }, { status: 403 });
+      }
       const { error } = await sb.from("courses").update({ selected_for_rag: true })
         .eq("id", course.id).eq("user_id", user.id);
       if (error) throw error;
-      const { credentials } = await getCanvasCredentials(user.id);
       const ingestion = await ingestCanvasCourse({
         userId: user.id,
         courseKey: course.id,

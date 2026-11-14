@@ -135,7 +135,7 @@ async function performSyncCanvas(user: AppUser): Promise<SyncResult> {
   }
 
   if (ragIngestionEnabled()) {
-    await ingestDueCourses(sb, user.id, credentials, result);
+    await ingestDueCourses(sb, user.id, credentials, new Set(canvasCourses.map((course) => course.id)), result);
   }
 
   return result;
@@ -151,6 +151,7 @@ async function ingestDueCourses(
   sb: SupabaseAdmin,
   userId: string,
   credentials: CanvasCredentials,
+  activeCourseIds: Set<number>,
   result: SyncResult,
 ): Promise<void> {
   const cutoff = new Date(Date.now() - ragReindexHours() * 60 * 60 * 1000).toISOString();
@@ -172,6 +173,10 @@ async function ingestDueCourses(
   for (const course of dueCourses ?? []) {
     const startedAt = Date.now();
     try {
+      if (!activeCourseIds.has(course.canvas_course_id)) {
+        result.errors.push(`RAG ingestion skipped: ${course.course_name} is not actively enrolled`);
+        continue;
+      }
       const ingestion = await ingestCanvasCourse({
         userId,
         courseKey: course.id,

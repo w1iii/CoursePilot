@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { sharedCourseKey } from "@/lib/ai/course-index";
 
 import {
   ingestCanvasCourse,
@@ -18,6 +19,7 @@ describe("RAG ingestion client", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test/";
     process.env.RAG_SIGNING_SECRET = "test-signing-secret";
+    process.env.RAG_SHARED_INDEX_ENABLED = "true";
     process.env.RAG_INGEST_MAX_ATTEMPTS = "2";
     process.env.RAG_INGEST_TIMEOUT_MS = "5000";
   });
@@ -62,7 +64,7 @@ describe("RAG ingestion client", () => {
     expect(init.headers).toMatchObject({ "Content-Type": "application/json" });
     expect((init.headers as Record<string, string>)["X-RAG-Token"].split(".")).toHaveLength(2);
     expect(JSON.parse(init.body as string)).toEqual({
-      course_key: "course-a", canvas_course_id: 51680,
+      course_key: sharedCourseKey("https://usls.instructure.com", 51680), canvas_course_id: 51680,
       canvas_base_url: "https://usls.instructure.com",
       canvas_access_token: "canvas-token",
     });

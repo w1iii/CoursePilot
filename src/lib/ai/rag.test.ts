@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { supabaseAdminMock, cache } = vi.hoisted(() => ({
+const { supabaseAdminMock, cache, getCanvasCredentialsMock, listCanvasCoursesMock } = vi.hoisted(() => ({
   supabaseAdminMock: vi.fn(),
   cache: new Map<string, Promise<unknown>>(),
+  getCanvasCredentialsMock: vi.fn(),
+  listCanvasCoursesMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({ supabaseAdmin: supabaseAdminMock }));
+vi.mock("@/lib/canvas-account", () => ({ getCanvasCredentials: getCanvasCredentialsMock }));
+vi.mock("@/lib/canvas", () => ({ listCourses: listCanvasCoursesMock }));
 vi.mock("next/cache", () => ({
   unstable_cache: (loader: () => Promise<unknown>, keyParts: string[]) => {
     const key = keyParts.join(":");
@@ -25,6 +29,7 @@ import {
   listCoursesForUser,
   RagServiceError,
 } from "@/lib/ai/rag";
+import { sharedCourseKey } from "@/lib/ai/course-index";
 
 interface QueryResult {
   data: unknown;
@@ -66,6 +71,10 @@ const courses = [
 ];
 
 function mockCourses(result: QueryResult) {
+  getCanvasCredentialsMock.mockResolvedValue({
+    credentials: { baseUrl: "https://usls.instructure.com", token: "test" }, account: null,
+  });
+  listCanvasCoursesMock.mockResolvedValue(courses.map((course) => ({ id: course.canvas_course_id })));
   const from = vi.fn(() => query(result));
   supabaseAdminMock.mockReturnValue({ from });
   return from;
@@ -75,6 +84,7 @@ describe("course resolution", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test";
     process.env.RAG_SIGNING_SECRET = "test-signing-secret";
+    process.env.RAG_SHARED_INDEX_ENABLED = "true";
     cache.clear();
   });
 
@@ -125,11 +135,21 @@ describe("course resolution", () => {
 describe("answerQuestion", () => {
   beforeEach(() => {
     process.env.RAG_API_URL = "http://rag.test/";
+    process.env.RAG_SHARED_INDEX_ENABLED = "true";
     process.env.RAG_API_TOKEN = "rag-token";
     delete process.env.RAG_ANSWER_CACHE_ENABLED;
     delete process.env.RAG_ANSWER_CACHE_USER_IDS;
     delete process.env.RAG_ANSWER_CACHE_ROLLOUT_PERCENT;
     cache.clear();
+  });
+
+  it("denies revoked Canvas enrollment before querying shared RAG", async () => {
+    mockCourses({ data: [courses[0]], error: null });
+    listCanvasCoursesMock.mockResolvedValue([]);
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(answerQuestion("user-a", "hi", "course-1")).rejects.toBeInstanceOf(CourseSelectionError);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("sends the service token and maps citations", async () => {
@@ -176,7 +196,8 @@ describe("answerQuestion", () => {
     expect(url).toBe("http://rag.test/api/v1/chat");
     expect((init.headers as Record<string, string>)["X-RAG-Token"].split(".")).toHaveLength(2);
     expect(JSON.parse(init.body as string)).toEqual({
-      course_key: "course-1",
+      course_key: sharedCourseKey("https://usls.instructure.com", 51680),
+      course_name: "Artificial Intelligence",
       question: "What is attention?",
     });
   });

@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { signRagToken } from "@/lib/ai/rag-token";
+import { normalizeCanvasInstance, sharedCourseKey } from "@/lib/ai/course-index";
 
 const DEFAULT_TIMEOUT_MS = 180_000;
 const DEFAULT_MAX_ATTEMPTS = 2;
@@ -15,6 +16,10 @@ export interface RagCourseIngestion {
 
 export function ragIngestionEnabled(): boolean {
   return env("RAG_INGESTION_ENABLED") !== "false";
+}
+
+export function sharedIndexEnabled(): boolean {
+  return env("RAG_SHARED_INDEX_ENABLED") === "true";
 }
 
 export function ragIngestMaxCourses(): number {
@@ -72,12 +77,16 @@ export async function ingestCanvasCourse(input: {
   canvasBaseUrl: string;
   canvasAccessToken: string;
 }): Promise<RagCourseIngestion> {
+  const canvasInstance = normalizeCanvasInstance(input.canvasBaseUrl);
+  const shared = sharedIndexEnabled();
+  const indexKey = shared ? sharedCourseKey(canvasInstance, input.canvasCourseId) : input.courseKey;
   let lastError: Error | null = null;
   for (let attempt = 1; attempt <= maxAttempts(); attempt += 1) {
     // Re-sign per attempt: ingestion can outlive a single short-lived token.
     const token = signRagToken({
       userId: input.userId,
-      courseKey: input.courseKey,
+      courseKey: indexKey,
+      ...(shared ? { canvasInstance } : {}),
       scope: "ingest",
       canvasCourseId: input.canvasCourseId,
       ttlSeconds: 300,
@@ -92,7 +101,7 @@ export async function ingestCanvasCourse(input: {
           "X-RAG-Token": token,
         },
         body: JSON.stringify({
-          course_key: input.courseKey,
+          course_key: indexKey,
           canvas_course_id: input.canvasCourseId,
           canvas_base_url: input.canvasBaseUrl,
           canvas_access_token: input.canvasAccessToken,
@@ -146,18 +155,14 @@ export async function deleteRagCourse(input: {
   courseKey: string;
   canvasCourseId: number;
 }): Promise<void> {
+  if (sharedIndexEnabled()) return; // Student disconnect must not delete shared vectors.
   const token = signRagToken({
-    userId: input.userId,
-    courseKey: input.courseKey,
-    scope: "delete",
+    userId: input.userId, courseKey: input.courseKey, scope: "delete",
     canvasCourseId: input.canvasCourseId,
-    ttlSeconds: 120,
   });
   const response = await fetch(`${ragBaseUrl()}/api/v1/ingestion/course/${encodeURIComponent(input.courseKey)}`, {
-    method: "DELETE",
-    headers: { "X-RAG-Token": token },
-    signal: AbortSignal.timeout(timeoutMs()),
-    cache: "no-store",
+    method: "DELETE", headers: { "X-RAG-Token": token },
+    signal: AbortSignal.timeout(timeoutMs()), cache: "no-store",
   });
   if (!response.ok) throw new Error("Could not remove course material from the index");
 }
