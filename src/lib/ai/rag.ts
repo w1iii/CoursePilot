@@ -4,6 +4,10 @@ import { cacheUserRead, userCacheTag } from "@/lib/cache";
 import { env, requireEnv } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase";
 import { signRagToken } from "@/lib/ai/rag-token";
+import { sharedCourseKey, normalizeCanvasInstance } from "@/lib/ai/course-index";
+import { getCanvasCredentials } from "@/lib/canvas-account";
+import { listCourses } from "@/lib/canvas";
+import { sharedIndexEnabled } from "@/lib/ai/ingest";
 
 export interface CourseOption {
   id: string;
@@ -27,6 +31,7 @@ interface RagChatResponse {
   citations: RagCitation[];
   model: string;
   grounded: boolean;
+  web_sources?: Array<{ title: string; url: string }>;
 }
 
 export interface RagSource {
@@ -179,12 +184,21 @@ export async function answerQuestion(
   courseId?: string,
 ): Promise<RagAnswer> {
   const course = await resolveCourse(userId, courseId);
+  // Recheck Canvas before serving even a cached answer. A stale local course
+  // row or revoked enrollment must never authorize shared-index access.
+  const { credentials, account } = await getCanvasCredentials(userId);
+  if (account?.invalid_at) throw new CourseSelectionError("Reconnect Canvas to continue.", []);
+  const enrolled = await listCourses(credentials);
+  if (!enrolled.some((item) => item.id === course.canvas_course_id)) {
+    throw new CourseSelectionError("Course is not active in this Canvas account.", []);
+  }
+  const canvasInstance = normalizeCanvasInstance(credentials.baseUrl);
   const normalizedQuestion = question.trim().toLowerCase().replace(/\s+/g, " ");
   const requestKey = `${userId}:${course.id}:${normalizedQuestion}`;
 
   if (!answerCacheEnabledForUser(userId)) {
     return runDeduplicated(requestKey, async () => ({
-      ...(await answerQuestionUncached(userId, question, course)),
+       ...(await answerQuestionUncached(userId, question, course, canvasInstance)),
       cacheHit: false,
     }));
   }
@@ -199,7 +213,7 @@ export async function answerQuestion(
     const answer = await unstable_cache(
       async () => {
         cacheLoaderRan = true;
-        return answerQuestionUncached(userId, normalizedQuestion, course);
+          return answerQuestionUncached(userId, normalizedQuestion, course, canvasInstance);
       },
       ["rag-answer-v1", userId, course.id, indexVersion, questionHash],
       {
@@ -231,12 +245,15 @@ async function answerQuestionUncached(
   userId: string,
   question: string,
   course: CourseOption,
+  canvasInstance: string,
 ): Promise<RagAnswer> {
   let res: Response;
   try {
+    const shared = sharedIndexEnabled();
     const token = signRagToken({
       userId,
-      courseKey: course.id,
+      courseKey: shared ? sharedCourseKey(canvasInstance, course.canvas_course_id) : course.id,
+      ...(shared ? { canvasCourseId: course.canvas_course_id, canvasInstance } : {}),
       scope: "chat",
     });
     res = await fetch(`${ragBaseUrl()}/api/v1/chat`, {
@@ -246,8 +263,9 @@ async function answerQuestionUncached(
         "X-RAG-Token": token,
       },
       body: JSON.stringify({
-        course_key: course.id,
-        question,
+         course_key: shared ? sharedCourseKey(canvasInstance, course.canvas_course_id) : course.id,
+         course_name: course.course_name,
+         question,
       }),
       signal: AbortSignal.timeout(ragTimeoutMs()),
       cache: "no-store",
@@ -268,12 +286,12 @@ async function answerQuestionUncached(
     grounded: body.grounded,
     model: body.model,
     course: { id: course.id, name: course.course_name },
-    sources: body.citations.map((citation) => ({
+  sources: body.citations.map((citation) => ({
       id: citation.chunk_id,
       label: citation.label,
       title: citation.title,
       source_type: citation.source_type,
       chunk_index: citation.chunk_index,
-    })),
+  })),
   };
 }
