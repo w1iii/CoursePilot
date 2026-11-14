@@ -35,13 +35,3 @@ export interface Announcement {
   courseCode: string | null;
   courseName: string | null;
 }
-
-export interface DeadlineChange {
-  id: string;
-  title: string;
-  oldDueDate: string | null;
-  newDueDate: string;
-  detectedAt: string;
-  courseCode: string | null;
-  courseName: string | null;
-}

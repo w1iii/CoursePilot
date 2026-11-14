@@ -252,9 +252,11 @@ export default function DashboardPaper({
             {news}
           </section>
 
-          <aside className="mt-space-lg border-t border-primary-container/25 pt-space-md lg:col-span-12 lg:grid lg:grid-cols-2 lg:gap-space-lg lg:border-t lg:pt-space-md xl:col-span-3 xl:mt-0 xl:flex xl:flex-col xl:border-l xl:border-t-0 xl:border-border xl:pl-space-lg xl:pt-0">
-            {rail}
-          </aside>
+          {rail ? (
+            <aside className="mt-space-lg border-t border-primary-container/25 pt-space-md lg:col-span-12 lg:grid lg:grid-cols-2 lg:gap-space-lg lg:border-t lg:pt-space-md xl:col-span-3 xl:mt-0 xl:flex xl:flex-col xl:border-l xl:border-t-0 xl:border-border xl:pl-space-lg xl:pt-0">
+              {rail}
+            </aside>
+          ) : null}
         </div>
 
         <div className="mt-space-xl border-t-[3px] border-double border-primary-container pt-space-md">

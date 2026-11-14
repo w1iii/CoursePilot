@@ -3,17 +3,10 @@ import { requireUser } from "@/lib/user";
 import { cacheUserRead } from "@/lib/cache";
 import AnnouncementsFeed from "./AnnouncementsFeed";
 import AskHabiCard from "./AskHabiCard";
-import CourseIndex from "./CourseIndex";
 import DashboardPaper from "./DashboardPaper";
 import DashboardShell from "./DashboardShell";
-import DeadlineChanges from "./DeadlineChanges";
 import PaperMasthead from "./PaperMasthead";
-import type {
-  Announcement,
-  Course,
-  DashboardTask,
-  DeadlineChange,
-} from "./types";
+import type { Announcement, Course, DashboardTask } from "./types";
 
 interface CourseJoin {
   course_name: string;
@@ -57,15 +50,6 @@ interface RawAnnouncement {
   courses: CourseJoin | CourseJoin[] | null;
 }
 
-interface RawDeadlineChange {
-  id: string;
-  title: string;
-  old_due_date: string | null;
-  new_due_date: string;
-  detected_at: string;
-  courses: CourseJoin | CourseJoin[] | null;
-}
-
 function joinedCourse(value: CourseJoin | CourseJoin[] | null): CourseJoin | null {
   if (!value) return null;
   return Array.isArray(value) ? (value[0] ?? null) : value;
@@ -106,10 +90,9 @@ export default async function DashboardPage() {
 
   let taskRows: RawTask[] = [];
   let announcementRows: RawAnnouncement[] = [];
-  let deadlineRows: RawDeadlineChange[] = [];
 
   if (courseIds.length > 0) {
-    const [tasksResult, announcementsResult, deadlineResult] = await Promise.all([
+    const [tasksResult, announcementsResult] = await Promise.all([
       cacheUserRead("dashboard-tasks", user.id, 30, async () => await sb
         .from("academic_tasks")
         .select(
@@ -129,14 +112,6 @@ export default async function DashboardPage() {
         .order("importance_score", { ascending: false, nullsFirst: false })
         .order("posted_at", { ascending: false, nullsFirst: false })
         .limit(5)),
-      cacheUserRead("dashboard-deadlines", user.id, 60, async () => await sb
-        .from("deadline_changes")
-        .select(
-          "id, title, old_due_date, new_due_date, detected_at, courses(course_name, course_code)",
-        )
-        .in("course_id", courseIds)
-        .order("detected_at", { ascending: false })
-        .limit(4)),
     ]);
 
     if (tasksResult.error) {
@@ -145,13 +120,8 @@ export default async function DashboardPage() {
     if (announcementsResult.error) {
       throw new Error(`Failed to load announcements: ${announcementsResult.error.message}`);
     }
-    if (deadlineResult.error) {
-      throw new Error(`Failed to load deadline changes: ${deadlineResult.error.message}`);
-    }
-
     taskRows = (tasksResult.data ?? []) as RawTask[];
     announcementRows = (announcementsResult.data ?? []) as RawAnnouncement[];
-    deadlineRows = (deadlineResult.data ?? []) as RawDeadlineChange[];
   }
 
   const courses: Course[] = courseRows.map((course) => ({
@@ -195,19 +165,6 @@ export default async function DashboardPage() {
     };
   });
 
-  const deadlineChanges: DeadlineChange[] = deadlineRows.map((change) => {
-    const course = joinedCourse(change.courses);
-    return {
-      id: change.id,
-      title: change.title,
-      oldDueDate: change.old_due_date,
-      newDueDate: change.new_due_date,
-      detectedAt: change.detected_at,
-      courseCode: course?.course_code ?? null,
-      courseName: course?.course_name ?? null,
-    };
-  });
-
   const now = new Date();
   const dateLabel = now.toLocaleDateString("en-US", {
     weekday: "long",
@@ -239,15 +196,10 @@ export default async function DashboardPage() {
           news={
             <>
               <AnnouncementsFeed announcements={announcements} />
-              <DeadlineChanges changes={deadlineChanges} />
-            </>
-          }
-          rail={
-            <>
               <AskHabiCard />
-              <CourseIndex courses={courses} tasks={tasks} />
             </>
           }
+          rail={null}
         />
       </div>
     </DashboardShell>
