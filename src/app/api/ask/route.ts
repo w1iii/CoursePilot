@@ -8,7 +8,7 @@ import {
   RagServiceError,
 } from "@/lib/ai/rag";
 import { elapsedMs, logAiRequest } from "@/lib/ai/log";
-import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitUsage, rateLimitMessage } from "@/lib/rate-limit";
 
 const MAX_QUESTION_CHARS = 2000;
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       cacheHit: result.cacheHit ?? false,
     });
 
-    const response = { ...result };
+    const response = { ...result, dailyUsage: await getRateLimitUsage(user.id) };
     delete response.cacheHit;
     return NextResponse.json(response);
   } catch (err) {

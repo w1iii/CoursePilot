@@ -362,6 +362,24 @@ $$;
 revoke all on function public.check_rate_limit(uuid, integer, integer) from public, anon, authenticated;
 grant execute on function public.check_rate_limit(uuid, integer, integer) to service_role;
 
+-- Read daily usage for the in-app near-limit warning.
+create or replace function public.get_rate_limit_usage(p_user_id uuid)
+returns table (daily_count integer)
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((
+    select count
+    from public.rate_limit_windows
+    where user_id = p_user_id
+      and window_kind = 'day'
+      and window_start = date_trunc('day', now())
+  ), 0)::integer;
+$$;
+revoke all on function public.get_rate_limit_usage(uuid) from public, anon, authenticated;
+grant execute on function public.get_rate_limit_usage(uuid) to service_role;
+
 -- ---------------------------------------------------------------------------
 -- RAG documents/chunks live in the separate CoursePilot-RAG database.
 -- ---------------------------------------------------------------------------

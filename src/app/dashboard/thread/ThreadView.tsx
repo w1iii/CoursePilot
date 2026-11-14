@@ -27,6 +27,7 @@ interface RagResponse {
   model: string;
   grounded: boolean;
   course: { id: string; name: string };
+  dailyUsage?: { count: number; limit: number; warning: boolean } | null;
 }
 
 interface Turn {
@@ -108,6 +109,7 @@ export default function ThreadView({
   const [question, setQuestion] = useState("");
   const [courseId, setCourseId] = useState(initialCourseId || courses[0]?.id || "");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [dailyUsage, setDailyUsage] = useState<{ count: number; limit: number } | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
@@ -154,6 +156,7 @@ export default function ThreadView({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Request failed");
+      if (json.dailyUsage?.warning) setDailyUsage(json.dailyUsage);
       setTurns((current) => {
         const next = current.map((turn) =>
           turn.id === turnId ? { ...turn, status: "done" as const, response: json as RagResponse } : turn,
@@ -278,6 +281,11 @@ export default function ThreadView({
           <div className={`mx-auto flex w-full max-w-[720px] flex-col bg-background px-4 md:px-6 ${
             turns.length === 0 ? "min-h-full justify-center py-8" : "pb-8 pt-4"
           }`}>
+          {dailyUsage && (
+            <div className="mb-4 rounded-xl border border-tertiary-container/40 bg-tertiary-container/10 px-4 py-3 text-sm text-on-surface">
+              You are near your daily request limit: {dailyUsage.count} of {dailyUsage.limit} requests used.
+            </div>
+          )}
           {turns.length === 0 ? (
             <div className="flex w-full flex-col items-center">
               <section className="grid w-full max-w-[620px] grid-cols-1 items-center gap-6 md:grid-cols-[minmax(220px,300px)_1fr] md:gap-8">

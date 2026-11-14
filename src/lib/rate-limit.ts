@@ -14,6 +14,12 @@ export interface RateLimitDecision {
   enforced: boolean;
 }
 
+export interface RateLimitUsage {
+  count: number;
+  limit: number;
+  warning: boolean;
+}
+
 function positiveInt(raw: string | undefined, fallback: number): number {
   const value = Number(raw);
   return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
@@ -24,6 +30,22 @@ export function rateLimitConfig(): { perMinute: number; perDay: number } {
     perMinute: positiveInt(env("RATE_LIMIT_PER_MINUTE"), DEFAULT_PER_MINUTE),
     perDay: positiveInt(env("RATE_LIMIT_PER_DAY"), DEFAULT_PER_DAY),
   };
+}
+
+/** Read current daily usage after a request has been accepted. */
+export async function getRateLimitUsage(userId: string): Promise<RateLimitUsage | null> {
+  const { perDay } = rateLimitConfig();
+  try {
+    const { data, error } = await supabaseAdmin().rpc("get_rate_limit_usage", {
+      p_user_id: userId,
+    });
+    if (error) return null;
+    const row = (Array.isArray(data) ? data[0] : data) as { daily_count?: number } | null | undefined;
+    if (!row || typeof row.daily_count !== "number" || !Number.isFinite(row.daily_count)) return null;
+    return { count: row.daily_count, limit: perDay, warning: row.daily_count >= perDay * 0.8 };
+  } catch {
+    return null;
+  }
 }
 
 interface RateLimitRow {
