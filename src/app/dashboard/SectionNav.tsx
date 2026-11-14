@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-
 const SECTIONS = [
   { id: "announcements", label: "Announcements" },
   { id: "courses", label: "Courses" },

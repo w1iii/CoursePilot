@@ -4,6 +4,7 @@ import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { invalidateUserResourceCache } from "@/lib/cache";
 import { enforceTaskWriteLimit, optionalDate, optionalText, readTaskJson, RequestValidationError } from "@/lib/task-api";
+import { isUuid } from "@/lib/api-validation";
 
 const VALID_STATUSES = new Set(["pending", "completed"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -30,6 +31,7 @@ export async function PATCH(
   try {
     const user = await requireUser();
     const { id } = await params;
+    if (!isUuid(id)) return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
     const limited = await enforceTaskWriteLimit(user.id);
     if (limited) return limited;
 
@@ -117,6 +119,7 @@ export async function DELETE(
   try {
     const user = await requireUser();
     const { id } = await params;
+    if (!isUuid(id)) return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
     const limited = await enforceTaskWriteLimit(user.id);
     if (limited) return limited;
 

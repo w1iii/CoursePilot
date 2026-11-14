@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { cacheUserRead, invalidateUserResourceCache } from "@/lib/cache";
 import { enforceTaskWriteLimit, optionalDate, optionalText, readTaskJson, RequestValidationError } from "@/lib/task-api";
+import { isUuid } from "@/lib/api-validation";
 
 const VALID_TYPES = new Set(["assignment", "quiz", "exam", "project", "activity", "reading"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     if (typeof title !== "string" || !title.trim() || title.length > 255) {
       throw new RequestValidationError("title is required and must be at most 255 characters");
     }
-    if (typeof courseId !== "string" || !/^[0-9a-f-]{36}$/i.test(courseId)) {
+    if (!isUuid(courseId)) {
       throw new RequestValidationError("courseId must be a valid ID");
     }
     if (type !== undefined && type !== null && (typeof type !== "string" || !VALID_TYPES.has(type))) {

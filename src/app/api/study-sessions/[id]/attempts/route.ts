@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { invalidateUserCache } from "@/lib/cache";
+import { isUuid, readJsonObject } from "@/lib/api-validation";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireUser(); const { id } = await params; const input = await request.json();
-    if (typeof input.itemId !== "string" || typeof input.answer !== "string" || input.answer.length > 4000 || typeof input.isCorrect !== "boolean" || (input.confidence != null && (!Number.isInteger(input.confidence) || input.confidence < 1 || input.confidence > 5))) return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
+    const user = await requireUser(); const { id } = await params; const input = await readJsonObject(request);
+    if (!isUuid(id) || !input || Object.keys(input).some((key) => !["itemId", "answer", "isCorrect", "confidence"].includes(key)) || !isUuid(input.itemId) || typeof input.answer !== "string" || input.answer.length > 4000 || typeof input.isCorrect !== "boolean" || (input.confidence != null && (!Number.isInteger(input.confidence) || (input.confidence as number) < 1 || (input.confidence as number) > 5))) return NextResponse.json({ error: "Invalid attempt" }, { status: 400 });
     const db = supabaseAdmin(); const { data: session } = await db.from("study_sessions").select("id,pack_id,status").eq("id", id).eq("user_id", user.id).maybeSingle();
     if (!session || session.status === "completed") return NextResponse.json({ error: "Session not found or completed" }, { status: 404 });
     const { data: item } = await db.from("study_pack_items").select("id,item_type,answer,correct_option,options").eq("id", input.itemId).eq("pack_id", session.pack_id).maybeSingle();

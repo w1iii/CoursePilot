@@ -24,8 +24,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rawDays = Number(req.nextUrl.searchParams.get("days") ?? "30");
-  const windowDays = Number.isFinite(rawDays) ? Math.min(90, Math.max(1, Math.floor(rawDays))) : 30;
+  const params = req.nextUrl.searchParams;
+  const rawDays = params.get("days") ?? "30";
+  if ([...params.keys()].some((key) => key !== "days") || params.getAll("days").length > 1 || !/^\d+$/.test(rawDays) || Number(rawDays) < 1 || Number(rawDays) > 90) {
+    return NextResponse.json({ error: "days must be an integer from 1 to 90" }, { status: 400 });
+  }
+  const windowDays = Number(rawDays);
 
   try {
     const metrics = await loadAskCacheMetrics(windowDays);

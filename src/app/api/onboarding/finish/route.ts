@@ -7,17 +7,16 @@ import { ingestCanvasCourse } from "@/lib/ai/ingest";
 import { syncCanvas } from "@/lib/sync";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser, UnauthorizedError } from "@/lib/user";
+import { isUuid, readJsonObject } from "@/lib/api-validation";
 
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
-    const body = await request.json().catch(() => null) as { courseIds?: unknown } | null;
-    const requested = Array.isArray(body?.courseIds)
-      ? [...new Set(body.courseIds.filter((id): id is string => typeof id === "string"))]
-      : [];
-    if (requested.length === 0 || requested.length > 100) {
+    const body = await readJsonObject(request);
+    const requested = Array.isArray(body?.courseIds) ? body.courseIds : [];
+    if (!body || Object.keys(body).some((key) => key !== "courseIds") || requested.length === 0 || requested.length > 100 || !requested.every(isUuid) || new Set(requested).size !== requested.length) {
       return NextResponse.json({ error: "Choose at least one course" }, { status: 400 });
     }
 

@@ -13,6 +13,7 @@ import {
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { invalidateUserResourceCache } from "@/lib/cache";
+import { readJsonObject } from "@/lib/api-validation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,14 +43,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = (await req.json().catch(() => null)) as
-      | { canvas_base_url?: unknown; access_token?: unknown }
-      | null;
+    const body = await readJsonObject(req);
+    if (!body || Object.keys(body).some((key) => !["canvas_base_url", "access_token"].includes(key)) ||
+      typeof body.canvas_base_url !== "string" || body.canvas_base_url.length > 500 ||
+      typeof body.access_token !== "string") {
+      return NextResponse.json({ error: "Invalid Canvas connection request" }, { status: 400 });
+    }
 
-    const rawUrl = typeof body?.canvas_base_url === "string" ? body.canvas_base_url : "";
-    const rawToken = typeof body?.access_token === "string"
-      ? normalizeCanvasAccessToken(body.access_token)
-      : "";
+    const rawUrl = body.canvas_base_url;
+    const rawToken = normalizeCanvasAccessToken(body.access_token);
 
     if (!rawToken) {
       return NextResponse.json({ error: "Canvas access token is required" }, { status: 400 });

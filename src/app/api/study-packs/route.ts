@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { listCoursesForUser } from "@/lib/ai/rag";
 import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { invalidateUserCache } from "@/lib/cache";
+import { isUuid, readJsonObject } from "@/lib/api-validation";
 
 export async function GET() {
   try {
@@ -22,8 +23,17 @@ export async function POST(request: Request) {
   const started = Date.now();
   try {
     const user = await requireUser();
-    const input = await request.json();
-    if (!input || typeof input.courseId !== "string" || !["flashcards", "quiz", "mixed"].includes(input.mode) || !["easy", "medium", "hard", "mixed"].includes(input.difficulty) || !Number.isInteger(input.count) || input.count < 1 || input.count > 30 || (input.topic != null && (typeof input.topic !== "string" || input.topic.length > 300)) || (input.module != null && (typeof input.module !== "string" || input.module.length > 200))) return NextResponse.json({ error: "Invalid study pack request" }, { status: 400 });
+    const input = await readJsonObject(request);
+    const allowedFields = new Set(["courseId", "mode", "difficulty", "count", "topic", "module"]);
+    if (!input || Object.keys(input).some((key) => !allowedFields.has(key)) || !isUuid(input.courseId) || !["flashcards", "quiz", "mixed"].includes(input.mode as string) || !["easy", "medium", "hard", "mixed"].includes(input.difficulty as string) || !Number.isInteger(input.count) || (input.count as number) < 1 || (input.count as number) > 30 || (input.topic != null && (typeof input.topic !== "string" || input.topic.length > 300)) || (input.module != null && (typeof input.module !== "string" || input.module.length > 200))) return NextResponse.json({ error: "Invalid study pack request" }, { status: 400 });
+    const validInput = {
+      courseId: input.courseId,
+      mode: input.mode as "flashcards" | "quiz" | "mixed",
+      difficulty: input.difficulty as "easy" | "medium" | "hard" | "mixed",
+      count: input.count as number,
+      ...(typeof input.topic === "string" ? { topic: input.topic } : {}),
+      ...(typeof input.module === "string" ? { module: input.module } : {}),
+    };
     const course = (await listCoursesForUser(user.id)).find((item) => item.id === input.courseId);
     if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });
     if (!course.rag_indexed_at) return NextResponse.json({ error: "Course is not indexed yet" }, { status: 409 });
@@ -32,7 +42,7 @@ export async function POST(request: Request) {
     if (limitError) throw limitError;
     if (limited?.[0]?.allowed === false) return NextResponse.json({ error: "Study generation limit reached. Try again later." }, { status: 429 });
     try {
-      const generated = await generateStudyPack(user.id, course, input);
+      const generated = await generateStudyPack(user.id, course, validInput);
       if (!generated.grounded || !Array.isArray(generated.items) || generated.items.length !== input.count || generated.items.some((item: any) => !Array.isArray(item.citations) || !item.citations.length)) return NextResponse.json({ error: "Not enough cited course material to generate this pack" }, { status: 422 });
       const { data: pack, error } = await db.from("study_packs").insert({ user_id: user.id, course_id: course.id, title: generated.title, mode: input.mode, topic: input.topic ?? null, module: input.module ?? null, difficulty: input.difficulty, item_count: generated.items.length, source_index_version: generated.source_index_version }).select().single();
       if (error) throw error;

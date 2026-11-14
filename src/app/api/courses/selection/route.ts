@@ -6,14 +6,15 @@ import { getCanvasCredentials } from "@/lib/canvas-account";
 import { listCourses } from "@/lib/canvas";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser, UnauthorizedError } from "@/lib/user";
+import { isUuid, readJsonObject } from "@/lib/api-validation";
 
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
-    const body = await request.json().catch(() => null) as { courseId?: unknown; selected?: unknown } | null;
-    if (typeof body?.courseId !== "string" || typeof body.selected !== "boolean") {
+    const body = await readJsonObject(request);
+    if (!body || Object.keys(body).some((key) => !["courseId", "selected"].includes(key)) || !isUuid(body.courseId) || typeof body.selected !== "boolean") {
       return NextResponse.json({ error: "Invalid course selection" }, { status: 400 });
     }
     const sb = supabaseAdmin();

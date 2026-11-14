@@ -9,13 +9,17 @@ import {
 } from "@/lib/ai/rag";
 import { elapsedMs, logAiRequest } from "@/lib/ai/log";
 import { checkRateLimit, getRateLimitUsage, rateLimitMessage } from "@/lib/rate-limit";
+import { isUuid, readJsonObject } from "@/lib/api-validation";
 
 const MAX_QUESTION_CHARS = 2000;
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
-    const body = await req.json();
+    const body = await readJsonObject(req);
+    if (!body || Object.keys(body).some((key) => !["question", "course_id"].includes(key))) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
     const question = typeof body?.question === "string" ? body.question.trim() : "";
     const courseId =
       typeof body?.course_id === "string" && body.course_id.trim()
@@ -24,6 +28,9 @@ export async function POST(req: NextRequest) {
 
     if (!question) {
       return NextResponse.json({ error: "question is required" }, { status: 400 });
+    }
+    if (body.course_id !== undefined && !isUuid(body.course_id)) {
+      return NextResponse.json({ error: "course_id must be a valid course ID" }, { status: 400 });
     }
     if (question.length > MAX_QUESTION_CHARS) {
       return NextResponse.json(

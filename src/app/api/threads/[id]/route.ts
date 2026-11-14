@@ -48,7 +48,7 @@ function validTurn(value: unknown): value is ThreadTurn {
   return typeof turn.id === "string" && turn.id.length <= 100 && turn.id.length > 0 &&
     typeof turn.question === "string" && turn.question.length > 0 && turn.question.length <= 2000 &&
     typeof turn.courseId === "string" && (!turn.courseId || UUID.test(turn.courseId)) &&
-    typeof turn.createdAt === "string" && !Number.isNaN(Date.parse(turn.createdAt)) &&
+    typeof turn.createdAt === "string" && turn.createdAt.length <= 40 && !Number.isNaN(Date.parse(turn.createdAt)) &&
     ["loading", "done", "error"].includes(turn.status ?? "") &&
     (turn.error === undefined || (typeof turn.error === "string" && turn.error.length <= 8000)) &&
     (turn.response === undefined || (turn.response !== null && typeof turn.response === "object" &&
@@ -60,6 +60,7 @@ export async function GET(_: Request, { params }: Params) {
   try {
     const user = await requireUser();
     const { id } = await params;
+    if (!UUID.test(id)) return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
     const sb = supabaseAdmin();
     const { data: thread, error: threadError } = await sb
       .from("chat_threads")
@@ -92,6 +93,7 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     const user = await requireUser();
     const { id } = await params;
+    if (!UUID.test(id)) return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
     const limit = await checkRateLimit(user.id);
     if (!limit.allowed) return NextResponse.json(
       { error: limit.enforced ? "Chat write limit exceeded" : "Rate limiter unavailable" },
@@ -113,7 +115,7 @@ export async function PUT(request: Request, { params }: Params) {
     } catch {
       return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
     }
-    if (!body || typeof body !== "object" || !Array.isArray(body.turns) || body.turns.length > 100 ||
+    if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some((key) => !["title", "courseId", "turns"].includes(key)) || !Array.isArray(body.turns) || body.turns.length > 100 ||
       !body.turns.every(validTurn) || (body.title !== undefined && (typeof body.title !== "string" || body.title.length > 120)) ||
       (body.courseId != null && (typeof body.courseId !== "string" || !UUID.test(body.courseId)))) {
       return NextResponse.json({ error: "Invalid chat request" }, { status: 400 });
@@ -172,6 +174,7 @@ export async function DELETE(_: Request, { params }: Params) {
   try {
     const user = await requireUser();
     const { id } = await params;
+    if (!UUID.test(id)) return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
     const { error } = await supabaseAdmin()
       .from("chat_threads")
       .delete()

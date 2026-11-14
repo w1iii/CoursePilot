@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { invalidateUserCache } from "@/lib/cache";
+import { isUuid } from "@/lib/api-validation";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireUser(); const { id } = await params;
+    if (!isUuid(id)) return NextResponse.json({ error: "Invalid study pack ID" }, { status: 400 });
     const { data, error } = await supabaseAdmin().from("study_packs").select("*,study_pack_items(*),course:courses(course_name,course_code)").eq("id", id).eq("user_id", user.id).maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json({ error: "Study pack not found" }, { status: 404 });
@@ -17,6 +19,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireUser(); const { id } = await params;
+    if (!isUuid(id)) return NextResponse.json({ error: "Invalid study pack ID" }, { status: 400 });
     const { data, error } = await supabaseAdmin().from("study_packs").delete().eq("id", id).eq("user_id", user.id).select("id").maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json({ error: "Study pack not found" }, { status: 404 });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
+import { isUuid } from "@/lib/api-validation";
 
 export async function DELETE(
   _request: Request,
@@ -9,6 +10,7 @@ export async function DELETE(
   try {
     const user = await requireUser();
     const { id, sessionId } = await params;
+    if (!isUuid(id) || !isUuid(sessionId)) return NextResponse.json({ error: "Invalid session ID" }, { status: 400 });
     const { data, error } = await supabaseAdmin()
       .from("study_sessions")
       .delete()

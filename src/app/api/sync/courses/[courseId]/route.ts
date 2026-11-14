@@ -5,6 +5,7 @@ import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { syncCanvas } from "@/lib/sync";
 import { invalidateUserCache } from "@/lib/cache";
 import { SyncInProgressError } from "@/lib/sync-lock";
+import { isUuid } from "@/lib/api-validation";
 
 export const maxDuration = 300;
 
@@ -15,6 +16,7 @@ export async function POST(
   try {
     const user = await requireUser();
     const { courseId } = await params;
+    if (!isUuid(courseId)) return NextResponse.json({ error: "Invalid course ID" }, { status: 400 });
     const limit = await checkRateLimit(user.id);
     if (!limit.allowed) {
       if (!limit.enforced) return NextResponse.json({ error: "Rate limiter unavailable" }, { status: 503 });

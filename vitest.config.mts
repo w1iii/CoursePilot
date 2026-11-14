@@ -8,5 +8,12 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     clearMocks: true,
+    coverage: {
+      provider: "v8",
+      include: ["src/lib/**/*.ts"],
+      exclude: ["src/**/*.test.ts"],
+      reporter: ["text", "lcov"],
+      thresholds: { lines: 50 },
+    },
   },
 });
