@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "../types";
+import LoadingLoom from "@/components/LoadingLoom";
 
 function indexedLabel(value: string | null): string {
   if (!value) return "Not indexed";
@@ -19,21 +20,21 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  async function toggle(course: Course) {
+  async function resync(course: Course) {
+    if (!course.selectedForRag) return;
     setBusyId(course.id);
     setError("");
+    setSuccess("");
     try {
-      const response = await fetch("/api/courses/selection", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId: course.id, selected: !course.selectedForRag }),
-      });
+      const response = await fetch(`/api/sync/courses/${encodeURIComponent(course.id)}`, { method: "POST" });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Could not update course");
+      if (!response.ok) throw new Error(result.error ?? "Could not resync course");
+      setSuccess(`Resynced ${course.name}${result.ragDocuments > 0 ? ` · ${result.ragDocuments} documents indexed` : ""}.`);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not update course");
+      setError(cause instanceof Error ? cause.message : "Could not resync course");
     } finally {
       setBusyId(null);
     }
@@ -51,15 +52,17 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
   }
 
   return (
-    <>
+    <div className="relative">
+      {busyId && <LoadingLoom label="Resyncing course" />}
       {error && <p role="alert" className="mb-3 rounded-lg bg-error-container p-3 text-sm text-on-error-container">{error}</p>}
+      {success && <p role="status" className="mb-3 rounded-lg border border-primary-container/25 bg-surface-container-low p-3 text-sm text-on-surface">{success}</p>}
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[560px] border-collapse text-left">
           <thead>
             <tr className="border-b border-border font-code-tag text-[10px] uppercase tracking-[0.12em] text-text-muted">
               <th className="pb-2 pr-3 font-medium">Course</th>
               <th className="pb-2 pr-3 font-medium">Indexed</th>
-              <th className="pb-2 pr-3 font-medium">RAG</th>
+              <th className="pb-2 pr-3 font-medium">Study index</th>
               <th className="pb-2 pr-3 text-right font-medium">Docs</th>
               <th className="pb-2 pr-3 text-right font-medium">Chunks</th>
               <th className="pb-2 text-right font-medium">Failed</th>
@@ -78,9 +81,10 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
                   {indexedLabel(course.ragIndexedAt)}
                 </td>
                 <td className="py-2.5 pr-3">
-                  <button type="button" onClick={() => void toggle(course)} disabled={busyId === course.id} aria-pressed={Boolean(course.selectedForRag)} className={`rounded-full px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider disabled:opacity-50 ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>
-                    {busyId === course.id ? "Updating…" : course.selectedForRag ? "Included · Remove" : "Add course"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>{course.selectedForRag ? "Included" : "Not selected"}</span>
+                    {course.selectedForRag && <button type="button" onClick={() => void resync(course)} disabled={busyId === course.id} className="border border-accent px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider text-accent-text transition-colors hover:bg-accent hover:text-on-accent disabled:opacity-50">{busyId === course.id ? "Syncing…" : "Resync"}</button>}
+                  </div>
                 </td>
                 <td className="py-2.5 pr-3 text-right font-code-tag text-[11px] text-text-muted">
                   {count(course.ragDocumentCount)}
@@ -110,7 +114,7 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
             <div className="flex items-start justify-between gap-3"><p className="font-label-md text-label-md text-on-surface">
               {course.code ? `${course.code} — ` : ""}
               {course.name}
-            </p><button type="button" onClick={() => void toggle(course)} disabled={busyId === course.id} aria-pressed={Boolean(course.selectedForRag)} className={`shrink-0 rounded-full px-2 py-1 text-xs disabled:opacity-50 ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>{busyId === course.id ? "…" : course.selectedForRag ? "Included" : "Add"}</button></div>
+            </p><div className="flex shrink-0 flex-col items-end gap-2"><span className={`rounded-full px-2 py-1 font-code-tag text-[10px] uppercase tracking-wider ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>{course.selectedForRag ? "Included" : "Not selected"}</span>{course.selectedForRag && <button type="button" onClick={() => void resync(course)} disabled={busyId === course.id} className="border border-accent px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider text-accent-text disabled:opacity-50">{busyId === course.id ? "Syncing…" : "Resync"}</button>}</div></div>
             <p className="mt-0.5 font-code-tag text-[10px] uppercase tracking-[0.12em] text-text-muted">
               {indexedLabel(course.ragIndexedAt)} · {count(course.ragDocumentCount)} docs ·{" "}
               {count(course.ragChunkCount)} chunks
@@ -121,6 +125,6 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

@@ -11,6 +11,7 @@ import {
 import StatStrip from "./StatStrip";
 import SectionNav from "./SectionNav";
 import TaskLedger from "./TaskLedger";
+import Capabilities from "./Capabilities";
 import type { Course, DashboardTask } from "./types";
 
 interface Props {
@@ -164,14 +165,14 @@ export default function DashboardPaper({
         <div className="mt-space-lg grid grid-cols-1 gap-space-lg lg:grid-cols-12 lg:gap-0">
           <section className="lg:col-span-7 lg:pr-space-lg xl:col-span-6" aria-labelledby="lead-heading">
             <div className="flex items-baseline justify-between gap-2 border-b border-primary-container/25 pb-1">
-              <h2 id="lead-heading" className="paper-kicker text-accent">
+              <h2 id="lead-heading" className="paper-kicker text-accent-text">
                 Today&apos;s lead
               </h2>
               {lead ? (
                 <button
                   type="button"
                   onClick={() => setShowLeadDetails(true)}
-                  className="paper-kicker text-accent underline decoration-accent/50 underline-offset-4 transition-colors hover:text-primary-container"
+                  className="paper-kicker text-accent-text underline decoration-accent/50 underline-offset-4 transition-colors hover:text-primary-container"
                 >
                   View details
                 </button>
@@ -209,7 +210,7 @@ export default function DashboardPaper({
                   <button
                     type="button"
                     onClick={() => void toggleTask(lead)}
-                    className="ml-auto border border-accent px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-accent transition-colors hover:bg-accent hover:text-on-accent"
+                    className="ml-auto border border-accent px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-accent-text transition-colors hover:bg-accent hover:text-on-accent"
                   >
                     Mark complete
                   </button>
@@ -231,7 +232,7 @@ export default function DashboardPaper({
                 <h2 className="font-headline-sm text-headline-sm text-primary-container">
                   Upcoming Tasks
                 </h2>
-                <span className="paper-kicker text-accent">
+                <span className="paper-kicker text-accent-text">
                   Five upcoming
                 </span>
               </div>
@@ -305,7 +306,7 @@ export default function DashboardPaper({
             >
               <div className="flex items-start justify-between gap-4 border-b border-primary-container/25 pb-space-sm">
                 <div>
-                  <p className="paper-kicker text-accent">Task details</p>
+                  <p className="paper-kicker text-accent-text">Task details</p>
                   <h2
                     id="lead-details-heading"
                     className="mt-2 font-display text-[32px] leading-tight text-primary-container"
@@ -317,7 +318,7 @@ export default function DashboardPaper({
                   type="button"
                   aria-label="Close task details"
                   onClick={() => setShowLeadDetails(false)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-text-muted transition-colors hover:border-accent hover:text-accent-text"
                 >
                   <span className="material-symbols-outlined text-lg" aria-hidden="true">
                     close
@@ -369,7 +370,7 @@ export default function DashboardPaper({
                     setShowLeadDetails(false);
                     void toggleTask(lead);
                   }}
-                  className="border border-accent px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-accent transition-colors hover:bg-accent hover:text-on-accent"
+                  className="border border-accent px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-accent-text transition-colors hover:bg-accent hover:text-on-accent"
                 >
                   Mark complete
                 </button>
@@ -390,6 +391,8 @@ export default function DashboardPaper({
             onPriority={setPriority}
           />
         </div>
+
+        <Capabilities />
 
       </div>
     </div>

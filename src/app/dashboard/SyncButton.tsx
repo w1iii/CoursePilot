@@ -1,6 +1,7 @@
 "use client";
 
 import { useSync } from "./SyncProvider";
+import LoadingLoom from "@/components/LoadingLoom";
 
 function finishLabel(value: string | null): string | null {
   if (!value) return null;
@@ -19,6 +20,8 @@ export default function SyncButton({ connected }: { connected: boolean }) {
 
   return (
     <div className="flex flex-col items-start gap-space-sm md:items-end">
+      <div className="relative">
+      {running && <LoadingLoom label="Syncing Canvas" />}
       <button
         type="button"
         onClick={() => void start()}
@@ -31,6 +34,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
         </span>
         {running ? "Weaving…" : "Sync now"}
       </button>
+      </div>
 
       {!connected && (
         <p className="font-code-tag text-[10px] uppercase tracking-[0.14em] text-text-muted">

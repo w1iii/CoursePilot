@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LoadingLoom from "@/components/LoadingLoom";
 
 type CanvasCourse = {
   id: string;
@@ -92,6 +93,7 @@ export default function OnboardingFlow() {
 
   const inputClass = "w-full rounded-xl border border-border bg-surface-container-low px-4 py-3 text-on-surface outline-none focus:border-accent";
   return (
+    <>
     <main className="min-h-screen bg-background px-4 py-8 text-on-surface sm:px-8 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex items-center justify-between">
@@ -107,7 +109,7 @@ export default function OnboardingFlow() {
 
         {step === "connect" && <div className="grid gap-8 lg:grid-cols-[1fr_1.05fr]">
           <section className="rounded-3xl border border-border bg-surface p-6 sm:p-9">
-            <p className="font-code-tag text-xs uppercase tracking-widest text-accent">Step 1 · Canvas connection</p>
+            <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 1 · Canvas connection</p>
             <h1 className="mt-3 font-display text-4xl leading-tight">Bring your courses together.</h1>
             <p className="mt-3 text-text-muted">Connect Canvas with a personal access token. Habi encrypts and stores it securely to sync your courses.</p>
             <form onSubmit={connect} className="mt-7 space-y-4">
@@ -136,7 +138,7 @@ export default function OnboardingFlow() {
         </div>}
 
         {step === "courses" && <section className="rounded-3xl border border-border bg-surface p-6 sm:p-9">
-          <p className="font-code-tag text-xs uppercase tracking-widest text-accent">Step 2 · Course selection</p>
+          <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 2 · Course selection</p>
           <h1 className="mt-3 font-display text-4xl">Choose what Habi should learn.</h1>
           <p className="mt-2 text-text-muted">Only selected courses are sent for RAG indexing and used as study context. Select at least one.</p>
           {courses.length ? <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{courses.map((course) => {
@@ -147,8 +149,9 @@ export default function OnboardingFlow() {
           <div className="mt-7 flex flex-wrap items-center justify-between gap-4"><button type="button" onClick={() => setStep("connect")} className="rounded-xl border border-border px-5 py-3">Back</button><button type="button" disabled={busy || selected.length === 0} onClick={() => void finish()} className="rounded-xl bg-accent px-5 py-3 font-semibold text-on-accent disabled:opacity-50">Index {selected.length} {selected.length === 1 ? "course" : "courses"}</button></div>
         </section>}
 
-        {step === "indexing" && <section className="mx-auto max-w-xl rounded-3xl border border-border bg-surface p-10 text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-border border-t-accent" /><p className="mt-6 font-code-tag text-xs uppercase tracking-widest text-accent">Step 3 · Setting things up</p><h1 className="mt-3 font-display text-3xl">We’re weaving in your courses.</h1><p className="mt-3 text-text-muted">Canvas is syncing and selected course materials are being indexed. Keep this page open.</p></section>}
+        {step === "indexing" && <section className="relative mx-auto max-w-xl rounded-3xl border border-border bg-surface p-10 text-center"><LoadingLoom label="Setting up your courses" /><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-border border-t-accent" /><p className="mt-6 font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 3 · Setting things up</p><h1 className="mt-3 font-display text-3xl">We’re weaving in your courses.</h1><p className="mt-3 text-text-muted">Canvas is syncing and selected course materials are being indexed. Keep this page open.</p></section>}
       </div>
     </main>
+    </>
   );
 }

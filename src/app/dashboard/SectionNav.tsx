@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 const SECTIONS = [
   { id: "announcements", label: "Announcements" },
   { id: "courses", label: "Courses" },
   { id: "tasks", label: "Tasks" },
+  { id: "capabilities", label: "Capabilities" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -100,7 +102,7 @@ export default function SectionNav() {
         scroller.scrollTop + scroller.clientHeight >=
         scroller.scrollHeight - 8
       ) {
-        current = "tasks";
+        current = "capabilities";
       }
 
       setActive((previous) => (previous === current ? previous : current));
@@ -131,7 +133,7 @@ export default function SectionNav() {
       aria-label="Dashboard sections"
       className="sticky top-0 z-20 border-y border-primary-container/25 bg-background/95 py-2 backdrop-blur-sm"
     >
-      <ul className="flex items-center justify-center gap-space-lg sm:gap-space-xl">
+      <ul className="flex flex-wrap items-center justify-center gap-space-lg sm:gap-space-xl">
         {SECTIONS.map((section) => {
           const isActive = active === section.id;
 
@@ -143,7 +145,7 @@ export default function SectionNav() {
                 aria-current={isActive ? "true" : undefined}
                 className={`paper-kicker relative block px-1 pb-1.5 pt-1 text-center transition-colors ${
                   isActive
-                    ? "text-accent"
+                    ? "text-accent-text"
                     : "text-text-muted hover:text-on-surface"
                 }`}
               >

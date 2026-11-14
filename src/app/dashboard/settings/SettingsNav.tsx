@@ -24,7 +24,7 @@ export default function SettingsNav() {
             href={item.href}
             className={`inline-flex items-center gap-2 border-b-2 px-3 py-2.5 font-label-md text-label-md transition-colors ${
               active
-                ? "border-accent text-accent"
+                ? "border-accent text-accent-text"
                 : "border-transparent text-text-muted hover:border-border hover:text-on-surface"
             }`}
           >

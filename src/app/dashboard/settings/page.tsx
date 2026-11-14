@@ -150,7 +150,7 @@ export default async function SettingsPage() {
 
                 <SettingsSection
                   title="Sync & course index"
-                  description="Pull your latest Canvas courses, tasks, and announcements. Course files and pages are indexed for Ask Habi."
+                  description="Sync course details, tasks, announcements, and study material for courses marked Included below."
                   action={<SyncButton connected={canvas.connected && !canvas.needsReconnect} />}
                 >
                   <SettingsRow

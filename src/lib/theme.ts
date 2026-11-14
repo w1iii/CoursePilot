@@ -14,23 +14,36 @@ export function readTheme(): Theme {
 }
 
 export function applyTheme(theme: Theme): void {
-  try {
-    if (theme === "system") {
-      localStorage.removeItem(THEME_KEY);
-      delete document.documentElement.dataset.theme;
-    } else {
-      localStorage.setItem(THEME_KEY, theme);
-      document.documentElement.dataset.theme = theme;
+  const update = () => {
+    try {
+      if (theme === "system") {
+        localStorage.removeItem(THEME_KEY);
+        delete document.documentElement.dataset.theme;
+      } else {
+        localStorage.setItem(THEME_KEY, theme);
+        document.documentElement.dataset.theme = theme;
+      }
+    } catch {
+      // Theme still applies for this session when storage is unavailable.
+      if (theme === "system") {
+        delete document.documentElement.dataset.theme;
+      } else {
+        document.documentElement.dataset.theme = theme;
+      }
     }
-  } catch {
-    // Theme still applies for this session when storage is unavailable.
-    if (theme === "system") {
-      delete document.documentElement.dataset.theme;
-    } else {
-      document.documentElement.dataset.theme = theme;
-    }
+    window.dispatchEvent(new Event(THEME_CHANGED_EVENT));
+  };
+
+  const viewTransition = (
+    document as Document & { startViewTransition?: (callback: () => void) => unknown }
+  ).startViewTransition;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (viewTransition && !reducedMotion) {
+    viewTransition.call(document, update);
+  } else {
+    update();
   }
-  window.dispatchEvent(new Event(THEME_CHANGED_EVENT));
 }
 
 export function resolveTheme(): ResolvedTheme {

@@ -3,7 +3,7 @@ import { createHmac } from "node:crypto";
 import { requireEnv } from "@/lib/env";
 import { normalizeCanvasInstance, sharedCourseKey } from "@/lib/ai/course-index";
 
-type RagScope = "chat" | "ingest" | "delete";
+type RagScope = "chat" | "ingest" | "delete" | "study-prep" | "metadata";
 
 /** Short-lived service token, bound to one user, internal course ID and operation. */
 export function signRagToken(input: {

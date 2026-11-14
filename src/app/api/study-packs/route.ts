@@ -1,0 +1,55 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextResponse } from "next/server";
+import { requireUser, UnauthorizedError } from "@/lib/user";
+import { supabaseAdmin } from "@/lib/supabase";
+import { listCoursesForUser } from "@/lib/ai/rag";
+import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
+import { invalidateUserCache } from "@/lib/cache";
+
+export async function GET() {
+  try {
+    const user = await requireUser();
+    const { data, error } = await supabaseAdmin().from("study_packs").select("id,title,mode,topic,module,difficulty,item_count,created_at,course:courses(course_name,course_code),study_sessions(id,status,score,last_active_at)").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30);
+    if (error) throw error;
+    return NextResponse.json(data ?? [], { headers: { "Cache-Control": "private, no-store" } });
+  } catch (error) {
+    if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Could not load study history" }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  const started = Date.now();
+  try {
+    const user = await requireUser();
+    const input = await request.json();
+    if (!input || typeof input.courseId !== "string" || !["flashcards", "quiz", "mixed"].includes(input.mode) || !["easy", "medium", "hard", "mixed"].includes(input.difficulty) || !Number.isInteger(input.count) || input.count < 1 || input.count > 30 || (input.topic != null && (typeof input.topic !== "string" || input.topic.length > 300)) || (input.module != null && (typeof input.module !== "string" || input.module.length > 200))) return NextResponse.json({ error: "Invalid study pack request" }, { status: 400 });
+    const course = (await listCoursesForUser(user.id)).find((item) => item.id === input.courseId);
+    if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });
+    if (!course.rag_indexed_at) return NextResponse.json({ error: "Course is not indexed yet" }, { status: 409 });
+    const db = supabaseAdmin();
+    const { data: limited, error: limitError } = await db.rpc("check_rate_limit", { p_user_id: user.id, p_minute_limit: 5, p_day_limit: 40 });
+    if (limitError) throw limitError;
+    if (limited?.[0]?.allowed === false) return NextResponse.json({ error: "Study generation limit reached. Try again later." }, { status: 429 });
+    try {
+      const generated = await generateStudyPack(user.id, course, input);
+      if (!generated.grounded || !Array.isArray(generated.items) || generated.items.length !== input.count || generated.items.some((item: any) => !Array.isArray(item.citations) || !item.citations.length)) return NextResponse.json({ error: "Not enough cited course material to generate this pack" }, { status: 422 });
+      const { data: pack, error } = await db.from("study_packs").insert({ user_id: user.id, course_id: course.id, title: generated.title, mode: input.mode, topic: input.topic ?? null, module: input.module ?? null, difficulty: input.difficulty, item_count: generated.items.length, source_index_version: generated.source_index_version }).select().single();
+      if (error) throw error;
+      const items = generated.items.map((item: any, item_order: number) => ({ ...item, pack_id: pack.id, item_order }));
+      const { error: itemsError } = await db.from("study_pack_items").insert(items);
+      if (itemsError) { await db.from("study_packs").delete().eq("id", pack.id).eq("user_id", user.id); throw itemsError; }
+      await db.from("ai_requests").insert({ user_id: user.id, feature: "study-prep", latency_ms: Date.now() - started, status: "ok" });
+      invalidateUserCache(user.id);
+      return NextResponse.json({ ...pack, items }, { status: 201 });
+    } catch (error) {
+      await db.from("ai_requests").insert({ user_id: user.id, feature: "study-prep", latency_ms: Date.now() - started, status: "error", error: "generation_failed" });
+      throw error;
+    }
+  } catch (error) {
+    if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("study pack generation failed", error);
+    if (error instanceof StudyPrepServiceError) return NextResponse.json({ error: error.message }, { status: error.status === 422 || error.status === 504 ? error.status : 502 });
+    return NextResponse.json({ error: "Could not generate study pack" }, { status: 502 });
+  }
+}

@@ -62,11 +62,17 @@ function currentSemester(): string {
  * token). Course material for RAG lives in the separate CoursePilot-RAG
  * service (`../rag/canvas-ai-assistant`); `documents` stays 0 here.
  */
-export async function syncCanvas(user: AppUser): Promise<SyncResult> {
-  return withUserSyncLock(user.id, () => performSyncCanvas(user));
+export async function syncCanvas(
+  user: AppUser,
+  options: { selectedCoursesOnly?: boolean; selectedCourseId?: string } = {},
+): Promise<SyncResult> {
+  return withUserSyncLock(user.id, () => performSyncCanvas(user, options));
 }
 
-async function performSyncCanvas(user: AppUser): Promise<SyncResult> {
+async function performSyncCanvas(
+  user: AppUser,
+  options: { selectedCoursesOnly?: boolean; selectedCourseId?: string },
+): Promise<SyncResult> {
   const sb = supabaseAdmin();
   const result: SyncResult = {
     courses: 0,
@@ -101,7 +107,24 @@ async function performSyncCanvas(user: AppUser): Promise<SyncResult> {
     await markCanvasAccountValid(user.id, account.canvas_base_url);
   }
 
-  for (const cc of canvasCourses) {
+  let coursesToSync = canvasCourses;
+  if (options.selectedCoursesOnly) {
+    let selectedQuery = sb
+      .from("courses")
+      .select("canvas_course_id")
+      .eq("user_id", user.id)
+      .eq("selected_for_rag", true);
+    if (options.selectedCourseId) selectedQuery = selectedQuery.eq("id", options.selectedCourseId);
+    const { data: selected, error } = await selectedQuery;
+    if (error) {
+      result.errors.push("Could not load selected courses for sync.");
+      return result;
+    }
+    const selectedIds = new Set((selected ?? []).map((course) => course.canvas_course_id));
+    coursesToSync = canvasCourses.filter((course) => selectedIds.has(course.id));
+  }
+
+  for (const cc of coursesToSync) {
     try {
       const instructor = cc.enrollments?.find((e) => e.type === "TeacherEnrollment");
 
@@ -135,7 +158,7 @@ async function performSyncCanvas(user: AppUser): Promise<SyncResult> {
   }
 
   if (ragIngestionEnabled()) {
-    await ingestDueCourses(sb, user.id, credentials, new Set(canvasCourses.map((course) => course.id)), result);
+    await ingestDueCourses(sb, user.id, credentials, new Set(coursesToSync.map((course) => course.id)), result, options.selectedCourseId);
   }
 
   return result;
@@ -153,17 +176,22 @@ async function ingestDueCourses(
   credentials: CanvasCredentials,
   activeCourseIds: Set<number>,
   result: SyncResult,
+  forceCourseId?: string,
 ): Promise<void> {
   const cutoff = new Date(Date.now() - ragReindexHours() * 60 * 60 * 1000).toISOString();
 
-  const { data: dueCourses, error } = await sb
+  let query = sb
     .from("courses")
     .select("id, canvas_course_id, course_name")
     .eq("user_id", userId)
     .eq("selected_for_rag", true)
-    .or(`rag_indexed_at.is.null,rag_indexed_at.lt.${cutoff}`)
-    .order("rag_indexed_at", { ascending: true, nullsFirst: true })
-    .limit(ragIngestMaxCourses());
+    .order("rag_indexed_at", { ascending: true, nullsFirst: true });
+  if (forceCourseId) {
+    query = query.eq("id", forceCourseId).limit(1);
+  } else {
+    query = query.or(`rag_indexed_at.is.null,rag_indexed_at.lt.${cutoff}`).limit(ragIngestMaxCourses());
+  }
+  const { data: dueCourses, error } = await query;
 
   if (error) {
     result.errors.push(`RAG ingestion skipped: ${error.message}`);

@@ -181,7 +181,9 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
   }, [router]);
 
   return (
-    <SyncContext.Provider value={{ ...state, start }}>{children}</SyncContext.Provider>
+    <SyncContext.Provider value={{ ...state, start }}>
+      {children}
+    </SyncContext.Provider>
   );
 }
 

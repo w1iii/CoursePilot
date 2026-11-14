@@ -207,11 +207,14 @@ export default function ThreadSidebar({
           <nav className="mb-4 space-y-0.5">
             {[
               { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
+              { label: "Study Prep", icon: "school", href: "/dashboard/study-prep" },
             ].map((item) => {
               const active =
                 item.label === "Chats"
                   ? pathname.startsWith("/dashboard/thread")
-                  : item.href === "/dashboard" && pathname === "/dashboard";
+                  : item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.label}

@@ -40,7 +40,7 @@ export async function POST() {
 
     let result;
     try {
-      result = await syncCanvas(user);
+      result = await syncCanvas(user, { selectedCoursesOnly: true });
     } finally {
       // Sync may have committed partial updates before failing.
       invalidateUserCache(user.id);

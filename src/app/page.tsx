@@ -9,6 +9,7 @@ import Reveal from "@/components/landing/Reveal";
 import NavLinks from "@/components/landing/NavLinks";
 import SmoothScroll from "@/components/landing/SmoothScroll";
 import Faq from "@/components/landing/Faq";
+import FeatureCards from "@/components/FeatureCards";
 
 function WeaveMark() {
   return (
@@ -286,106 +287,7 @@ export default function Home() {
             </Reveal>
 
             <Reveal delay={120}>
-            <div className="grid grid-cols-1 gap-space-xl md:grid-cols-2">
-              <div className="feature-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-surface p-space-xl shadow-sm transition-all duration-200">
-                <div className="edge-strand absolute inset-y-0 left-0 w-1.5 bg-primary-container opacity-80" />
-                <div>
-                  <div className="mb-space-lg flex h-12 w-12 items-center justify-center rounded-lg bg-surface-container-high text-primary-container">
-                    <span className="material-symbols-outlined text-2xl leading-none">timeline</span>
-                  </div>
-                  <h3 className="mb-space-xs font-headline-sm text-headline-sm text-primary-container">
-                    Deadline Tracking
-                  </h3>
-                  <p className="font-body-md text-body-md leading-relaxed text-text-muted">
-                    Cross-course synchronization maps every Canvas assignment, quiz, and discussion
-                    prompt against one another so you never miss an overlapping crunch — and flags
-                    every due date that quietly moved.
-                  </p>
-                </div>
-                <div className="mt-space-xl flex items-center justify-between rounded-lg border border-secondary/10 bg-surface-bright p-space-md pt-space-md">
-                  <span className="font-code-tag text-code-tag text-primary-container">
-                    Sync interval: real-time webhooks
-                  </span>
-                  <span className="material-symbols-outlined text-base leading-none text-surface-tint">
-                    done_all
-                  </span>
-                </div>
-              </div>
-
-              <div className="feature-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-surface p-space-xl shadow-sm transition-all duration-200">
-                <div className="edge-strand absolute inset-y-0 left-0 w-1.5 bg-surface-tint opacity-80" />
-                <div>
-                  <div className="mb-space-lg flex h-12 w-12 items-center justify-center rounded-lg bg-secondary-container text-primary-container">
-                    <span className="material-symbols-outlined text-2xl leading-none">article</span>
-                  </div>
-                  <h3 className="mb-space-xs font-headline-sm text-headline-sm text-primary-container">
-                    Module Summaries
-                  </h3>
-                  <p className="font-body-md text-body-md leading-relaxed text-text-muted">
-                    Lengthy professor announcements and 60-page reading PDFs distilled into 3-minute
-                    synthesis briefs with actionable takeaway bullets.
-                  </p>
-                </div>
-                <div className="mt-space-xl flex items-center justify-between rounded-lg border border-secondary/10 bg-surface-bright p-space-md pt-space-md">
-                  <span className="font-code-tag text-code-tag text-primary-container">
-                    Average reading time saved: 4.8 hrs/wk
-                  </span>
-                  <span className="material-symbols-outlined text-base leading-none text-surface-tint">
-                    speed
-                  </span>
-                </div>
-              </div>
-
-              <div className="feature-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-surface p-space-xl shadow-sm transition-all duration-200">
-                <div className="edge-strand absolute inset-y-0 left-0 w-1.5 bg-tertiary-fixed-dim opacity-80" />
-                <div>
-                  <div className="mb-space-lg flex h-12 w-12 items-center justify-center rounded-lg bg-surface-container text-tertiary">
-                    <span className="material-symbols-outlined text-2xl leading-none">
-                      calendar_today
-                    </span>
-                  </div>
-                  <h3 className="mb-space-xs font-headline-sm text-headline-sm text-primary-container">
-                    Study Plans
-                  </h3>
-                  <p className="font-body-md text-body-md leading-relaxed text-text-muted">
-                    Dynamic, elastic pacing that automatically reshapes your calendar when life
-                    happens, professors shift dates, or you need an unplanned rest day.
-                  </p>
-                </div>
-                <div className="mt-space-xl flex items-center justify-between rounded-lg border border-secondary/10 bg-surface-bright p-space-md pt-space-md">
-                  <span className="font-code-tag text-code-tag text-primary-container">
-                    Auto-rebalancing upon date changes
-                  </span>
-                  <span className="material-symbols-outlined text-base leading-none text-surface-tint">
-                    auto_mode
-                  </span>
-                </div>
-              </div>
-
-              <div className="feature-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-surface p-space-xl shadow-sm transition-all duration-200">
-                <div className="edge-strand absolute inset-y-0 left-0 w-1.5 bg-primary-hover opacity-80" />
-                <div>
-                  <div className="mb-space-lg flex h-12 w-12 items-center justify-center rounded-lg bg-secondary-fixed text-primary-container">
-                    <span className="material-symbols-outlined text-2xl leading-none">quiz</span>
-                  </div>
-                  <h3 className="mb-space-xs font-headline-sm text-headline-sm text-primary-container">
-                    Quiz &amp; Exam Prep
-                  </h3>
-                  <p className="font-body-md text-body-md leading-relaxed text-text-muted">
-                    Instant flashcards, recall prompts, and practice quizzes synthesized directly
-                    from your professor’s uploaded lecture slides and past syllabi.
-                  </p>
-                </div>
-                <div className="mt-space-xl flex items-center justify-between rounded-lg border border-secondary/10 bg-surface-bright p-space-md pt-space-md">
-                  <span className="font-code-tag text-code-tag text-primary-container">
-                    Spaced repetition algorithmic weave
-                  </span>
-                  <span className="material-symbols-outlined text-base leading-none text-surface-tint">
-                    psychology
-                  </span>
-                </div>
-              </div>
-            </div>
+              <FeatureCards />
             </Reveal>
           </section>
 

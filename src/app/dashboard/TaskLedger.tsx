@@ -27,7 +27,7 @@ type PriorityFilter = "all" | DashboardTask["priority"];
 const TASKS_PER_PAGE = 5;
 
 const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
-  high: "text-error border-error/50",
+  high: "text-[#b3261e] border-[#b3261e]/50",
   medium: "text-secondary border-secondary/60",
   low: "text-text-muted border-border",
 };
@@ -235,7 +235,7 @@ export default function TaskLedger({
               aria-pressed={priorityFilter === filter}
               className={`border-b-2 pb-1 font-code-tag text-[10px] uppercase tracking-[0.16em] transition-colors ${
                 priorityFilter === filter
-                  ? "border-accent text-accent"
+                  ? "border-accent text-accent-text"
                   : "border-transparent text-text-muted hover:text-on-surface"
               }`}
             >
