@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Non-secret fixtures, documentation, and generated artifacts"
+paths = [
+  '''\.env\.example$''',
+  '''\.test\.ts$''',
+  '''\.md$''',
+  '''public/''',
+]
