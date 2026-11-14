@@ -106,21 +106,34 @@ export function topPriorities(tasks: DashboardTask[], limit = 5): DashboardTask[
   return sortByPriority(tasks.filter(isOpen)).slice(0, limit);
 }
 
-/** Earliest dated open task, falling back to the first undated open task. */
+export function upcomingTasks(
+  tasks: DashboardTask[],
+  now: Date = new Date(),
+): DashboardTask[] {
+  return tasks.filter((task) => {
+    const days = daysUntilDue(task.due_date, now);
+    return isOpen(task) && days !== null && days >= 0;
+  });
+}
+
+/** Earliest upcoming dated open task. */
 export function nextUp(
   tasks: DashboardTask[],
   now: Date = new Date(),
 ): DashboardTask | null {
   const open = tasks.filter(isOpen);
   const dated = open
-    .filter((task) => daysUntilDue(task.due_date, now) !== null)
+    .filter((task) => {
+      const days = daysUntilDue(task.due_date, now);
+      return days !== null && days >= 0;
+    })
     .sort((a, b) => {
       const aDue = parseDate(a.due_date)?.getTime() ?? Number.POSITIVE_INFINITY;
       const bDue = parseDate(b.due_date)?.getTime() ?? Number.POSITIVE_INFINITY;
       return aDue - bDue;
     });
 
-  return dated[0] ?? open[0] ?? null;
+  return dated[0] ?? null;
 }
 
 export function openTasksByCourse(tasks: DashboardTask[]): Map<string, number> {

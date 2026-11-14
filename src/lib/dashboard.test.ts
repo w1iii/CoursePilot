@@ -8,6 +8,7 @@ import {
   openTasksByCourse,
   summarizeAnnouncement,
   topPriorities,
+  upcomingTasks,
 } from "@/lib/dashboard";
 import type { DashboardTask } from "@/app/dashboard/types";
 
@@ -101,15 +102,37 @@ describe("topPriorities", () => {
   });
 });
 
+describe("upcomingTasks", () => {
+  it("excludes overdue, undated, and completed tasks", () => {
+    const tasks = [
+      task({ id: "upcoming", title: "Upcoming", due_date: at(1) }),
+      task({ id: "overdue", title: "Overdue", due_date: at(-1) }),
+      task({ id: "undated", title: "Undated" }),
+      task({ id: "done", title: "Done", due_date: at(1), status: "completed" }),
+    ];
+
+    expect(upcomingTasks(tasks, now).map((item) => item.id)).toEqual(["upcoming"]);
+  });
+});
+
 describe("nextUp", () => {
-  it("picks the earliest dated open task", () => {
+  it("picks the earliest upcoming dated open task", () => {
     const tasks = [
       task({ id: "later", title: "Later", due_date: at(4) }),
       task({ id: "overdue", title: "Overdue", due_date: at(-1) }),
       task({ id: "undated", title: "Undated" }),
     ];
 
-    expect(nextUp(tasks, now)?.id).toBe("overdue");
+    expect(nextUp(tasks, now)?.id).toBe("later");
+  });
+
+  it("returns null when no upcoming task exists", () => {
+    expect(
+      nextUp(
+        [task({ id: "overdue", title: "Overdue", due_date: at(-1) }), task({ id: "undated", title: "Undated" })],
+        now,
+      ),
+    ).toBeNull();
   });
 
   it("returns null when nothing is open", () => {

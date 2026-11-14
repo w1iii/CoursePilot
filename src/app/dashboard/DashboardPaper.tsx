@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   computeStats,
   dueCopy,
   nextUp,
   topPriorities,
+  upcomingTasks,
 } from "@/lib/dashboard";
 import StatStrip from "./StatStrip";
 import SectionNav from "./SectionNav";
@@ -27,6 +28,11 @@ const PRIORITY_TONE: Record<DashboardTask["priority"], string> = {
   low: "text-text-muted border-border",
 };
 
+function limitWords(value: string, limit = 50): string {
+  const words = value.trim().split(/\s+/);
+  return words.length > limit ? `${words.slice(0, limit).join(" ")}...` : value;
+}
+
 export default function DashboardPaper({
   initialTasks,
   courses,
@@ -37,10 +43,14 @@ export default function DashboardPaper({
 }: Props) {
   const [tasks, setTasks] = useState(initialTasks);
   const [error, setError] = useState<string | null>(null);
+  const [showLeadDetails, setShowLeadDetails] = useState(false);
 
   const now = useMemo(() => new Date(today), [today]);
   const stats = useMemo(() => computeStats(tasks, now), [tasks, now]);
-  const priorities = useMemo(() => topPriorities(tasks, 5), [tasks]);
+  const priorities = useMemo(
+    () => topPriorities(upcomingTasks(tasks, now), 5),
+    [tasks, now],
+  );
   const lead = useMemo(() => nextUp(tasks, now), [tasks, now]);
   const indexedCourses = useMemo(
     () => courses.filter((course) => Boolean(course.ragIndexedAt)).length,
@@ -108,6 +118,17 @@ export default function DashboardPaper({
 
   const leadDue = lead ? dueCopy(lead.due_date, now) : null;
 
+  useEffect(() => {
+    if (!showLeadDetails) return;
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setShowLeadDetails(false);
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [showLeadDetails]);
+
   return (
     <div className="paper-texture min-h-full w-full">
       <div className="mx-auto w-full max-w-[1440px] px-gutter-mobile py-space-lg md:px-gutter lg:px-margin-desktop lg:py-space-xl">
@@ -146,6 +167,15 @@ export default function DashboardPaper({
               <h2 id="lead-heading" className="paper-kicker text-accent">
                 Today&apos;s lead
               </h2>
+              {lead ? (
+                <button
+                  type="button"
+                  onClick={() => setShowLeadDetails(true)}
+                  className="paper-kicker text-accent underline decoration-accent/50 underline-offset-4 transition-colors hover:text-primary-container"
+                >
+                  View details
+                </button>
+              ) : null}
             </div>
 
             {lead ? (
@@ -154,8 +184,9 @@ export default function DashboardPaper({
                   {lead.title}
                 </h3>
                 <p className="paper-dropcap mt-2 max-w-prose font-body-md text-body-md text-text-muted">
-                  {lead.description?.trim() ||
-                    "The next item on the loom. Clear it, then the page turns."}
+                  {lead.description?.trim()
+                    ? limitWords(lead.description)
+                    : "The next item on the loom. Clear it, then the page turns."}
                 </p>
                 <div className="mt-space-sm flex flex-wrap items-center gap-space-sm">
                   <span className="font-code-tag text-[11px] uppercase tracking-[0.14em] text-text-muted">
@@ -198,16 +229,16 @@ export default function DashboardPaper({
             <div className="mt-space-lg border-t border-border pt-space-sm">
               <div className="flex items-baseline justify-between gap-2">
                 <h2 className="font-headline-sm text-headline-sm text-primary-container">
-                  Priority queue
+                  Upcoming Tasks
                 </h2>
                 <span className="paper-kicker text-accent">
-                  Five to watch
+                  Five upcoming
                 </span>
               </div>
 
               {priorities.length === 0 ? (
                 <p className="mt-space-sm font-body-sm text-body-sm text-text-muted">
-                  Nothing queued. The loom is quiet.
+                  No upcoming tasks. The loom is quiet.
                 </p>
               ) : (
                 <ol className="mt-space-sm divide-y divide-border">
@@ -258,6 +289,94 @@ export default function DashboardPaper({
             </aside>
           ) : null}
         </div>
+
+        {lead && showLeadDetails ? (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-primary-container/35 p-4 backdrop-blur-sm"
+            role="presentation"
+            onClick={() => setShowLeadDetails(false)}
+          >
+            <div
+              className="paper-texture max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-primary-container/25 bg-surface p-space-lg shadow-[0_18px_60px_var(--shadow-color)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="lead-details-heading"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-primary-container/25 pb-space-sm">
+                <div>
+                  <p className="paper-kicker text-accent">Task details</p>
+                  <h2
+                    id="lead-details-heading"
+                    className="mt-2 font-display text-[32px] leading-tight text-primary-container"
+                  >
+                    {lead.title}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close task details"
+                  onClick={() => setShowLeadDetails(false)}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+                >
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                    close
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-space-md grid gap-space-sm sm:grid-cols-2">
+                <div>
+                  <p className="paper-kicker text-text-muted">Course</p>
+                  <p className="mt-1 font-body-md text-on-surface">
+                    {lead.courses?.course_code ?? lead.courses?.course_name ?? "Course"}
+                  </p>
+                </div>
+                <div>
+                  <p className="paper-kicker text-text-muted">Due</p>
+                  <p className="mt-1 font-body-md text-on-surface">{leadDue?.label}</p>
+                </div>
+                <div>
+                  <p className="paper-kicker text-text-muted">Type</p>
+                  <p className="mt-1 font-body-md capitalize text-on-surface">{lead.type}</p>
+                </div>
+                <div>
+                  <p className="paper-kicker text-text-muted">Priority</p>
+                  <p className="mt-1 font-body-md capitalize text-on-surface">{lead.priority}</p>
+                </div>
+              </div>
+
+              <div className="mt-space-md border-t border-border pt-space-md">
+                <p className="paper-kicker text-text-muted">Description</p>
+                <p className="mt-2 whitespace-pre-wrap font-body-md leading-relaxed text-on-surface">
+                  {lead.description?.trim() || "No description provided."}
+                </p>
+              </div>
+
+              {lead.notes?.trim() ? (
+                <div className="mt-space-md border-t border-border pt-space-md">
+                  <p className="paper-kicker text-text-muted">Notes</p>
+                  <p className="mt-2 whitespace-pre-wrap font-body-md leading-relaxed text-on-surface">
+                    {lead.notes}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="mt-space-lg flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLeadDetails(false);
+                    void toggleTask(lead);
+                  }}
+                  className="border border-accent px-3 py-1.5 font-code-tag text-[10px] uppercase tracking-[0.14em] text-accent transition-colors hover:bg-accent hover:text-on-accent"
+                >
+                  Mark complete
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-space-xl border-t-[3px] border-double border-primary-container pt-space-md">
           <TaskLedger
