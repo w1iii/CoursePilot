@@ -53,17 +53,18 @@ export default function OnboardingFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ canvas_base_url: baseUrl, access_token: token }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Canvas connection failed");
+      if (!response.ok) throw new Error("connect");
       setToken("");
       const courseResponse = await fetch("/api/onboarding/courses", { cache: "no-store" });
       const courseResult = await courseResponse.json();
-      if (!courseResponse.ok) throw new Error(courseResult.error ?? "Could not load courses");
+      if (!courseResponse.ok) throw new Error("courses");
       setCourses(courseResult.courses ?? []);
       setSelected((courseResult.courses ?? []).filter((c: CanvasCourse) => c.selected_for_rag).map((c: CanvasCourse) => c.id));
       setStep("courses");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not connect Canvas");
+      setError(cause instanceof Error && cause.message === "courses"
+        ? "Canvas connected, but courses could not be loaded. Please try again."
+        : "Could not connect Canvas. Check your details and try again.");
     } finally {
       setBusy(false);
     }
@@ -79,13 +80,12 @@ export default function OnboardingFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseIds: selected }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Could not index selected courses");
+      if (!response.ok) throw new Error("index");
       router.replace("/dashboard/thread");
       router.refresh();
-    } catch (cause) {
+    } catch {
       setStep("courses");
-      setError(cause instanceof Error ? cause.message : "Indexing failed. Try again.");
+      setError("Courses could not be indexed. Please try again.");
     } finally {
       setBusy(false);
     }

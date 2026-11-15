@@ -155,7 +155,7 @@ export default function ThreadView({
         signal: controller.signal,
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Request failed");
+      if (!res.ok) throw new Error("request");
       if (json.dailyUsage?.warning) setDailyUsage(json.dailyUsage);
       setTurns((current) => {
         const next = current.map((turn) =>
@@ -167,7 +167,7 @@ export default function ThreadView({
       if ((error as Error).name === "AbortError") return;
       setTurns((current) =>
         current.map((turn) =>
-          turn.id === turnId ? { ...turn, status: "error" as const, error: (error as Error).message } : turn,
+          turn.id === turnId ? { ...turn, status: "error" as const, error: "I couldn’t complete that request. Please try again." } : turn,
         ),
       );
     } finally {
@@ -339,7 +339,7 @@ export default function ThreadView({
                   )}
                   {turn.status === "error" && (
                     <div className="rounded-xl border border-error/30 bg-error-container p-4 text-sm text-on-error-container">
-                      {turn.error}
+                      I couldn’t complete that request. Please try again.
                       <button type="button" onClick={() => retry(turn)} className="ml-3 underline">Try again</button>
                     </div>
                   )}

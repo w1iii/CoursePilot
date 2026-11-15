@@ -49,13 +49,13 @@ export default function StudyPrepHome() {
           setModules([]);
           return;
         }
-        if (!response.ok) throw new Error(data.error ?? "Could not load indexed modules");
+        if (!response.ok) throw new Error("modules");
         setModules(Array.isArray(data.modules) ? data.modules.filter((item: { name?: unknown }) => typeof item.name === "string" && item.name.trim()) : []);
       })
-      .catch((e) => {
+      .catch(() => {
         if (cancelled) return;
         setModules([]);
-        setError(e instanceof Error ? e.message : "Could not load indexed modules");
+        setError("Could not load course modules. Please try again.");
       })
       .finally(() => { if (!cancelled) setModulesLoading(false); });
     return () => { cancelled = true; };
@@ -70,9 +70,9 @@ export default function StudyPrepHome() {
     try {
       const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, module: scope === "module" ? module : null, topic: null, mode, count, difficulty }) });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Generation failed");
+      if (!response.ok) throw new Error("generate");
       router.push(`/dashboard/study-prep/${data.id}`);
-    } catch (e) { setError(e instanceof Error ? e.message : "Generation failed"); }
+    } catch { setError("Could not create study materials. Please try again."); }
     finally { setLoading(false); }
   }
 
@@ -85,8 +85,7 @@ export default function StudyPrepHome() {
       : `/api/study-packs/${encodeURIComponent(deleteTarget.packId)}/sessions/${encodeURIComponent(deleteTarget.id)}`;
     try {
       const response = await fetch(url, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Could not delete item");
+      if (!response.ok) throw new Error("delete");
       if (deleteTarget.kind === "pack") {
         setHistory((current) => current.filter((pack) => pack.id !== deleteTarget.id));
       } else {
@@ -95,8 +94,8 @@ export default function StudyPrepHome() {
           : pack));
       }
       setDeleteTarget(null);
-    } catch (e) {
-      setDeleteError(e instanceof Error ? e.message : "Could not delete item");
+    } catch {
+      setDeleteError("Could not delete this item. Please try again.");
     } finally {
       setDeleting(false);
     }

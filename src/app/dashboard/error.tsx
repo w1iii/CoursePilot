@@ -7,6 +7,7 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void error;
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-16">
       <div className="rounded-2xl border border-error/30 bg-error-container/50 p-6 shadow-sm">
@@ -14,13 +15,8 @@ export default function DashboardError({
           The weave slipped
         </h1>
         <p className="mt-2 font-body-sm text-body-sm text-on-error-container">
-          {error.message || "Something went wrong while loading your dashboard."}
+          Something went wrong while loading your dashboard. Please try again.
         </p>
-        {error.digest && (
-          <p className="mt-1 font-code-tag text-code-tag text-on-error-container/80">
-            Reference: {error.digest}
-          </p>
-        )}
         <div className="mt-5 flex gap-2">
           <button
             onClick={reset}
@@ -36,8 +32,7 @@ export default function DashboardError({
           </a>
         </div>
         <p className="mt-4 font-body-sm text-body-sm text-on-error-container/80">
-          If this keeps happening, check that the RAG service is reachable and that your Canvas
-          connection is still valid.
+          If this keeps happening, contact support.
         </p>
       </div>
     </main>

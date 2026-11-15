@@ -30,11 +30,11 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
     try {
       const response = await fetch(`/api/sync/courses/${encodeURIComponent(course.id)}`, { method: "POST" });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Could not resync course");
+      if (!response.ok) throw new Error("resync");
       setSuccess(`Resynced ${course.name}${result.ragDocuments > 0 ? ` · ${result.ragDocuments} documents indexed` : ""}.`);
       router.refresh();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not resync course");
+    } catch {
+      setError("Could not resync course. Please try again.");
     } finally {
       setBusyId(null);
     }

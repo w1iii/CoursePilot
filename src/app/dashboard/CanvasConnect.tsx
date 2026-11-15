@@ -53,8 +53,8 @@ export default function CanvasConnect({ initialStatus, defaultBaseUrl, embedded 
       setToken("");
       setShowForm(false);
       router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError("Could not connect Canvas. Check your details and try again.");
     } finally {
       setBusy(false);
     }
@@ -80,8 +80,8 @@ export default function CanvasConnect({ initialStatus, defaultBaseUrl, embedded 
       setShowForm(true);
       setBaseUrl(defaultBaseUrl);
       router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError("Could not disconnect Canvas. Please try again.");
     } finally {
       setBusy(false);
     }
