@@ -19,7 +19,11 @@ function jsonResponse(body: unknown, status = 200): Response {
 describe("RAG ingestion client", () => {
   it("preserves previous snapshot when ingestion has failures", () => {
     const result = { documents: 1, chunks: 4, failures: 2, skipped: 0, failureDetails: [], skippedDetails: [] };
-    expect(ragIndexStatus(result)).toEqual({ rag_failure_count: 2 });
+    expect(ragIndexStatus({ ...result, documents: 0, chunks: 0 })).toEqual({ rag_failure_count: 2 });
+    expect(ragIndexStatus(result)).toMatchObject({
+      rag_document_count: 1, rag_chunk_count: 4, rag_failure_count: 2,
+      rag_indexed_at: expect.any(String),
+    });
     expect(ragIndexStatus({ ...result, failures: 0 })).toMatchObject({
       rag_document_count: 1, rag_chunk_count: 4, rag_failure_count: 0,
       rag_indexed_at: expect.any(String),

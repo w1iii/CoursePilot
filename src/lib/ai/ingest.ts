@@ -16,12 +16,14 @@ export interface RagCourseIngestion {
 
 /** Keep the last successful index snapshot when a crawl has item failures. */
 export function ragIndexStatus(ingestion: RagCourseIngestion) {
-  if (ingestion.failures > 0) return { rag_failure_count: ingestion.failures };
+  if (ingestion.failures > 0 && ingestion.documents === 0 && ingestion.chunks === 0) {
+    return { rag_failure_count: ingestion.failures };
+  }
   return {
     rag_indexed_at: new Date().toISOString(),
     rag_document_count: ingestion.documents,
     rag_chunk_count: ingestion.chunks,
-    rag_failure_count: 0,
+    rag_failure_count: ingestion.failures,
   };
 }
 
