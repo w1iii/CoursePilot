@@ -160,11 +160,11 @@ export default function LoomOrbit({
         className="loom-orbit__hub"
         ref={hubRef}
         onClick={onHubClick}
-        title="Ask Habi"
-        aria-label="Ask Habi"
+        title="Ask Coursa"
+        aria-label="Ask Coursa"
       >
         <span className="loom-orbit__hub-pulse" aria-hidden="true" />
-        <span className="loom-orbit__hub-glyph">h</span>
+        <span className="loom-orbit__hub-glyph">c</span>
       </button>
 
       {inner.length > 0 && (
@@ -190,7 +190,7 @@ export default function LoomOrbit({
       {courses.length === 0 && (
         <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap">
           <span className="rounded-full border border-border bg-surface/90 px-3 py-1 font-code-tag text-code-tag text-text-muted">
-            Sync Canvas to weave your courses
+            Sync Canvas to see your courses
           </span>
         </div>
       )}

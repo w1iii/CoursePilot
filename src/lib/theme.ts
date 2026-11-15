@@ -1,5 +1,6 @@
+// Keep the legacy storage key so existing users retain their saved theme.
 export const THEME_KEY = "habi:theme";
-export const THEME_CHANGED_EVENT = "habi:theme-changed";
+export const THEME_CHANGED_EVENT = "coursa:theme-changed";
 
 export type Theme = "light" | "system" | "dark";
 export type ResolvedTheme = "light" | "dark";

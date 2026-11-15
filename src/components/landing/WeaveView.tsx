@@ -307,7 +307,7 @@ export default function WeaveView() {
                   </span>
                 </div>
                 <span className="font-label-md text-label-md font-semibold text-primary-container">
-                  Habi Companion
+                  Coursa Companion
                 </span>
               </div>
               <span className="inline-flex items-center gap-1 font-code-tag text-[10px] font-medium uppercase tracking-wide text-surface-tint">

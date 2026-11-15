@@ -13,7 +13,7 @@ export interface SavedThread {
   updatedAt: string;
 }
 
-export const THREADS_CHANGED_EVENT = "habi:threads-changed";
+export const THREADS_CHANGED_EVENT = "coursa:threads-changed";
 
 interface Props {
   activeThreadId?: string;
@@ -130,7 +130,7 @@ export default function ThreadSidebar({
         />
       )}
       <aside
-        id="habi-sidebar"
+        id="coursa-sidebar"
         aria-label="Sidebar"
         className={`z-40 flex h-full shrink-0 flex-col overflow-hidden border-r border-border bg-surface-container-low text-on-surface transition-[width,transform] duration-200 ${
           collapsed ? "w-[52px]" : "w-[240px]"
@@ -153,7 +153,7 @@ export default function ThreadSidebar({
                 collapsed ? "hidden" : ""
               }`}
             >
-              habi
+              coursa
             </span>
           </Link>
           <button
@@ -162,7 +162,7 @@ export default function ThreadSidebar({
             className="hidden rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-container hover:text-primary-container md:block"
             aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
             aria-expanded={!collapsed}
-            aria-controls="habi-sidebar"
+            aria-controls="coursa-sidebar"
             title={collapsed ? "Expand navigation" : "Collapse navigation"}
           >
             <span className="material-symbols-outlined text-[20px]">

@@ -49,7 +49,7 @@ export const PRODUCT_FEATURES: ProductFeature[] = [
   {
     title: "Quiz & Exam Prep",
     description: "Instant flashcards, recall prompts, and practice quizzes synthesized directly from your professor’s uploaded lecture slides and past syllabi.",
-    detail: "Spaced repetition algorithmic weave",
+    detail: "Spaced repetition study plan",
     icon: "quiz",
     detailIcon: "psychology",
     iconWrap: "bg-secondary-fixed",

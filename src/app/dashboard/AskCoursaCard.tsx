@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-export default function AskHabiCard() {
+export default function AskCoursaCard() {
   return (
     <Link
       href="/dashboard/thread"
       className="group block border border-primary-container/40 bg-surface/70 p-space-md transition-colors hover:bg-surface-container-low focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-container"
-      aria-label="Ask Habi — start a new chat"
+      aria-label="Ask Coursa — start a new chat"
     >
       <div className="flex items-center justify-between gap-2 border-b border-primary-container/25 pb-2">
-        <span className="paper-kicker text-accent-text">Ask Habi</span>
+        <span className="paper-kicker text-accent-text">Ask Coursa</span>
         <span
           className="material-symbols-outlined text-[18px] text-primary-container transition-transform group-hover:translate-x-1"
           aria-hidden="true"

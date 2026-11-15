@@ -3,6 +3,7 @@
  * Every sound is synthesized at click time so the landing page ships no audio assets.
  */
 
+// Keep legacy preference key so rebranding does not reset users' sound setting.
 const SOUND_KEY = "habi:sound-enabled";
 
 function initialSoundEnabled(): boolean {

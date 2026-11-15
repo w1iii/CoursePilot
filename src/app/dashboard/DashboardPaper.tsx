@@ -207,7 +207,7 @@ export default function DashboardPaper({
                 <p className="paper-dropcap mt-2 max-w-prose font-body-md text-body-md text-text-muted">
                   {lead.description?.trim()
                     ? limitWords(lead.description)
-                    : "The next item on the loom. Clear it, then the page turns."}
+                    : "Your next task. Finish it, then move on to what’s next."}
                 </p>
                 <div className="mt-space-sm flex flex-wrap items-center gap-space-sm">
                   <span className="font-code-tag text-[11px] uppercase tracking-[0.14em] text-text-muted">
@@ -259,7 +259,7 @@ export default function DashboardPaper({
 
               {priorities.length === 0 ? (
                 <p className="mt-space-sm font-body-sm text-body-sm text-text-muted">
-                  No upcoming tasks. The loom is quiet.
+                  No upcoming tasks. You’re all caught up.
                 </p>
               ) : (
                 <ol className="mt-space-sm divide-y divide-border">

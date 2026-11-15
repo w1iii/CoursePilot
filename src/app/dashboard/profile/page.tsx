@@ -15,7 +15,7 @@ function normalizeName(value: string): string {
 export default async function ProfilePage() {
   const user = await requireUser();
   const displayName = normalizeName(
-    user.full_name?.trim() || user.email.split("@")[0] || "weaver",
+    user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
 
   return (
