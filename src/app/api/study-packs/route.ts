@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
-import { listCoursesForUser } from "@/lib/ai/rag";
+import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
 import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { invalidateUserCache } from "@/lib/cache";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       ...(typeof input.topic === "string" ? { topic: input.topic } : {}),
       ...(typeof input.module === "string" ? { module: input.module } : {}),
     };
-    const course = (await listCoursesForUser(user.id)).find((item) => item.id === input.courseId);
+    const course = (await listStudyPrepCourses(user.id)).find((item) => item.id === input.courseId);
     if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });
     if (!course.rag_indexed_at) return NextResponse.json({ error: "Course is not indexed yet" }, { status: 409 });
     const db = supabaseAdmin();

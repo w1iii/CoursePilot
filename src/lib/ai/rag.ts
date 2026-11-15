@@ -15,6 +15,8 @@ export interface CourseOption {
   course_name: string;
   course_code: string | null;
   rag_indexed_at: string | null;
+  rag_document_count?: number | null;
+  rag_chunk_count?: number | null;
 }
 
 interface RagCitation {
