@@ -64,7 +64,7 @@ export default function DashboardPaper({
       body: JSON.stringify(updates),
     });
     const json = await response.json();
-    if (!response.ok) throw new Error(json.error ?? "Could not update task");
+    if (!response.ok) throw new Error("update");
     setTasks((current) =>
       current.map((task) => (task.id === id ? { ...task, ...json.task } : task)),
     );
@@ -76,8 +76,8 @@ export default function DashboardPaper({
       await updateTask(task.id, {
         status: task.status === "completed" ? "pending" : "completed",
       });
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError("Could not update task. Please try again.");
     }
   }
 
@@ -88,8 +88,8 @@ export default function DashboardPaper({
     setError(null);
     try {
       await updateTask(id, { priority });
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError("Could not update task priority. Please try again.");
     }
   }
 
@@ -105,7 +105,7 @@ export default function DashboardPaper({
       body: JSON.stringify(input),
     });
     const json = await response.json();
-    if (!response.ok) throw new Error(json.error ?? "Could not create task");
+    if (!response.ok) throw new Error("create");
 
     const course = courses.find((item) => item.id === input.courseId);
     setTasks((current) => [

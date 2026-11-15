@@ -108,8 +108,8 @@ export default function TaskLedger({
       setTitle("");
       setDueDate("");
       setShowForm(false);
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError("Could not create task. Please try again.");
     } finally {
       setBusy(false);
     }

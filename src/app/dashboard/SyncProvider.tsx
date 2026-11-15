@@ -168,11 +168,11 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
         finishedAt: new Date().toISOString(),
       });
       router.refresh();
-    } catch (err) {
+    } catch {
       setState((current) => ({
         ...current,
         running: false,
-        error: (err as Error).message,
+        error: "Sync could not be completed. Please try again.",
         finishedAt: new Date().toISOString(),
       }));
     } finally {
