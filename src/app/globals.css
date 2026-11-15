@@ -1,85 +1,64 @@
 @import "tailwindcss";
 
-.loading-loom-backdrop {
+.orb-loader-backdrop {
   position: absolute;
   inset: 0;
   z-index: 20;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--bg) 58%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: transparent;
   pointer-events: none;
 }
-.loading-loom-wrap { text-align: center; color: var(--text); }
-.loading-loom {
-  --cell: 34px;
-  --ww: 14px;
-  --wh: 11px;
-  --dur: 5s;
-  width: calc(var(--cell) * 4);
-  height: calc(var(--cell) * 4);
+.orb-loader-content { display: grid; justify-items: center; gap: 0.5rem; text-align: center; color: var(--text); }
+.container-loader {
+  --size: 300px;
+  width: var(--size);
+  height: var(--size);
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  margin: 0 auto 30px;
-  animation: loading-loom-spin 9s linear infinite;
+  zoom: 0.5;
 }
-@keyframes loading-loom-spin { to { transform: rotate(360deg); } }
-.loading-loom-warp, .loading-loom-patch {
+.container-loader .ball {
   position: absolute;
-  width: var(--ww);
-  left: calc(var(--c) * var(--cell) + (var(--cell) - var(--ww)) / 2);
-  background: linear-gradient(90deg, var(--link-soft), var(--accent) 55%, var(--accent));
-  border-radius: 3px;
-}
-.loading-loom-warp { top: 0; bottom: 0; }
-.loading-loom-weft {
-  position: absolute;
+  top: 0;
   left: 0;
-  width: 100%;
-  height: var(--wh);
-  top: calc(var(--r) * var(--cell) + (var(--cell) - var(--wh)) / 2);
-  background: linear-gradient(var(--accent-text), var(--accent) 60%, var(--accent));
-  border-radius: 6px;
-  z-index: 2;
-  animation: loading-loom-shuttle var(--dur) cubic-bezier(.65, 0, .35, 1) infinite backwards;
-  animation-delay: calc(var(--r) * .38s);
+  width: calc(var(--size) + var(--i));
+  height: calc(var(--size) + var(--i));
+  background-color: var(--color);
+  border-radius: 50%;
+  animation: orb-loader-move var(--d) linear infinite;
+  transform-origin: var(--size) var(--size);
+  mix-blend-mode: hard-light;
+  filter: blur(58px);
 }
-.loading-loom-weft.alt { background: linear-gradient(var(--link-soft), var(--link-soft) 60%, var(--accent)); }
-.loading-loom-patch {
-  z-index: 3;
-  height: calc(var(--wh) + 5px);
-  top: calc(var(--r) * var(--cell) + (var(--cell) - var(--wh)) / 2 - 2.5px);
-  box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
-  animation-duration: calc(var(--dur) * 2);
-  animation-timing-function: step-end;
-  animation-iteration-count: infinite;
-  animation-fill-mode: backwards;
-  animation-delay: calc(var(--r) * .38s);
+.container-loader .ball:nth-child(even) { animation-direction: reverse; }
+@keyframes orb-loader-move {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(359deg); }
 }
-.loading-loom-patch.a { animation-name: loading-loom-flip-a; }
-.loading-loom-patch.b { animation-name: loading-loom-flip-b; }
-@keyframes loading-loom-shuttle {
-  0%, 3% { transform: translateX(-105%); }
-  35%, 65% { transform: translateX(0); }
-  97%, 100% { transform: translateX(105%); }
-}
-@keyframes loading-loom-flip-a { 0% { opacity: 1; } 50% { opacity: 0; } }
-@keyframes loading-loom-flip-b { 0% { opacity: 0; } 50% { opacity: 1; } }
-.loading-loom-label {
+.orb-loader-label {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  background: color-mix(in srgb, var(--bg) 76%, transparent);
   font-size: 12px;
   letter-spacing: .24em;
   text-transform: uppercase;
-  opacity: .8;
+  opacity: .9;
 }
-.loading-loom-label span { animation: loading-loom-blink 1.8s infinite both; }
-.loading-loom-label span:nth-child(2) { animation-delay: .2s; }
-.loading-loom-label span:nth-child(3) { animation-delay: .4s; }
-@keyframes loading-loom-blink { 0%, 100% { opacity: .15; } 40% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .loading-loom, .loading-loom-weft, .loading-loom-patch, .loading-loom-label span { animation: none; }
-  .loading-loom-patch.b { display: none; }
+  .container-loader .ball { animation: none; }
+}
+
+@keyframes paper-entry-reveal {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.paper-reveal {
+  animation: paper-entry-reveal 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .paper-reveal { animation: none; }
 }
 
 /* ==========================================================

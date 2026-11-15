@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import LoadingLoom from "@/components/LoadingLoom";
+import ColorOrbLoader from "@/components/ColorOrbLoader";
 
 type CanvasCourse = {
   id: string;
@@ -149,7 +149,7 @@ export default function OnboardingFlow() {
           <div className="mt-7 flex flex-wrap items-center justify-between gap-4"><button type="button" onClick={() => setStep("connect")} className="rounded-xl border border-border px-5 py-3">Back</button><button type="button" disabled={busy || selected.length === 0} onClick={() => void finish()} className="rounded-xl bg-accent px-5 py-3 font-semibold text-on-accent disabled:opacity-50">Index {selected.length} {selected.length === 1 ? "course" : "courses"}</button></div>
         </section>}
 
-        {step === "indexing" && <section className="relative mx-auto max-w-xl rounded-3xl border border-border bg-surface p-10 text-center"><LoadingLoom label="Setting up your courses" /><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-border border-t-accent" /><p className="mt-6 font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 3 · Setting things up</p><h1 className="mt-3 font-display text-3xl">We’re weaving in your courses.</h1><p className="mt-3 text-text-muted">Canvas is syncing and selected course materials are being indexed. Keep this page open.</p></section>}
+        {step === "indexing" && <section className="relative mx-auto max-w-xl rounded-3xl border border-border bg-surface p-10 text-center"><ColorOrbLoader label="Setting up your courses" /><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-border border-t-accent" /><p className="mt-6 font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 3 · Setting things up</p><h1 className="mt-3 font-display text-3xl">We’re weaving in your courses.</h1><p className="mt-3 text-text-muted">Canvas is syncing and selected course materials are being indexed. Keep this page open.</p></section>}
       </div>
     </main>
     </>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSync } from "./SyncProvider";
-import LoadingLoom from "@/components/LoadingLoom";
+import ColorOrbLoader from "@/components/ColorOrbLoader";
 
 function finishLabel(value: string | null): string | null {
   if (!value) return null;
@@ -21,7 +21,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
   return (
     <div className="flex flex-col items-start gap-space-sm md:items-end">
       <div className="relative">
-      {running && <LoadingLoom label="Syncing Canvas" />}
+      {running && <ColorOrbLoader label="Syncing Canvas" />}
       <button
         type="button"
         onClick={() => void start()}

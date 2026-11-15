@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import LoadingLoom from "@/components/LoadingLoom";
+import ColorOrbLoader from "@/components/ColorOrbLoader";
+import PaperReveal from "@/components/PaperReveal";
 
 type Course = { id: string; course_name: string; course_code: string | null; rag_indexed_at: string | null };
 type History = { id: string; title: string; mode: string; module: string | null; topic: string | null; course: { course_name: string; course_code: string | null } | null; study_sessions: Array<{ id: string; status: string; score: number; last_active_at: string }> };
@@ -107,16 +108,16 @@ export default function StudyPrepHome() {
   return (
     <main className="paper-texture min-h-full w-full">
       <div className="mx-auto w-full max-w-[1440px] px-gutter-mobile py-space-lg md:px-gutter lg:px-margin-desktop lg:py-space-xl">
-        <header className="border-b-[3px] border-double border-primary-container pb-space-md">
+        <PaperReveal><header className="border-b-[3px] border-double border-primary-container pb-space-md">
           <div className="flex flex-wrap items-end justify-between gap-space-sm border-b border-primary-container/25 pb-space-sm">
             <div><p className="paper-kicker text-accent-text">Study desk</p><h1 className="mt-2 font-display text-4xl leading-tight text-primary-container sm:text-5xl">Quiz &amp; Exam Prep</h1></div>
           </div>
           <p className="mt-space-sm max-w-2xl font-body-lg text-body-lg text-text-muted">Turn indexed course material into grounded flashcards and practice quizzes. Pick your coverage; we&apos;ll build the study set.</p>
-        </header>
+        </header></PaperReveal>
 
-        <div className="mt-space-lg grid grid-cols-1 gap-space-xl lg:grid-cols-12 lg:gap-0">
+        <PaperReveal delay={120} className="mt-space-lg"><div className="grid grid-cols-1 gap-space-xl lg:grid-cols-12 lg:gap-0">
           <section className="relative lg:col-span-7 lg:pr-space-xl xl:col-span-8" aria-labelledby="builder-heading">
-            {loading && <LoadingLoom label="Preparing your study pack" />}
+            {loading && <ColorOrbLoader label="Preparing your study pack" />}
             {courses.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-space-md py-space-xl" role="status"><p className="paper-kicker text-accent-text">First, choose your sources</p><h3 className="mt-2 font-headline-sm text-headline-sm text-primary-container">No selected courses</h3><p className="mt-2 font-body-md text-body-md text-text-muted">Select courses for AI study in Settings, then sync Canvas content to make materials available.</p><Link className="mt-space-md inline-flex items-center gap-2 font-label-md text-label-md text-accent-text underline underline-offset-4" href="/dashboard/settings">Open course settings <span aria-hidden="true">→</span></Link></div> : <div className="mt-space-md">
               <label className={labelClass} htmlFor="study-course">Course source</label>
               <select id="study-course" className={fieldClass} value={courseId} onChange={(e) => { setCourseId(e.target.value); setModule(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>
@@ -140,7 +141,7 @@ export default function StudyPrepHome() {
             <div className="flex items-baseline justify-between gap-2 border-b border-primary-container/25 pb-1"><h2 id="history-heading" className="paper-kicker text-accent-text">From the archive</h2><span className="paper-kicker text-text-muted">{history.length} {history.length === 1 ? "pack" : "packs"}</span></div>
             {history.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-4 py-8"><p className="font-display text-2xl text-primary-container">Your first edition awaits.</p><p className="mt-2 font-body-sm text-body-sm text-text-muted">Generated study packs and saved sessions will appear here.</p></div> : <ol className="mt-2 divide-y divide-primary-container/20">{history.map((pack, index) => <li key={pack.id} className="py-space-md"><div className="flex items-start gap-3"><span className="pt-0.5 font-code-tag text-code-tag text-text-muted">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><Link className="font-headline-sm text-headline-sm text-primary-container underline decoration-primary-container/30 underline-offset-4 hover:decoration-primary-container" href={`/dashboard/study-prep/${pack.id}`}>{pack.title}</Link><button type="button" onClick={() => { setDeleteTarget({ kind: "pack", id: pack.id, title: pack.title }); setDeleteError(""); }} aria-label={`Delete study pack ${pack.title}`} className="shrink-0 px-1 font-label-sm text-label-sm text-text-muted underline underline-offset-4 hover:text-error">Delete</button></div><p className="mt-1 font-body-sm text-body-sm text-text-muted">{pack.course?.course_name ?? "Course"}{pack.module ? ` · ${pack.module}` : pack.topic ? ` · ${pack.topic}` : ""}</p><p className="mt-1 paper-kicker text-text-muted">{pack.mode.replace("_", " ")} · {pack.study_sessions?.length ?? 0} sessions</p>{pack.study_sessions?.map((s) => <div key={s.id} className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1"><Link className="font-label-sm text-label-sm text-accent-text underline underline-offset-4" href={`/dashboard/study-prep/${pack.id}/session/${s.id}`}>{s.status === "completed" ? `Review · Score ${s.score}` : "Resume session"}</Link><button type="button" onClick={() => { setDeleteTarget({ kind: "session", id: s.id, packId: pack.id, title: pack.title }); setDeleteError(""); }} aria-label={`Delete ${s.status === "completed" ? "completed" : "active"} session for ${pack.title}`} className="font-label-sm text-label-sm text-text-muted underline underline-offset-4 hover:text-error">Delete session</button></div>)}</div></div></li>)}</ol>}
           </aside>
-        </div>
+        </div></PaperReveal>
         {deleteTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-container/35 p-4 backdrop-blur-sm" role="presentation" onClick={() => { if (!deleting) setDeleteTarget(null); }}><section className="paper-texture w-full max-w-md border border-primary-container/25 bg-surface p-space-lg shadow-[0_18px_60px_var(--shadow-color)]" role="alertdialog" aria-modal="true" aria-labelledby="delete-study-heading" aria-describedby="delete-study-description" onClick={(event) => event.stopPropagation()}><p className="paper-kicker text-error">Confirm deletion</p><h2 id="delete-study-heading" className="mt-2 font-display text-3xl text-primary-container">Delete {deleteTarget.kind === "pack" ? "study pack" : "session"}?</h2><p id="delete-study-description" className="mt-space-sm font-body-md text-body-md text-text-muted">{deleteTarget.kind === "pack" ? <>“{deleteTarget.title}” and all its sessions will be permanently deleted.</> : <>This session for “{deleteTarget.title}” will be permanently deleted.</>} This cannot be undone.</p>{deleteError && <p role="alert" className="mt-space-sm font-body-sm text-body-sm text-error">{deleteError}</p>}<div className="mt-space-lg flex justify-end gap-3"><button type="button" disabled={deleting} onClick={() => setDeleteTarget(null)} className="min-h-10 border border-border px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container disabled:opacity-50">Cancel</button><button type="button" disabled={deleting} onClick={() => void deleteEntry()} className="min-h-10 bg-error px-4 font-label-md text-label-md text-on-error hover:opacity-90 disabled:opacity-50">{deleting ? "Deleting…" : "Delete permanently"}</button></div></section></div>}
       </div>
     </main>

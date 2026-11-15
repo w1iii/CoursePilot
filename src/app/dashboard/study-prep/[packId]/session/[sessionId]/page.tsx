@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { animate, createScope } from "animejs";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -14,6 +15,9 @@ export default function StudySessionPage() {
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [error, setError] = useState("");
+  const motionRoot = useRef<HTMLDivElement>(null);
+  const questionRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([
@@ -38,6 +42,28 @@ export default function StudySessionPage() {
 
   const items = pack?.study_pack_items ?? [];
   const item = items[index];
+
+  useEffect(() => {
+    if (!motionRoot.current || !questionRef.current || !progressRef.current || items.length === 0) return;
+    const scope = createScope({
+      root: motionRoot,
+      mediaQueries: { reduceMotion: "(prefers-reduced-motion: reduce)" },
+    }).add((self) => {
+      if (self?.matches.reduceMotion ?? window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      animate(questionRef.current!, {
+        opacity: [0, 1],
+        translateY: [10, 0],
+        duration: 360,
+        ease: "out(3)",
+      });
+      animate(progressRef.current!, {
+        width: [`${(index / items.length) * 100}%`, `${((index + 1) / items.length) * 100}%`],
+        duration: 500,
+        ease: "out(3)",
+      });
+    });
+    return () => scope.revert();
+  }, [index, items.length]);
 
   async function saveAttempt(isCorrect: boolean) {
     if (!item) return;
@@ -102,7 +128,7 @@ export default function StudySessionPage() {
 
   return (
     <main className="paper-texture min-h-full w-full">
-      <div className="mx-auto w-full max-w-[1100px] px-gutter-mobile py-space-lg md:px-gutter lg:py-space-xl">
+      <div ref={motionRoot} className="mx-auto w-full max-w-[1100px] px-gutter-mobile py-space-lg md:px-gutter lg:py-space-xl">
         <header className="border-b-[3px] border-double border-primary-container pb-space-md">
           <div className="flex items-center justify-between gap-4 border-b border-primary-container/25 pb-space-sm">
             <Link href={`/dashboard/study-prep/${packId}`} className="paper-kicker text-accent-text hover:underline">← {pack.title}</Link>
@@ -112,10 +138,11 @@ export default function StudySessionPage() {
             <div><p className="paper-kicker text-text-muted">{pack.course?.course_name ?? "Study session"}</p><h1 className="mt-1 font-display text-3xl text-primary-container sm:text-4xl">A question at a time</h1></div>
             <p className="font-code-tag text-[11px] uppercase tracking-[0.14em] text-text-muted">Question {index + 1} <span className="text-primary-container/40">/</span> {items.length}</p>
           </div>
-          <div className="mt-space-md h-[3px] w-full bg-primary-container/10" role="progressbar" aria-label="Session progress" aria-valuenow={index + 1} aria-valuemin={1} aria-valuemax={items.length}><div className="h-full bg-accent transition-[width]" style={{ width: `${((index + 1) / items.length) * 100}%` }} /></div>
+          <div className="mt-space-md h-[3px] w-full bg-primary-container/10" role="progressbar" aria-label="Session progress" aria-valuenow={index + 1} aria-valuemin={1} aria-valuemax={items.length}><div ref={progressRef} className="h-full bg-accent transition-[width] duration-500 ease-out" style={{ width: `${((index + 1) / items.length) * 100}%` }} /></div>
         </header>
 
-        <article className="mx-auto mt-space-xl max-w-3xl">
+        <article key={index} className="paper-reveal mx-auto mt-space-xl max-w-3xl">
+          <div ref={questionRef}>
           <div className="border-b border-primary-container/25 pb-space-md">
             <div className="flex flex-wrap items-center gap-3"><span className="paper-kicker text-accent-text">{item.item_type?.replace("_", " ") ?? "Study prompt"}</span><span className="paper-kicker text-text-muted">{item.difficulty}</span></div>
             <h2 className="mt-space-md font-display text-3xl leading-snug text-primary-container sm:text-4xl">{item.question}</h2>
@@ -131,6 +158,7 @@ export default function StudySessionPage() {
           ) : (
             <label className="mt-space-lg block paper-kicker text-text-muted">Your answer<textarea className="mt-2 min-h-32 w-full border-0 border-b border-primary-container/40 bg-transparent px-0 py-3 font-body-md text-body-md text-on-surface outline-none focus:border-primary-container" value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={revealed} /></label>
           )}
+          </div>
 
           {!revealed ? (item.item_type === "flashcard" ? null : <button type="button" onClick={() => item.item_type === "short_answer" ? setRevealed(true) : saveAttempt(Number(answer) === item.correct_option)} disabled={!answer} className="mt-space-lg min-h-11 bg-primary-container px-5 py-3 font-code-tag text-[10px] uppercase tracking-[0.14em] text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-50">Check answer <span aria-hidden="true">→</span></button>) : (
             <section className="mt-space-lg border-l-[3px] border-accent bg-surface/50 py-space-md pl-space-md pr-space-sm" role="status">

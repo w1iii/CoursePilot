@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import PaperReveal from "@/components/PaperReveal";
 
 export default function StudyPackPage() {
   const { packId } = useParams<{ packId: string }>();
@@ -41,7 +42,7 @@ export default function StudyPackPage() {
   return (
     <main className="paper-texture min-h-full w-full">
       <div className="mx-auto w-full max-w-[1440px] px-gutter-mobile py-space-lg md:px-gutter lg:px-margin-desktop lg:py-space-xl">
-        <header className="border-b-[3px] border-double border-primary-container pb-space-md">
+        <PaperReveal><header className="border-b-[3px] border-double border-primary-container pb-space-md">
           <div className="flex flex-wrap items-end justify-between gap-space-md border-b border-primary-container/25 pb-space-md">
             <div>
               <Link className="paper-kicker text-accent-text hover:underline" href="/dashboard/study-prep">← Study desk</Link>
@@ -57,9 +58,9 @@ export default function StudyPackPage() {
             <span>{pack.item_count} items</span><span>{pack.study_pack_items?.length ?? 0} previewed</span>
             {pack.difficulty && <span>{pack.difficulty} difficulty</span>}
           </div>
-        </header>
+        </header></PaperReveal>
 
-        <section className="mt-space-lg" aria-labelledby="preview-heading">
+        <PaperReveal delay={140}><section className="mt-space-lg" aria-labelledby="preview-heading">
           <div className="mb-space-md flex items-end justify-between gap-4 border-b border-primary-container/25 pb-2">
             <div><p className="paper-kicker text-accent-text">Inside this edition</p><h2 id="preview-heading" className="mt-1 font-display text-3xl text-primary-container">Pack preview</h2></div>
             <span className="paper-kicker text-text-muted">{pack.study_pack_items?.length ?? 0} questions</span>
@@ -76,7 +77,7 @@ export default function StudyPackPage() {
               </li>
             ))}
           </ol>
-        </section>
+        </section></PaperReveal>
       </div>
     </main>
   );
