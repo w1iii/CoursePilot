@@ -14,6 +14,19 @@ export interface RagCourseIngestion {
   skippedDetails: string[];
 }
 
+/** Keep the last successful index snapshot when a crawl has item failures. */
+export function ragIndexStatus(ingestion: RagCourseIngestion) {
+  if (ingestion.failures > 0 && ingestion.documents === 0 && ingestion.chunks === 0) {
+    return { rag_failure_count: ingestion.failures };
+  }
+  return {
+    rag_indexed_at: new Date().toISOString(),
+    rag_document_count: ingestion.documents,
+    rag_chunk_count: ingestion.chunks,
+    rag_failure_count: ingestion.failures,
+  };
+}
+
 export function ragIngestionEnabled(): boolean {
   return env("RAG_INGESTION_ENABLED") !== "false";
 }
@@ -129,13 +142,15 @@ export async function ingestCanvasCourse(input: {
       }>;
       document_count?: number;
       chunk_count?: number;
+      indexed_document_count?: number | null;
+      indexed_chunk_count?: number | null;
       failure_count?: number;
       skipped_count?: number;
     };
 
     return {
-      documents: json.document_count ?? 0,
-      chunks: json.chunk_count ?? 0,
+      documents: json.indexed_document_count ?? json.document_count ?? 0,
+      chunks: json.indexed_chunk_count ?? json.chunk_count ?? 0,
       failures: json.failure_count ?? 0,
       skipped: json.skipped_count ?? 0,
       failureDetails: (json.modules ?? []).flatMap((module) =>

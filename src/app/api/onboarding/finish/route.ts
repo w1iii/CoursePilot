@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { invalidateUserCache } from "@/lib/cache";
 import { listCourses } from "@/lib/canvas";
 import { getCanvasCredentials } from "@/lib/canvas-account";
-import { ingestCanvasCourse } from "@/lib/ai/ingest";
+import { ingestCanvasCourse, ragIndexStatus } from "@/lib/ai/ingest";
 import { syncCanvas } from "@/lib/sync";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser, UnauthorizedError } from "@/lib/user";
@@ -73,10 +73,7 @@ export async function POST(request: Request) {
           canvasAccessToken: credentials.token,
         });
         const { error: updateError } = await sb.from("courses").update({
-          rag_indexed_at: new Date().toISOString(),
-          rag_document_count: result.documents,
-          rag_chunk_count: result.chunks,
-          rag_failure_count: result.failures,
+          ...ragIndexStatus(result),
         }).eq("id", course.id).eq("user_id", user.id);
         if (updateError) throw updateError;
         additionalFailures += result.failures;

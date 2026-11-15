@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
-import { listCoursesForUser } from "@/lib/ai/rag";
+import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ courseId: string }> }) {
   try {
     const user = await requireUser();
     const { courseId } = await params;
-    const course = (await listCoursesForUser(user.id)).find((item) => item.id === courseId);
+    const course = (await listStudyPrepCourses(user.id)).find((item) => item.id === courseId);
     if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });
     if (!course.rag_indexed_at) return NextResponse.json({ error: "Course is not indexed yet", modules: [] }, { status: 409 });
     // Module metadata endpoint is added to the RAG service; empty list is a valid unstructured-course fallback.

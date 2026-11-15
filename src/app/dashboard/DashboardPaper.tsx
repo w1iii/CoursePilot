@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { animate, createScope, stagger } from "animejs";
 import {
   computeStats,
   dueCopy,
@@ -42,6 +43,7 @@ export default function DashboardPaper({
   news,
   rail,
 }: Props) {
+  const motionRoot = useRef<HTMLDivElement>(null);
   const [tasks, setTasks] = useState(initialTasks);
   const [error, setError] = useState<string | null>(null);
   const [showLeadDetails, setShowLeadDetails] = useState(false);
@@ -57,6 +59,24 @@ export default function DashboardPaper({
     () => courses.filter((course) => Boolean(course.ragIndexedAt)).length,
     [courses],
   );
+
+  useEffect(() => {
+    if (!motionRoot.current) return;
+    const scope = createScope({
+      root: motionRoot,
+      mediaQueries: { reduceMotion: "(prefers-reduced-motion: reduce)" },
+    }).add((self) => {
+      if (self?.matches.reduceMotion ?? window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      animate("[data-enter]", {
+        opacity: [0, 1],
+        translateY: [10, 0],
+        duration: 520,
+        delay: stagger(75),
+        ease: "out(3)",
+      });
+    });
+    return () => scope.revert();
+  }, []);
   async function updateTask(id: string, updates: Record<string, string>) {
     const response = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -132,10 +152,10 @@ export default function DashboardPaper({
 
   return (
     <div className="paper-texture min-h-full w-full">
-      <div className="mx-auto w-full max-w-[1440px] px-gutter-mobile py-space-lg md:px-gutter lg:px-margin-desktop lg:py-space-xl">
-        {masthead}
+      <div ref={motionRoot} className="mx-auto w-full max-w-[1440px] px-gutter-mobile py-space-lg md:px-gutter lg:px-margin-desktop lg:py-space-xl">
+        <div data-enter className="paper-reveal">{masthead}</div>
 
-        <StatStrip
+        <div data-enter className="paper-reveal" style={{ animationDelay: "90ms" }}><StatStrip
           stats={[
             {
               label: "Open tasks",
@@ -158,12 +178,12 @@ export default function DashboardPaper({
               detail: `${indexedCourses} indexed for AI`,
             },
           ]}
-        />
+        /></div>
 
-        <SectionNav />
+        <div data-enter className="paper-reveal" style={{ animationDelay: "180ms" }}><SectionNav /></div>
 
         <div className="mt-space-lg grid grid-cols-1 gap-space-lg lg:grid-cols-12 lg:gap-0">
-          <section className="lg:col-span-7 lg:pr-space-lg xl:col-span-6" aria-labelledby="lead-heading">
+          <section data-enter className="paper-reveal lg:col-span-7 lg:pr-space-lg xl:col-span-6" style={{ animationDelay: "240ms" }} aria-labelledby="lead-heading">
             <div className="flex items-baseline justify-between gap-2 border-b border-primary-container/25 pb-1">
               <h2 id="lead-heading" className="paper-kicker text-accent-text">
                 Today&apos;s lead
@@ -280,12 +300,12 @@ export default function DashboardPaper({
             </div>
           </section>
 
-          <section className="mt-space-lg border-t border-primary-container/25 pt-space-md lg:col-span-5 lg:mt-0 lg:border-l lg:border-t-0 lg:border-border lg:pl-space-lg lg:pt-0 xl:col-span-3">
+          <section data-enter className="paper-reveal mt-space-lg border-t border-primary-container/25 pt-space-md lg:col-span-5 lg:mt-0 lg:border-l lg:border-t-0 lg:border-border lg:pl-space-lg lg:pt-0 xl:col-span-3" style={{ animationDelay: "320ms" }}>
             {news}
           </section>
 
           {rail ? (
-            <aside className="mt-space-lg border-t border-primary-container/25 pt-space-md lg:col-span-12 lg:grid lg:grid-cols-2 lg:gap-space-lg lg:border-t lg:pt-space-md xl:col-span-3 xl:mt-0 xl:flex xl:flex-col xl:border-l xl:border-t-0 xl:border-border xl:pl-space-lg xl:pt-0">
+            <aside data-enter className="paper-reveal mt-space-lg border-t border-primary-container/25 pt-space-md lg:col-span-12 lg:grid lg:grid-cols-2 lg:gap-space-lg lg:border-t lg:pt-space-md xl:col-span-3 xl:mt-0 xl:flex xl:flex-col xl:border-l xl:border-t-0 xl:border-border xl:pl-space-lg xl:pt-0" style={{ animationDelay: "400ms" }}>
               {rail}
             </aside>
           ) : null}
@@ -379,7 +399,7 @@ export default function DashboardPaper({
           </div>
         ) : null}
 
-        <div className="mt-space-xl border-t-[3px] border-double border-primary-container pt-space-md">
+        <div data-enter className="paper-reveal mt-space-xl border-t-[3px] border-double border-primary-container pt-space-md" style={{ animationDelay: "460ms" }}>
           <TaskLedger
             tasks={tasks}
             courses={courses}
@@ -392,7 +412,7 @@ export default function DashboardPaper({
           />
         </div>
 
-        <Capabilities />
+        <div data-enter className="paper-reveal" style={{ animationDelay: "520ms" }}><Capabilities /></div>
 
       </div>
     </div>

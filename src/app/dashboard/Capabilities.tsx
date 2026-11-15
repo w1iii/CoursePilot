@@ -10,7 +10,7 @@ export default function Capabilities() {
         </div>
         <p className="max-w-md font-body-sm text-body-sm text-text-muted">What CoursePilot supports today, plus features still being woven into the system.</p>
       </div>
-      <FeatureCards showStatus />
+      <FeatureCards showStatus variant="paper" />
     </section>
   );
 }
