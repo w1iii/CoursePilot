@@ -260,7 +260,7 @@ create index if not exists chat_messages_thread_created_idx
 create or replace function public.save_chat_thread(
   p_thread_id uuid, p_user_id uuid, p_course_id uuid, p_title text, p_messages jsonb
 ) returns void
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = ''
 as $$
 declare
   v_owner uuid;
@@ -310,7 +310,7 @@ create or replace function public.check_rate_limit(
 returns table (allowed boolean, exceeded_scope text, retry_after_seconds integer)
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   v_now            timestamptz := now();
@@ -367,7 +367,7 @@ create or replace function public.get_rate_limit_usage(p_user_id uuid)
 returns table (daily_count integer)
 language sql
 security definer
-set search_path = public
+set search_path = ''
 as $$
   select coalesce((
     select count
@@ -396,5 +396,6 @@ alter table public.announcements enable row level security;
 alter table public.deadline_changes enable row level security;
 alter table public.ai_requests enable row level security;
 alter table public.rate_limit_windows enable row level security;
+alter table public.sync_locks enable row level security;
 alter table public.chat_threads enable row level security;
 alter table public.chat_messages enable row level security;
