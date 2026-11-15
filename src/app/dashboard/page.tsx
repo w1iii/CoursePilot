@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
 import { cacheUserRead } from "@/lib/cache";
 import AnnouncementsFeed from "./AnnouncementsFeed";
-import AskHabiCard from "./AskHabiCard";
+import AskCoursaCard from "./AskCoursaCard";
 import DashboardPaper from "./DashboardPaper";
 import DashboardShell from "./DashboardShell";
 import PaperMasthead from "./PaperMasthead";
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
   const edition = courseRows.find((course) => course.semester)?.semester ?? semesterLabel(now);
 
   const displayName = normalizeName(
-    user.full_name?.trim() || user.email.split("@")[0] || "weaver",
+    user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
   const firstName = displayName.split(/\s+/)[0];
 
@@ -196,7 +196,7 @@ export default async function DashboardPage() {
           news={
             <>
               <AnnouncementsFeed announcements={announcements} />
-              <AskHabiCard />
+              <AskCoursaCard />
             </>
           }
           rail={null}

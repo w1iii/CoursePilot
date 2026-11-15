@@ -49,7 +49,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
   }));
 
   const displayName = normalizeName(
-    user.full_name?.trim() || user.email.split("@")[0] || "weaver",
+    user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
 
   // Hydrate existing conversations; new canonical IDs have no persisted row yet.

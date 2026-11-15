@@ -12,7 +12,7 @@ export default function DashboardError({
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-16">
       <div className="rounded-2xl border border-error/30 bg-error-container/50 p-6 shadow-sm">
         <h1 className="font-headline-md text-headline-md text-on-error-container">
-          The weave slipped
+          Something went wrong
         </h1>
         <p className="mt-2 font-body-sm text-body-sm text-on-error-container">
           Something went wrong while loading your dashboard. Please try again.

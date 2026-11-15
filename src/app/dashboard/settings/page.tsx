@@ -114,7 +114,7 @@ export default async function SettingsPage() {
   }));
 
   const displayName = normalizeName(
-    user.full_name?.trim() || user.email.split("@")[0] || "weaver",
+    user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
 
   return (
@@ -215,10 +215,10 @@ export default async function SettingsPage() {
                 <AppearancePreferences />
               </SettingsGroup>
 
-              <SettingsGroup label="Ask Habi" tag="Coming soon">
+              <SettingsGroup label="Ask Coursa" tag="Coming soon">
                 <SettingsSection
                   title="Assistant"
-                  description="Tune how Habi answers questions about your courses."
+                  description="Tune how Coursa answers questions about your courses."
                 >
                   <SettingsRow label="Always show citations" comingSoon>
                     <ComingSoonValue value="On" />
@@ -240,7 +240,7 @@ export default async function SettingsPage() {
 
                 <SettingsSection
                   title="Notifications"
-                  description="Control when Habi nudges you about deadlines and announcements."
+                  description="Control when Coursa nudges you about deadlines and announcements."
                 >
                   <SettingsRow label="Deadline reminder" comingSoon>
                     <ComingSoonValue value="Off" />
@@ -267,7 +267,7 @@ export default async function SettingsPage() {
               <SettingsGroup label="Data & account" tag="Mostly coming soon">
                 <SettingsSection
                   title="Data & privacy"
-                  description="Your Canvas token is encrypted at rest. Ask Habi prompts are logged without their content."
+                  description="Your Canvas token is encrypted at rest. Ask Coursa prompts are logged without their content."
                 >
                   <SettingsRow
                     label="Export my data"
@@ -278,7 +278,7 @@ export default async function SettingsPage() {
                   </SettingsRow>
                   <SettingsRow
                     label="Delete synced academic data"
-                    helper="Remove Canvas-synced courses, tasks, and announcements from Habi."
+                    helper="Remove Canvas-synced courses, tasks, and announcements from Coursa."
                     comingSoon
                   >
                     <DisabledAction label="Delete data" danger />
@@ -326,7 +326,7 @@ export default async function SettingsPage() {
                       <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </Link>
                   </SettingsRow>
-                  <SettingsRow label="Session" helper="Sign out of Habi on this browser.">
+                  <SettingsRow label="Session" helper="Sign out of Coursa on this browser.">
                     <SignOutButton redirectUrl="/">
                       <button
                         type="button"
@@ -341,7 +341,7 @@ export default async function SettingsPage() {
               </SettingsGroup>
 
               <p className="px-1 pb-space-sm font-code-tag text-[10px] uppercase tracking-[0.12em] text-text-muted">
-                Habi · settings <ComingSoonBadge /> items are planned, not active controls.
+                Coursa · settings <ComingSoonBadge /> items are planned, not active controls.
               </p>
             </div>
           </div>

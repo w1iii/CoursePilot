@@ -17,6 +17,7 @@ export default function DashboardShell({ children, userName, userEmail, activeTh
 
   useEffect(() => {
     try {
+      // Legacy preference key is intentionally retained across the Coursa rebrand.
       setSidebarCollapsed(localStorage.getItem("habi:sidebar-collapsed") === "true");
     } catch {
       // Use the expanded default when storage is unavailable.

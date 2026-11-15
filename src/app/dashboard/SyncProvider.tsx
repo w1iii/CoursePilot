@@ -29,6 +29,7 @@ interface SyncContextValue extends SyncState {
   start: () => Promise<void>;
 }
 
+// Keep the legacy key so existing sync timestamps remain available after rebrand.
 const STORAGE_KEY = "habi:last-sync";
 
 const initialState: SyncState = {

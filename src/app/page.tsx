@@ -3,15 +3,14 @@ import { Show } from "@clerk/nextjs";
 import SoundToggle from "@/components/landing/SoundToggle";
 import HeroLoom from "@/components/landing/HeroLoom";
 import Workflow from "@/components/landing/Workflow";
-import WeaveView from "@/components/landing/WeaveView";
-import AskHabi from "@/components/landing/AskHabi";
+import AskCoursa from "@/components/landing/AskCoursa";
 import Reveal from "@/components/landing/Reveal";
 import NavLinks from "@/components/landing/NavLinks";
 import SmoothScroll from "@/components/landing/SmoothScroll";
 import Faq from "@/components/landing/Faq";
 import FeatureCards from "@/components/FeatureCards";
 
-function WeaveMark() {
+function CoursaMark() {
   return (
     <svg
       aria-hidden="true"
@@ -20,16 +19,13 @@ function WeaveMark() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect width="32" height="32" rx="8" fill="var(--color-rule)" />
       <path
-        d="M16 5.5 26.5 16 16 26.5 5.5 16 16 5.5Z"
-        stroke="var(--color-background)"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
+        d="M23.1 10.2a8 8 0 1 0 0 11.6"
+        stroke="var(--color-rule)"
+        strokeWidth="3"
+        strokeLinecap="round"
       />
-      <path d="M16 10.5 21.5 16 16 21.5 10.5 16 16 10.5Z" fill="var(--color-accent)" />
-      <path d="M16 13.2 18.8 16 16 18.8 13.2 16 16 13.2Z" fill="var(--color-rule)" />
-      <path d="M5.5 16h21M16 5.5v21" stroke="var(--color-background)" strokeOpacity="0.35" strokeWidth="0.8" />
+      <circle cx="22.5" cy="16" r="2" fill="var(--color-accent)" />
     </svg>
   );
 }
@@ -41,9 +37,9 @@ export default function Home() {
       <header className="fixed inset-x-0 top-0 z-50 bg-background/85 shadow-[0_1px_8px_var(--shadow-color)] backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-[1120px] items-center justify-between px-gutter">
           <Link href="/" className="flex items-center gap-space-md">
-            <WeaveMark />
+            <CoursaMark />
             <span className="font-headline-md text-headline-md font-semibold tracking-tight text-primary-container">
-              Habi
+              Coursa
             </span>
           </Link>
 
@@ -138,11 +134,11 @@ export default function Home() {
                 <div className="flex flex-col space-y-space-xl lg:col-span-6">
                   <div className="space-y-space-md">
                     <h1 className="font-display text-display-mobile tracking-tight text-primary-container md:text-display">
-                      Weave your semester together.
+                      Your courses, in sync.
                     </h1>
                     <p className="max-w-xl font-body-lg text-body-lg text-text-muted">
-                      Habi pulls your deadlines, modules, and notes from Canvas into one calm,
-                      tidy week. Less panic, more unhurried focus.
+                      Coursa brings your Canvas deadlines, modules, and course materials into one
+                      clear study plan. Stay organized and focus on what matters next.
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-space-md pt-space-xs">
@@ -168,15 +164,6 @@ export default function Home() {
                         </span>
                       </Link>
                     </Show>
-                    <a
-                      href="#weave-preview"
-                      className="inline-flex items-center justify-center rounded-lg bg-surface px-5 py-3.5 font-label-md text-label-md text-primary-container shadow-sm transition-colors hover:bg-surface-container-low"
-                    >
-                      <span className="material-symbols-outlined mr-2 text-lg leading-none text-secondary">
-                        calendar_view_week
-                      </span>
-                      <span>See a sample week</span>
-                    </a>
                   </div>
                 </div>
 
@@ -230,14 +217,14 @@ export default function Home() {
             <Reveal>
               <div className="mx-auto mb-space-3xl max-w-2xl space-y-space-xs text-center">
                 <span className="font-code-tag text-code-tag font-medium uppercase tracking-widest text-surface-tint">
-                  The Loom Workflow
+                  How Coursa works
                 </span>
                 <h2 className="font-headline-lg text-headline-lg text-primary-container">
-                  From scattered threads to one tidy weave
+                  From course materials to a clearer plan
                 </h2>
                 <p className="font-body-md text-body-md text-text-muted">
-                  Crafted after traditional Filipino loom mechanics: intake raw fiber, align warp
-                  and weft, and wear an effortless pattern.
+                  Connect Canvas, organize upcoming coursework, and keep track of what needs your
+                  attention.
                 </p>
               </div>
             </Reveal>
@@ -246,23 +233,13 @@ export default function Home() {
             </Reveal>
           </section>
 
-          {/* ============ WEAVE VIEW ============ */}
-          <section
-            id="weave-preview"
-            className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
-          >
-            <Reveal>
-              <WeaveView />
-            </Reveal>
-          </section>
-
           {/* ============ ASK COURSEPILOT ============ */}
           <section
-            id="ask-habi"
+            id="ask-coursa"
             className="mx-auto w-full max-w-[1120px] scroll-mt-24 px-gutter py-space-3xl"
           >
             <Reveal>
-              <AskHabi />
+              <AskCoursa />
             </Reveal>
           </section>
 
@@ -300,7 +277,7 @@ export default function Home() {
                   Grounded in mindful practice
                 </span>
                 <h3 className="font-headline-md text-headline-md text-primary-container">
-                  “Canvas felt like a loud inbox. Habi feels like an organized desk.”
+                  “Canvas felt like a loud inbox. Coursa feels like an organized desk.”
                 </h3>
                 <p className="font-body-md text-body-md text-text-muted">
                   — Bea R., Computer Science &amp; Linguistics Senior, Diliman
@@ -391,7 +368,7 @@ export default function Home() {
                   href="#how-it-works"
                   className="inline-flex items-center justify-center rounded-lg px-5 py-3.5 font-label-md text-label-md text-dark-text transition-colors hover:text-surface-container"
                 >
-                  <span>Explore Loom Architecture</span>
+                  <span>Explore how it works</span>
                 </a>
               </div>
               <p className="mt-space-xl font-body-sm text-xs text-dark-secondary/80">
@@ -410,24 +387,24 @@ export default function Home() {
           <div className="flex flex-col justify-between gap-space-3xl pb-space-3xl md:flex-row md:items-start">
             <div className="max-w-sm space-y-space-sm">
               <div className="flex items-center gap-space-xs">
-                <WeaveMark />
+                <CoursaMark />
                 <span className="font-headline-md text-headline-md font-semibold text-primary-container">
-                  Habi
+                  Coursa
                 </span>
               </div>
               <p className="font-headline-sm text-headline-sm italic text-secondary">
-                Hinabi para sa&apos;yo
+                Your courses, in sync.
               </p>
               <p className="font-body-sm text-body-sm text-text-muted">
-                An intelligent academic weave translating Canvas LMS deadlines, syllabi, and notes
-                into an unhurried, purposeful rhythm.
+                A study companion that brings Canvas deadlines, syllabi, and course materials into
+                one clear plan.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-space-2xl sm:grid-cols-3">
               <div className="space-y-space-sm">
                 <p className="font-label-md text-label-md uppercase tracking-wider text-primary-container">
-                  Loom
+                  Coursa
                 </p>
                 <ul className="space-y-space-xs">
                   <li className="font-body-sm text-body-sm">
@@ -440,18 +417,10 @@ export default function Home() {
                   </li>
                   <li className="font-body-sm text-body-sm">
                     <a
-                      href="#weave-preview"
+                      href="#ask-coursa"
                       className="text-on-surface-variant transition-colors hover:text-primary"
                     >
-                      Weave View
-                    </a>
-                  </li>
-                  <li className="font-body-sm text-body-sm">
-                    <a
-                      href="#ask-habi"
-                      className="text-on-surface-variant transition-colors hover:text-primary"
-                    >
-                      Ask Habi (RAG)
+                      Ask Coursa
                     </a>
                   </li>
                   <li className="font-body-sm text-body-sm">
@@ -523,7 +492,7 @@ export default function Home() {
                       href="#faq"
                       className="text-on-surface-variant transition-colors hover:text-primary"
                     >
-                      Security Weave
+                      Security
                     </a>
                   </li>
                 </ul>
@@ -536,7 +505,7 @@ export default function Home() {
               Works with Canvas LMS. Not affiliated with Instructure.
             </p>
             <p className="font-body-sm text-body-sm text-text-muted">
-              © {new Date().getFullYear()} Habi. Crafted with care in the Philippines.
+              © {new Date().getFullYear()} Coursa. Crafted with care in the Philippines.
             </p>
           </div>
         </div>

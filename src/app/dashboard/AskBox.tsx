@@ -18,7 +18,7 @@ export default function AskBox({ userName, courses }: Props) {
   }
 
   return (
-    <section id="ask-habi" className="relative mx-auto flex w-full max-w-[900px] justify-center">
+    <section id="ask-coursa" className="relative mx-auto flex w-full max-w-[900px] justify-center">
       <div className="relative z-10 flex w-full flex-col items-center">
         <div className="flex w-full max-w-[820px] flex-col justify-between space-y-space-lg">
           <div className="grid items-center gap-space-sm sm:grid-cols-[minmax(220px,300px)_1fr]">

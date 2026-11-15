@@ -22,9 +22,9 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Habi — Weave your semester together",
+  title: "Coursa — Your courses, in sync",
   description:
-    "Habi pulls your deadlines, modules, and notes from Canvas LMS into one calm, tidy week.",
+    "Coursa brings your Canvas deadlines, modules, and course materials into one clear study plan.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

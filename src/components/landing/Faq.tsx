@@ -5,29 +5,29 @@ import { playLoomShuttleGlide } from "@/lib/loom-sound";
 
 const FAQ_ITEMS = [
   {
-    question: "How does Ask Habi use RAG with my Canvas coursework?",
+    question: "How does Ask Coursa use RAG with my Canvas coursework?",
     answer:
-      "Habi implements private Retrieval-Augmented Generation (RAG). When you connect your Canvas account, Habi securely indexes your course syllabus files, uploaded PDFs, slide decks, and Canvas announcements into an isolated vector database. Every query retrieves the most pertinent excerpts and synthesizes answers citing your professor's exact wording — with complete student data privacy and zero model retraining on your files.",
+      "Coursa uses private Retrieval-Augmented Generation (RAG). When you connect your Canvas account, it indexes course files and announcements so answers can draw on relevant material and cite sources.",
   },
   {
-    question: "Does Habi store my university or Canvas login passwords?",
+    question: "Does Coursa store my university or Canvas login passwords?",
     answer:
-      "No. Never. Habi integrates via the official Canvas API using a personal access token. We never see, handle, or store your student portal password or multi-factor authentication credentials. Tokens are encrypted at rest with AES-256-GCM and access can be revoked anytime with one click in your Canvas account settings.",
+      "No. Never. Coursa integrates via the official Canvas API using a personal access token. We never see, handle, or store your student portal password or multi-factor authentication credentials. Tokens are encrypted at rest with AES-256-GCM and access can be revoked anytime with one click in your Canvas account settings.",
   },
   {
-    question: "How frequently does Habi synchronize with Canvas?",
+    question: "How frequently does Coursa synchronize with Canvas?",
     answer:
-      "Sync runs whenever you press “Sync Canvas”, and it can be triggered automatically on a schedule. Habi tracks newly posted assignments, announcements, and moved due dates so your weave is always current.",
+      "Sync runs whenever you press “Sync Canvas”. Coursa tracks newly posted assignments, announcements, and changed due dates so your plan stays current.",
   },
   {
-    question: "Is Habi free for college students?",
+    question: "Is Coursa free for college students?",
     answer:
-      "Habi is free for individual undergraduate students across up to 5 concurrent courses. We offer an optional institutional tier for universities wanting campus-wide academic counseling and advising weaves.",
+      "Coursa is free for individual undergraduate students across up to 5 concurrent courses.",
   },
   {
     question: "What if my professor changes a deadline last minute?",
     answer:
-      "When an assignment due date shifts in Canvas, Habi highlights the affected strand in gold, sends a quiet briefing notification, and gently re-balances your subsequent study blocks so your weekend remains protected.",
+      "When an assignment due date shifts in Canvas, Coursa highlights the change and helps you adjust your study plan.",
   },
 ];
 

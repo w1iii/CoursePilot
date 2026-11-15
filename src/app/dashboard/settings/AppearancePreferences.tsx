@@ -6,6 +6,7 @@ import { applyTheme, readTheme, THEME_CHANGED_EVENT, type Theme } from "@/lib/th
 import { isSoundEnabled, setSoundEnabled } from "@/lib/loom-sound";
 import SettingsSection, { SettingsRow } from "./SettingsSection";
 
+// Keep legacy keys so existing users retain saved preferences.
 const SOUND_KEY = "habi:sound-enabled";
 const SIDEBAR_KEY = "habi:sidebar-collapsed";
 
@@ -121,8 +122,8 @@ export default function AppearancePreferences() {
         </p>
       }
     >
-      <SettingsRow label="Loom sounds" helper="Play the soft loom cue on new chats and actions.">
-        <Toggle checked={sounds} label="Loom sounds" onChange={updateSounds} />
+      <SettingsRow label="Interface sounds" helper="Play subtle sounds for chats and actions.">
+        <Toggle checked={sounds} label="Interface sounds" onChange={updateSounds} />
       </SettingsRow>
       <SettingsRow
         label="Sidebar starts collapsed"
@@ -139,7 +140,7 @@ export default function AppearancePreferences() {
       </SettingsRow>
       <SettingsRow
         label="Reduce motion"
-        helper="Habi already follows your operating system setting."
+        helper="Coursa follows your operating system setting."
         comingSoon
       >
         <span className="font-label-sm text-label-sm text-text-muted">System</span>

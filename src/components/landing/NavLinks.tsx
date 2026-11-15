@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 
 const LINKS = [
   { id: "how-it-works", label: "How it works" },
-  { id: "weave-preview", label: "Weave View" },
-  { id: "ask-habi", label: "Ask Habi" },
+  { id: "ask-coursa", label: "Ask Coursa" },
   { id: "features", label: "Features" },
   { id: "faq", label: "FAQ" },
 ];

@@ -76,7 +76,7 @@ const SIDE_FEATURES = [
     icon: "verified",
     iconWrap: "bg-tertiary-fixed text-primary-container",
     title: "Verifiable Source Citations",
-    body: "Every answer weaves back to the exact slide number, syllabus grading policy clause, or textbook page — preventing hallucinations.",
+    body: "Every answer links back to the exact slide number, syllabus grading policy clause, or textbook page — helping you verify the source.",
   },
   {
     icon: "compare_arrows",
@@ -86,7 +86,7 @@ const SIDE_FEATURES = [
   },
 ];
 
-export default function AskHabi() {
+export default function AskCoursa() {
   const [entry, setEntry] = useState<RagEntry>(RAG_QUERIES.reviewer);
   const [phase, setPhase] = useState<Phase>("ready");
   const [answerKey, setAnswerKey] = useState(0);
@@ -131,10 +131,10 @@ export default function AskHabi() {
           </span>
         </div>
         <h2 className="font-headline-lg text-headline-lg text-primary-container">
-          Ask Habi: Your Syllabus &amp; Lecture Oracle
+          Ask Coursa: Your Syllabus &amp; Lecture Oracle
         </h2>
         <p className="font-body-md text-body-md text-text-muted">
-          Ask Habi and it delivers, grounded directly in your course files, PDFs, lecture
+          Ask Coursa and it delivers, grounded directly in your course files, PDFs, lecture
           transcripts, and Canvas discussion threads with zero hallucinations and exact citation
           links.
         </p>
@@ -157,7 +157,7 @@ export default function AskHabi() {
                 playLoomShuttleGlide(0.22);
                 createAcousticRipple(event);
               }}
-              title="Click to hear the loom shuttle frequency"
+              title="Canvas course materials are synced"
               className="relative flex cursor-pointer items-center gap-1.5 overflow-hidden whitespace-nowrap rounded bg-secondary-container px-2.5 py-0.5 text-[11px] font-medium text-surface-tint transition-opacity hover:opacity-90"
             >
               <div className="h-1.5 w-1.5 rounded-full bg-surface-tint" />
@@ -210,7 +210,7 @@ export default function AskHabi() {
                   </span>
                 </div>
                 <span className="font-label-md text-label-md font-semibold text-primary-container">
-                  Habi Answer
+                  Coursa Answer
                 </span>
               </div>
               <div className="flex items-center gap-1 font-code-tag text-[10px] font-semibold uppercase text-surface-tint">

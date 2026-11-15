@@ -3,7 +3,7 @@ import DashboardShell from "../DashboardShell";
 import StudyPrepHome from "./study-prep-home";
 
 function displayName(value: string | null | undefined, email: string): string {
-  const name = value?.trim() || email.split("@")[0] || "weaver";
+  const name = value?.trim() || email.split("@")[0] || "student";
   if (name !== name.toUpperCase()) return name;
   return name
     .toLowerCase()

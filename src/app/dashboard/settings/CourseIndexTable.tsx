@@ -45,7 +45,7 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
       <div className="rounded-xl border border-dashed border-border bg-surface-container-low p-space-lg">
         <p className="font-label-md text-label-md text-on-surface">No courses indexed yet</p>
         <p className="mt-1 font-body-sm text-body-sm text-text-muted">
-          Connect Canvas and run a sync to pull your courses and study material into Habi.
+          Connect Canvas and run a sync to pull your courses and study material into Coursa.
         </p>
       </div>
     );
