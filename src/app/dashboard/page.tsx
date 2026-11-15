@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
 import { cacheUserRead } from "@/lib/cache";
+import { withSharedIndexCounts } from "@/lib/ai/index-counts";
 import AnnouncementsFeed from "./AnnouncementsFeed";
 import AskHabiCard from "./AskHabiCard";
 import DashboardPaper from "./DashboardPaper";
@@ -15,6 +16,7 @@ interface CourseJoin {
 
 interface RawCourse {
   id: string;
+  canvas_course_id: number;
   course_code: string | null;
   course_name: string;
   instructor: string | null;
@@ -77,7 +79,7 @@ export default async function DashboardPage() {
 
   const coursesResult = await cacheUserRead("dashboard-courses", user.id, 60, async () => await sb
       .from("courses")
-      .select("id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag")
+      .select("id, canvas_course_id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag")
       .eq("user_id", user.id)
       .limit(50));
 
@@ -85,7 +87,7 @@ export default async function DashboardPage() {
     throw new Error(`Failed to load courses: ${coursesResult.error.message}`);
   }
 
-  const courseRows = (coursesResult.data ?? []) as RawCourse[];
+  const courseRows = await withSharedIndexCounts(user.id, (coursesResult.data ?? []) as RawCourse[]);
   const courseIds = courseRows.map((course) => course.id);
 
   let taskRows: RawTask[] = [];

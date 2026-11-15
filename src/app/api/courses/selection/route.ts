@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { invalidateUserCache } from "@/lib/cache";
-import { deleteRagCourse, ingestCanvasCourse } from "@/lib/ai/ingest";
+import { deleteRagCourse, ingestCanvasCourse, ragIndexStatus } from "@/lib/ai/ingest";
 import { getCanvasCredentials } from "@/lib/canvas-account";
 import { listCourses } from "@/lib/canvas";
 import { supabaseAdmin } from "@/lib/supabase";
@@ -50,10 +50,7 @@ export async function POST(request: Request) {
         canvasAccessToken: credentials.token,
       });
       const { error: statusError } = await sb.from("courses").update({
-        rag_indexed_at: new Date().toISOString(),
-        rag_document_count: ingestion.documents,
-        rag_chunk_count: ingestion.chunks,
-        rag_failure_count: ingestion.failures,
+        ...ragIndexStatus(ingestion),
       }).eq("id", course.id).eq("user_id", user.id);
       if (statusError) throw statusError;
     }

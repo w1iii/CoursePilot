@@ -6,6 +6,7 @@ import { getCanvasStatus } from "@/lib/canvas-account";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
 import { cacheUserRead } from "@/lib/cache";
+import { withSharedIndexCounts } from "@/lib/ai/index-counts";
 import CanvasConnect from "../CanvasConnect";
 import DashboardShell from "../DashboardShell";
 import type { Course } from "../types";
@@ -21,6 +22,7 @@ import SyncButton from "../SyncButton";
 
 interface RawCourse {
   id: string;
+  canvas_course_id: number;
   course_code: string | null;
   course_name: string;
   instructor: string | null;
@@ -89,7 +91,7 @@ export default async function SettingsPage() {
     cacheUserRead("settings-courses", user.id, 300, async () => await sb
       .from("courses")
       .select(
-        "id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag",
+        "id, canvas_course_id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag",
       )
       .eq("user_id", user.id)
       .order("course_name", { ascending: true })
@@ -100,7 +102,8 @@ export default async function SettingsPage() {
     throw new Error(`Failed to load course index: ${coursesResult.error.message}`);
   }
 
-  const courses: Course[] = ((coursesResult.data ?? []) as RawCourse[]).map((course) => ({
+  const courseRows = await withSharedIndexCounts(user.id, (coursesResult.data ?? []) as RawCourse[]);
+  const courses: Course[] = courseRows.map((course) => ({
     id: course.id,
     name: course.course_name,
     code: course.course_code,

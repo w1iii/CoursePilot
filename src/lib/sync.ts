@@ -15,6 +15,7 @@ import {
   ingestCanvasCourse,
   ragIngestMaxCourses,
   ragIngestionEnabled,
+  ragIndexStatus,
   ragReindexHours,
 } from "@/lib/ai/ingest";
 import { elapsedMs, logAiRequest } from "@/lib/ai/log";
@@ -243,13 +244,7 @@ async function ingestDueCourses(
       const { error: updateError } = await sb
         .from("courses")
         .update({
-          // A completed crawl may contain permanent parse failures. Record the
-          // attempt so those items do not force a full-course crawl every sync;
-          // transient failures retry when the normal re-index window expires.
-          rag_indexed_at: new Date().toISOString(),
-          rag_document_count: ingestion.documents,
-          rag_chunk_count: ingestion.chunks,
-          rag_failure_count: ingestion.failures,
+          ...ragIndexStatus(ingestion),
         })
         .eq("id", course.id);
 
