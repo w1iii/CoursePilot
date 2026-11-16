@@ -181,3 +181,32 @@ export async function deleteRagCourse(input: {
   });
   if (!response.ok) throw new Error("Could not remove course material from the index");
 }
+
+/** Refresh private module names without changing indexed documents or embeddings. */
+export async function backfillModuleMetadata(input: {
+  userId: string;
+  courseKey: string;
+  canvasCourseId: number;
+  canvasBaseUrl: string;
+  canvasAccessToken: string;
+}): Promise<void> {
+  if (sharedIndexEnabled()) throw new Error("Metadata backfill requires a private index");
+  const token = signRagToken({
+    userId: input.userId, courseKey: input.courseKey, scope: "ingest",
+    canvasCourseId: input.canvasCourseId, ttlSeconds: 300,
+  });
+  const response = await fetch(`${ragBaseUrl()}/api/v1/ingestion/canvas-course`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-RAG-Token": token },
+    body: JSON.stringify({
+      course_key: input.courseKey,
+      canvas_course_id: input.canvasCourseId,
+      canvas_base_url: input.canvasBaseUrl,
+      canvas_access_token: input.canvasAccessToken,
+      metadata_only: true,
+    }),
+    signal: AbortSignal.timeout(timeoutMs()),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Module metadata refresh failed");
+}

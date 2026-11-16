@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sharedCourseKey } from "@/lib/ai/course-index";
 
 import {
+  backfillModuleMetadata,
   ingestCanvasCourse,
   ragIngestMaxCourses,
   ragIngestionEnabled,
@@ -17,6 +18,32 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe("RAG ingestion client", () => {
+  it("refuses metadata backfill for shared indexes", async () => {
+    process.env.RAG_SHARED_INDEX_ENABLED = "true";
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(backfillModuleMetadata({
+      userId: "user-a", courseKey: "course-a", canvasCourseId: 1,
+      canvasBaseUrl: "https://example.edu", canvasAccessToken: "secret",
+    })).rejects.toThrow("private index");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("requests metadata only with private course credentials", async () => {
+    process.env.RAG_SHARED_INDEX_ENABLED = "false";
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}));
+    vi.stubGlobal("fetch", fetchMock);
+    await backfillModuleMetadata({
+      userId: "user-a", courseKey: "course-a", canvasCourseId: 1,
+      canvasBaseUrl: "https://example.edu", canvasAccessToken: "secret",
+    });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      course_key: "course-a", canvas_course_id: 1, canvas_base_url: "https://example.edu",
+      canvas_access_token: "secret", metadata_only: true,
+    });
+    expect((init.headers as Record<string, string>)["X-RAG-Token"]).toBeTruthy();
+  });
   it("preserves previous snapshot when ingestion has failures", () => {
     const result = { documents: 1, chunks: 4, failures: 2, skipped: 0, failureDetails: [], skippedDetails: [] };
     expect(ragIndexStatus({ ...result, documents: 0, chunks: 0 })).toEqual({ rag_failure_count: 2 });
