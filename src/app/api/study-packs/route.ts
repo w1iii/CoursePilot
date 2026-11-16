@@ -7,6 +7,8 @@ import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { invalidateUserCache } from "@/lib/cache";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 
+export const maxDuration = 300;
+
 export async function GET() {
   try {
     const user = await requireUser();
