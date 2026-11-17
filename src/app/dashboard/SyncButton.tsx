@@ -1,7 +1,7 @@
 "use client";
 
 import { useSync } from "./SyncProvider";
-import ColorOrbLoader from "@/components/ColorOrbLoader";
+import SyncLoadingOverlay from "@/components/SyncLoadingOverlay";
 
 function finishLabel(value: string | null): string | null {
   if (!value) return null;
@@ -19,9 +19,9 @@ export default function SyncButton({ connected }: { connected: boolean }) {
   const { running, result, error, finishedAt, start } = useSync();
 
   return (
-    <div className="flex flex-col items-start gap-space-sm md:items-end">
+    <div className="relative flex flex-col items-start gap-space-sm md:items-end" aria-busy={running}>
+      {running && <SyncLoadingOverlay label="Syncing Canvas" />}
       <div className="relative">
-      {running && <ColorOrbLoader label="Syncing Canvas" />}
       <button
         type="button"
         onClick={() => void start()}
