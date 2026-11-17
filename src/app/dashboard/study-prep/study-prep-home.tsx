@@ -18,7 +18,7 @@ export default function StudyPrepHome() {
   const [history, setHistory] = useState<History[]>([]);
   const [courseId, setCourseId] = useState("");
   const [scope, setScope] = useState("course");
-  const [modules, setModules] = useState<Array<{ id: number; name: string }>>([]);
+  const [modules, setModules] = useState<Array<{ id: number; name: string; chunks: number }>>([]);
   const [modulesLoading, setModulesLoading] = useState(false);
   const [module, setModule] = useState("");
   const [mode, setMode] = useState("flashcards");
@@ -69,11 +69,12 @@ export default function StudyPrepHome() {
   async function generate() {
     setError(""); setLoading(true);
     try {
-      const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, module: scope === "module" ? module : null, topic: null, mode, count, difficulty }) });
+      const selectedModule = modules.find((item) => String(item.id) === module);
+      const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, module: scope === "module" ? selectedModule?.name : null, moduleId: scope === "module" ? selectedModule?.id : null, topic: null, mode, count, difficulty }) });
       const data = await response.json();
-      if (!response.ok) throw new Error("generate");
+      if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not create study materials. Please try again.");
       router.push(`/dashboard/study-prep/${data.id}`);
-    } catch { setError("Could not create study materials. Please try again."); }
+    } catch (err) { setError(err instanceof Error ? err.message : "Could not create study materials. Please try again."); }
     finally { setLoading(false); }
   }
 
@@ -129,7 +130,7 @@ export default function StudyPrepHome() {
                   return <label key={value} className={`border px-3 py-3 transition-colors ${unavailable ? "cursor-not-allowed border-border/60 opacity-60" : "cursor-pointer"} ${scope === value ? "border-primary-container bg-surface-container-low" : !unavailable ? "border-border hover:border-primary-container/50" : ""}`}><span className="flex items-start gap-2"><input className="mt-0.5 accent-primary-container" type="radio" name="scope" value={value} checked={scope === value} disabled={unavailable} onChange={() => setScope(value)} /><span><span className="block font-label-md text-label-md text-on-surface">{title}</span><span className="mt-1 block font-body-sm text-body-sm text-text-muted">{detail}</span></span></span></label>;
                 })}
               </div></fieldset>
-              {scope === "module" && modules.length > 0 && <div className="mt-space-md"><label className={labelClass} htmlFor="study-module">Indexed module</label><select id="study-module" className={fieldClass} value={module} onChange={(e) => setModule(e.target.value)}><option value="">Choose a module</option>{modules.map((m) => <option key={m.id} value={m.name}>{m.name}</option>)}</select></div>}
+              {scope === "module" && modules.length > 0 && <div className="mt-space-md"><label className={labelClass} htmlFor="study-module">Indexed module</label><select id="study-module" className={fieldClass} value={module} onChange={(e) => setModule(e.target.value)}><option value="">Choose a module</option>{modules.map((m) => <option key={m.id} value={m.id} disabled={m.chunks === 0}>{m.name}{m.chunks === 0 ? " (no indexed material)" : ""}</option>)}</select></div>}
 
               <div className="mt-space-lg grid gap-x-space-lg gap-y-space-md border-t border-primary-container/25 pt-space-md sm:grid-cols-3"><label className={labelClass}>Study format<select className={fieldClass} value={mode} onChange={(e) => setMode(e.target.value)}><option value="flashcards">Flashcards</option><option value="quiz">Practice quiz</option><option value="mixed">Mixed pack</option></select></label><label className={labelClass}>Number of items<input aria-label="Question count" type="number" min={1} max={30} className={fieldClass} value={count} onChange={(e) => setCount(Number(e.target.value))} /></label><label className={labelClass}>Difficulty<select className={fieldClass} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}><option value="mixed">Mixed</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label></div>
               {error && <p role="alert" className="mt-space-md border-l-2 border-error px-3 py-2 font-body-sm text-body-sm text-error">{error}</p>}
