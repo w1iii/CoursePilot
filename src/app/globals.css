@@ -65,6 +65,16 @@
   pointer-events: auto;
 }
 .course-sync-overlay p { margin: 0; }
+.sync-wait-messages { display: grid; gap: 0.5rem; }
+.course-sync-overlay .sync-wait-messages {
+  max-width: 30rem;
+  padding: 0 1rem;
+  text-align: center;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.875rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
 .course-sync-spinner {
   position: relative;
   width: 42px;

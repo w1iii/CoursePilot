@@ -20,7 +20,7 @@ export default function SyncButton({ connected }: { connected: boolean }) {
 
   return (
     <div className="relative flex flex-col items-start gap-space-sm md:items-end" aria-busy={running}>
-      {running && <SyncLoadingOverlay label="Syncing Canvas" />}
+      {running && <SyncLoadingOverlay label="Syncing Canvas" showSyncMessages />}
       <div className="relative">
       <button
         type="button"
