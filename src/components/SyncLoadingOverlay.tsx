@@ -1,10 +1,9 @@
-export default function SyncLoadingOverlay({ label }: { label: string }) {
+import SyncWaitMessages from "./SyncWaitMessages";
+
+export default function SyncLoadingOverlay({ label, showSyncMessages = false }: { label: string; showSyncMessages?: boolean }) {
   return (
     <div
       className="course-sync-overlay"
-      role="status"
-      aria-live="polite"
-      aria-label={label}
     >
       <div className="course-sync-spinner" aria-hidden="true">
         <span />
@@ -12,7 +11,8 @@ export default function SyncLoadingOverlay({ label }: { label: string }) {
         <span />
         <span />
       </div>
-      <p>{label}…</p>
+      <p role={showSyncMessages ? undefined : "status"}>{label}…</p>
+      {showSyncMessages && <SyncWaitMessages />}
     </div>
   );
 }
