@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "../types";
-import ColorOrbLoader from "@/components/ColorOrbLoader";
+import SyncLoadingOverlay from "@/components/SyncLoadingOverlay";
 
 function indexedLabel(value: string | null): string {
   if (!value) return "Not indexed";
@@ -52,8 +52,8 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
   }
 
   return (
-    <div className="relative">
-      {busyId && <ColorOrbLoader label="Resyncing course" />}
+    <div className="relative" aria-busy={busyId !== null}>
+      {busyId && <SyncLoadingOverlay label="Resyncing course" />}
       {error && <p role="alert" className="mb-3 rounded-lg bg-error-container p-3 text-sm text-on-error-container">{error}</p>}
       {success && <p role="status" className="mb-3 rounded-lg border border-primary-container/25 bg-surface-container-low p-3 text-sm text-on-surface">{success}</p>}
       <div className="hidden overflow-x-auto md:block">

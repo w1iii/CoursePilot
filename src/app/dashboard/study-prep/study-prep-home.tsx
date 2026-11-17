@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ColorOrbLoader from "@/components/ColorOrbLoader";
 import PaperReveal from "@/components/PaperReveal";
+import SyncLoadingOverlay from "@/components/SyncLoadingOverlay";
 
 type Course = { id: string; course_name: string; course_code: string | null; rag_indexed_at: string | null };
 type History = { id: string; title: string; mode: string; module: string | null; topic: string | null; course: { course_name: string; course_code: string | null } | null; study_sessions: Array<{ id: string; status: string; score: number; last_active_at: string }> };
@@ -117,8 +117,8 @@ export default function StudyPrepHome() {
         </header></PaperReveal>
 
         <PaperReveal delay={120} className="mt-space-lg"><div className="grid grid-cols-1 gap-space-xl lg:grid-cols-12 lg:gap-0">
-          <section className="relative lg:col-span-7 lg:pr-space-xl xl:col-span-8" aria-labelledby="builder-heading">
-            {loading && <ColorOrbLoader label="Preparing your study pack" />}
+          <section className="relative lg:col-span-7 lg:pr-space-xl xl:col-span-8" aria-labelledby="builder-heading" aria-busy={loading}>
+            {loading && <SyncLoadingOverlay label="Preparing your study pack" />}
             {courses.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-space-md py-space-xl" role="status"><p className="paper-kicker text-accent-text">First, choose your sources</p><h3 className="mt-2 font-headline-sm text-headline-sm text-primary-container">No selected courses</h3><p className="mt-2 font-body-md text-body-md text-text-muted">Select courses for AI study in Settings, then sync Canvas content to make materials available.</p><Link className="mt-space-md inline-flex items-center gap-2 font-label-md text-label-md text-accent-text underline underline-offset-4" href="/dashboard/settings">Open course settings <span aria-hidden="true">→</span></Link></div> : <div className="mt-space-md">
               <label className={labelClass} htmlFor="study-course">Course source</label>
               <select id="study-course" className={fieldClass} value={courseId} onChange={(e) => { setCourseId(e.target.value); setModule(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>
