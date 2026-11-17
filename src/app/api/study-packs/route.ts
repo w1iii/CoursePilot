@@ -13,9 +13,15 @@ export const maxDuration = 300;
 export async function GET() {
   try {
     const user = await requireUser();
-    const { data, error } = await supabaseAdmin().from("study_packs").select("id,title,mode,topic,module,difficulty,item_count,created_at,course:courses(course_name,course_code),study_sessions(id,status,score,last_active_at)").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30);
-    if (error) throw error;
-    return NextResponse.json(data ?? [], { headers: { "Cache-Control": "private, no-store" } });
+    const packs = [];
+    const pageSize = 1000;
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await supabaseAdmin().from("study_packs").select("id,title,mode,topic,module,difficulty,item_count,created_at,course:courses(course_name,course_code),study_sessions(id,status,score,last_active_at)").eq("user_id", user.id).order("created_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      packs.push(...(data ?? []));
+      if (!data || data.length < pageSize) break;
+    }
+    return NextResponse.json(packs, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     return NextResponse.json({ error: "Could not load study history" }, { status: 500 });
