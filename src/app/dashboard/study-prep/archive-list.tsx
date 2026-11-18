@@ -1,0 +1,18 @@
+import Link from "next/link";
+
+export type History = { id: string; title: string; mode: string; module: string | null; topic: string | null; course: { course_name: string; course_code: string | null } | null; study_sessions: Array<{ id: string; status: string; score: number; last_active_at: string }> };
+export type DeleteTarget = { kind: "pack"; id: string; title: string } | { kind: "session"; id: string; packId: string; title: string };
+
+export default function ArchiveList({ history, preview = false, onDelete }: { history: History[]; preview?: boolean; onDelete: (target: DeleteTarget) => void }) {
+  let remainingSessions = 3;
+  const packs = preview ? history.slice(0, 3) : history;
+  return <>
+    <div className="flex items-baseline justify-between gap-2 border-b border-primary-container/25 pb-1"><h2 id="history-heading" className="paper-kicker text-accent-text">{preview ? <Link href="/dashboard/study-prep/archive" className="underline underline-offset-4 hover:text-primary-container">From the archive <span aria-hidden="true">→</span></Link> : "All study packs and sessions"}</h2><span className="paper-kicker text-text-muted">{history.length} {history.length === 1 ? "pack" : "packs"}</span></div>
+    {history.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-4 py-8"><p className="font-display text-2xl text-primary-container">Your first edition awaits.</p><p className="mt-2 font-body-sm text-body-sm text-text-muted">Generated study packs and saved sessions will appear here.</p></div> : <ol className="mt-2 divide-y divide-primary-container/20">{packs.map((pack, index) => {
+      const sessions = pack.study_sessions ?? [];
+      const visibleSessions = preview ? sessions.slice(0, remainingSessions) : sessions;
+      if (preview) remainingSessions -= visibleSessions.length;
+      return <li key={pack.id} className="py-space-md"><div className="flex items-start gap-3"><span className="pt-0.5 font-code-tag text-code-tag text-text-muted">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><Link className="font-headline-sm text-headline-sm text-primary-container underline decoration-primary-container/30 underline-offset-4 hover:decoration-primary-container" href={`/dashboard/study-prep/${pack.id}`}>{pack.title}</Link><button type="button" onClick={() => onDelete({ kind: "pack", id: pack.id, title: pack.title })} aria-label={`Delete study pack ${pack.title}`} className="shrink-0 px-1 font-label-sm text-label-sm text-text-muted underline underline-offset-4 hover:text-error">Delete</button></div><p className="mt-1 font-body-sm text-body-sm text-text-muted">{pack.course?.course_name ?? "Course"}{pack.module ? ` · ${pack.module}` : pack.topic ? ` · ${pack.topic}` : ""}</p><p className="mt-1 paper-kicker text-text-muted">{pack.mode.replace("_", " ")} · {sessions.length} sessions</p>{visibleSessions.map((s) => <div key={s.id} className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1"><Link className="font-label-sm text-label-sm text-accent-text underline underline-offset-4" href={`/dashboard/study-prep/${pack.id}/session/${s.id}`}>{s.status === "completed" ? `Review · Score ${s.score}` : "Resume session"}</Link><button type="button" onClick={() => onDelete({ kind: "session", id: s.id, packId: pack.id, title: pack.title })} aria-label={`Delete ${s.status === "completed" ? "completed" : "active"} session for ${pack.title}`} className="font-label-sm text-label-sm text-text-muted underline underline-offset-4 hover:text-error">Delete session</button></div>)}</div></div></li>;
+    })}</ol>}
+  </>;
+}

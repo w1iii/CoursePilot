@@ -1,12 +1,13 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  oxc: { jsx: { runtime: "automatic" } },
   resolve: {
     tsconfigPaths: true,
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.{ts,tsx}"],
     clearMocks: true,
     coverage: {
       provider: "v8",
