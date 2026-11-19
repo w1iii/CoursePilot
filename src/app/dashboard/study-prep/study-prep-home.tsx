@@ -21,6 +21,9 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   const [scope, setScope] = useState("course");
   const [modules, setModules] = useState<Array<{ id: number; name: string; chunks: number }>>([]);
   const [modulesLoading, setModulesLoading] = useState(false);
+  const [refreshingModules, setRefreshingModules] = useState(false);
+  const [moduleRefreshVersion, setModuleRefreshVersion] = useState(0);
+  const [moduleRefreshStatus, setModuleRefreshStatus] = useState("");
   const [module, setModule] = useState("");
   const [mode, setMode] = useState("flashcards");
   const [count, setCount] = useState(10);
@@ -62,11 +65,27 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
       })
       .finally(() => { if (!cancelled) setModulesLoading(false); });
     return () => { cancelled = true; };
-  }, [courseId]);
+  }, [courseId, moduleRefreshVersion]);
 
   useEffect(() => {
     if (!modulesLoading && modules.length === 0 && scope === "module") setScope("course");
   }, [modules.length, modulesLoading, scope]);
+
+  async function refreshModules() {
+    if (!courseId || refreshingModules) return;
+    setRefreshingModules(true);
+    setModuleRefreshStatus("");
+    try {
+      const response = await fetch(`/api/study-prep/courses/${encodeURIComponent(courseId)}/modules/refresh`, { method: "POST" });
+      if (!response.ok) throw new Error("Could not refresh modules. Check your Canvas connection and try again.");
+      setModuleRefreshVersion((version) => version + 1);
+      setModuleRefreshStatus("Module names refreshed. Indexed documents were not changed.");
+    } catch {
+      setModuleRefreshStatus("Could not refresh modules. Check your Canvas connection and try again.");
+    } finally {
+      setRefreshingModules(false);
+    }
+  }
 
   async function generate() {
     setError(""); setLoading(true);
@@ -123,7 +142,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
             {loading && <SyncLoadingOverlay label="Preparing your study pack" />}
             {courses.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-space-md py-space-xl" role="status"><p className="paper-kicker text-accent-text">First, choose your sources</p><h3 className="mt-2 font-headline-sm text-headline-sm text-primary-container">No selected courses</h3><p className="mt-2 font-body-md text-body-md text-text-muted">Select courses for AI study in Settings, then sync Canvas content to make materials available.</p><Link className="mt-space-md inline-flex items-center gap-2 font-label-md text-label-md text-accent-text underline underline-offset-4" href="/dashboard/settings">Open course settings <span aria-hidden="true">→</span></Link></div> : <div className="mt-space-md">
               <label className={labelClass} htmlFor="study-course">Course source</label>
-              <select id="study-course" className={fieldClass} value={courseId} onChange={(e) => { setCourseId(e.target.value); setModule(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>
+              <select id="study-course" className={fieldClass} value={courseId} disabled={refreshingModules} onChange={(e) => { setCourseId(e.target.value); setModule(""); setModuleRefreshStatus(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>
               {selectedCourse && !selectedCourse.rag_indexed_at && <p role="status" className="mt-3 border-l-2 border-secondary px-3 py-2 font-body-sm text-body-sm text-text-muted">This course isn&apos;t indexed yet. Sync Canvas content before generating a pack.</p>}
 
               <fieldset className="mt-space-lg"><legend className={labelClass}>Coverage</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -132,6 +151,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
                   return <label key={value} className={`border px-3 py-3 transition-colors ${unavailable ? "cursor-not-allowed border-border/60 opacity-60" : "cursor-pointer"} ${scope === value ? "border-primary-container bg-surface-container-low" : !unavailable ? "border-border hover:border-primary-container/50" : ""}`}><span className="flex items-start gap-2"><input className="mt-0.5 accent-primary-container" type="radio" name="scope" value={value} checked={scope === value} disabled={unavailable} onChange={() => setScope(value)} /><span><span className="block font-label-md text-label-md text-on-surface">{title}</span><span className="mt-1 block font-body-sm text-body-sm text-text-muted">{detail}</span></span></span></label>;
                 })}
               </div></fieldset>
+              {selectedCourse?.rag_indexed_at && <div className="mt-3"><button type="button" onClick={() => void refreshModules()} disabled={refreshingModules || modulesLoading} className="font-label-md text-label-md text-accent-text underline underline-offset-4 disabled:opacity-50">{refreshingModules ? "Refreshing modules…" : "Refresh module names from Canvas"}</button>{moduleRefreshStatus && <p role="status" className="mt-2 font-body-sm text-body-sm text-text-muted">{moduleRefreshStatus}</p>}</div>}
               {scope === "module" && modules.length > 0 && <div className="mt-space-md"><label className={labelClass} htmlFor="study-module">Indexed module</label><select id="study-module" className={fieldClass} value={module} onChange={(e) => setModule(e.target.value)}><option value="">Choose a module</option>{modules.map((m) => <option key={m.id} value={m.id} disabled={m.chunks === 0}>{m.name}{m.chunks === 0 ? " (no indexed material)" : ""}</option>)}</select></div>}
 
               <div className="mt-space-lg grid gap-x-space-lg gap-y-space-md border-t border-primary-container/25 pt-space-md sm:grid-cols-3"><label className={labelClass}>Study format<select className={fieldClass} value={mode} onChange={(e) => setMode(e.target.value)}><option value="flashcards">Flashcards</option><option value="quiz">Practice quiz</option><option value="mixed">Mixed pack</option></select></label><label className={labelClass}>Number of items<input aria-label="Question count" type="number" min={1} max={30} className={fieldClass} value={count} onChange={(e) => setCount(Number(e.target.value))} /></label><label className={labelClass}>Difficulty<select className={fieldClass} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}><option value="mixed">Mixed</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label></div>
