@@ -1,0 +1,36 @@
+name: Beta availability
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: 'Trigger a safe synthetic failure to test notifications'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  availability:
+    name: Frontend and RAG availability
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Simulate alert delivery failure
+        if: ${{ inputs.simulate_failure == true }}
+        run: |
+          echo '::error::SIMULATED ALERT: verify GitHub and email notifications; no service or data was changed.'
+          exit 1
+      - name: Check production frontend
+        run: |
+          code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 15 --retry 2 https://course-pilot-pi.vercel.app)
+          if [ "$code" != "200" ]; then
+            echo "::error::Production frontend returned HTTP $code; investigate Vercel deployment and routing."
+            exit 1
+          fi
+      - name: Check active RAG and database
+        run: |
+          curl --fail --silent --show-error --max-time 15 --retry 2 https://coursepilot-rag-staging.up.railway.app/health | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("status") == "ok" and d.get("database") is True, "RAG database health check failed"'
