@@ -19,6 +19,7 @@ import SettingsSection, {
   SettingsRow,
 } from "./SettingsSection";
 import SyncButton from "../SyncButton";
+import DeleteAccount from "./DeleteAccount";
 
 interface RawCourse {
   id: string;
@@ -288,10 +289,9 @@ export default async function SettingsPage() {
                   </SettingsRow>
                   <SettingsRow
                     label="Delete account"
-                    helper="This removes your profile and every record tied to it."
-                    comingSoon
+                    helper="Permanently remove your account and personal data. Indexed course material remains."
                   >
-                    <DisabledAction label="Delete account" danger />
+                    <DeleteAccount />
                   </SettingsRow>
                   <p className="py-3 font-body-sm text-body-sm text-text-muted first:pt-0 last:pb-0">
                     Disconnecting Canvas does not delete previously synced data or its search index.

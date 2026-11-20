@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "../types";
 import SyncLoadingOverlay from "@/components/SyncLoadingOverlay";
+import { useSync } from "../SyncProvider";
 
 function indexedLabel(value: string | null): string {
   if (!value) return "Not indexed";
@@ -21,9 +22,11 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const { running } = useSync();
+  const locked = running || busyId !== null;
 
   async function resync(course: Course) {
-    if (!course.selectedForRag) return;
+    if (!course.selectedForRag || locked) return;
     setBusyId(course.id);
     setError("");
     setSuccess("");
@@ -42,7 +45,8 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
 
   if (courses.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface-container-low p-space-lg">
+      <div className="relative rounded-xl border border-dashed border-border bg-surface-container-low p-space-lg" aria-busy={running}>
+        {running && <SyncLoadingOverlay label="Syncing course index" showSyncMessages />}
         <p className="font-label-md text-label-md text-on-surface">No courses indexed yet</p>
         <p className="mt-1 font-body-sm text-body-sm text-text-muted">
           Connect Canvas and run a sync to pull your courses and study material into Coursa.
@@ -52,8 +56,8 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
   }
 
   return (
-    <div className="relative" aria-busy={busyId !== null}>
-      {busyId && <SyncLoadingOverlay label="Resyncing course" showSyncMessages />}
+    <div className="relative" aria-busy={locked}>
+      {locked && <SyncLoadingOverlay label={running ? "Syncing course index" : "Resyncing course"} showSyncMessages />}
       {error && <p role="alert" className="mb-3 rounded-lg bg-error-container p-3 text-sm text-on-error-container">{error}</p>}
       {success && <p role="status" className="mb-3 rounded-lg border border-primary-container/25 bg-surface-container-low p-3 text-sm text-on-surface">{success}</p>}
       <div className="hidden overflow-x-auto md:block">
@@ -83,7 +87,7 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
                 <td className="py-2.5 pr-3">
                   <div className="flex items-center gap-2">
                     <span className={`rounded-full px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>{course.selectedForRag ? "Included" : "Not selected"}</span>
-                    {course.selectedForRag && <button type="button" onClick={() => void resync(course)} disabled={busyId === course.id} className="border border-accent px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider text-accent-text transition-colors hover:bg-accent hover:text-on-accent disabled:opacity-50">{busyId === course.id ? "Syncing…" : "Resync"}</button>}
+                    {course.selectedForRag && <button type="button" onClick={() => void resync(course)} disabled={locked} className="border border-accent px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider text-accent-text transition-colors hover:bg-accent hover:text-on-accent disabled:opacity-50">{busyId === course.id ? "Syncing…" : "Resync"}</button>}
                   </div>
                 </td>
                 <td className="py-2.5 pr-3 text-right font-code-tag text-[11px] text-text-muted">
@@ -114,7 +118,7 @@ export default function CourseIndexTable({ courses }: { courses: Course[] }) {
             <div className="flex items-start justify-between gap-3"><p className="font-label-md text-label-md text-on-surface">
               {course.code ? `${course.code} — ` : ""}
               {course.name}
-            </p><div className="flex shrink-0 flex-col items-end gap-2"><span className={`rounded-full px-2 py-1 font-code-tag text-[10px] uppercase tracking-wider ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>{course.selectedForRag ? "Included" : "Not selected"}</span>{course.selectedForRag && <button type="button" onClick={() => void resync(course)} disabled={busyId === course.id} className="border border-accent px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider text-accent-text disabled:opacity-50">{busyId === course.id ? "Syncing…" : "Resync"}</button>}</div></div>
+            </p><div className="flex shrink-0 flex-col items-end gap-2"><span className={`rounded-full px-2 py-1 font-code-tag text-[10px] uppercase tracking-wider ${course.selectedForRag ? "bg-emerald-700 text-white" : "border border-border text-text-muted"}`}>{course.selectedForRag ? "Included" : "Not selected"}</span>{course.selectedForRag && <button type="button" onClick={() => void resync(course)} disabled={locked} className="border border-accent px-2.5 py-1 font-code-tag text-[10px] uppercase tracking-wider text-accent-text disabled:opacity-50">{busyId === course.id ? "Syncing…" : "Resync"}</button>}</div></div>
             <p className="mt-0.5 font-code-tag text-[10px] uppercase tracking-[0.12em] text-text-muted">
               {indexedLabel(course.ragIndexedAt)} · {count(course.ragDocumentCount)} docs ·{" "}
               {count(course.ragChunkCount)} chunks
