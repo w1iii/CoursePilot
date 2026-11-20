@@ -9,5 +9,5 @@ export default async function OnboardingPage() {
   const { data } = await supabaseAdmin().from("users")
     .select("onboarding_completed_at").eq("id", user.id).maybeSingle();
   if (data?.onboarding_completed_at) redirect("/dashboard/thread");
-  return <OnboardingFlow />;
+  return <OnboardingFlow initialUsername={user.username ?? ""} />;
 }

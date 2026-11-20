@@ -10,11 +10,13 @@ create table if not exists public.users (
   clerk_user_id  text not null unique,
   email          text not null,
   full_name      text,
+  username       text,
   onboarding_completed_at timestamptz,
   created_at     timestamptz not null default now()
 );
 
 alter table public.users add column if not exists onboarding_completed_at timestamptz;
+alter table public.users add column if not exists username text;
 
 -- ---------------------------------------------------------------------------
 -- Canvas Accounts  (One User -> One Connection per Canvas Host)

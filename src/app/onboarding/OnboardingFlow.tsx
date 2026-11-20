@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import ColorOrbLoader from "@/components/ColorOrbLoader";
 import SyncWaitMessages from "@/components/SyncWaitMessages";
 
 type CanvasCourse = {
@@ -26,14 +25,15 @@ const screenshots = [
   { src: "07-copy_access_token.png", title: "Create and copy your token", detail: "Copy the token once, then paste it into the form." },
 ];
 
-export default function OnboardingFlow() {
+export default function OnboardingFlow({ initialUsername }: { initialUsername: string }) {
   const router = useRouter();
   const { getToken } = useAuth();
   const [baseUrl, setBaseUrl] = useState("https://canvas.instructure.com");
   const [token, setToken] = useState("");
   const [courses, setCourses] = useState<CanvasCourse[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
-  const [step, setStep] = useState<"connect" | "courses" | "indexing">("connect");
+  const [username, setUsername] = useState(initialUsername);
+  const [step, setStep] = useState<"username" | "connect" | "courses" | "indexing">("username");
   const [slide, setSlide] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -45,6 +45,28 @@ export default function OnboardingFlow() {
     }, 3000);
     return () => window.clearInterval(timer);
   }, [step]);
+
+  async function saveUsername(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const sessionToken = await getToken();
+      if (!sessionToken) throw new Error("session");
+      const response = await fetch("/api/profile/username", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
+        body: JSON.stringify({ username }),
+      });
+      if (response.status === 401) throw new Error("session");
+      if (!response.ok) throw new Error("save");
+      setStep("connect");
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message === "session" ? "Your session expired. Sign in again to continue." : "Could not save username. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function connect(event: React.FormEvent) {
     event.preventDefault();
@@ -109,15 +131,26 @@ export default function OnboardingFlow() {
           <span className="font-code-tag text-xs uppercase tracking-widest text-text-muted">Getting started</span>
         </header>
         <div className="mb-8 flex gap-2" aria-label="Setup progress">
-          {["Connect Canvas", "Choose courses", "Index courses"].map((label, index) => {
-            const active = index === (step === "connect" ? 0 : step === "courses" ? 1 : 2);
+          {["Username", "Connect Canvas", "Choose courses", "Index courses"].map((label, index) => {
+            const active = index === (step === "username" ? 0 : step === "connect" ? 1 : step === "courses" ? 2 : 3);
             return <div key={label} className={`h-1.5 flex-1 rounded-full ${active ? "bg-accent" : "bg-border"}`} aria-label={label} />;
           })}
         </div>
 
+        {step === "username" && <section className="mx-auto max-w-xl rounded-3xl border border-border bg-surface p-6 sm:p-9">
+          <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 1 · Your username</p>
+          <h1 className="mt-3 font-display text-4xl">What should we call you?</h1>
+          <p className="mt-3 text-text-muted">Choose a username to display throughout Coursa. You can change it later in your profile.</p>
+          <form onSubmit={saveUsername} className="mt-7 space-y-4">
+            <label className="block space-y-2"><span className="text-sm font-medium">Username</span><input className={inputClass} value={username} onChange={(event) => setUsername(event.target.value)} maxLength={40} required autoComplete="nickname" /></label>
+            {error && <p role="alert" className="rounded-xl bg-error-container p-3 text-sm text-on-error-container">{error}</p>}
+            <button disabled={busy || !username.trim()} className="w-full rounded-xl bg-accent px-5 py-3 font-semibold text-on-accent disabled:opacity-60">{busy ? "Saving…" : "Continue"}</button>
+          </form>
+        </section>}
+
         {step === "connect" && <div className="grid gap-8 lg:grid-cols-[1fr_1.05fr]">
           <section className="rounded-3xl border border-border bg-surface p-6 sm:p-9">
-            <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 1 · Canvas connection</p>
+            <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 2 · Canvas connection</p>
             <h1 className="mt-3 font-display text-4xl leading-tight">Bring your courses together.</h1>
             <p className="mt-3 text-text-muted">Connect Canvas with a personal access token. Coursa encrypts and stores it securely to sync your courses.</p>
             <form onSubmit={connect} className="mt-7 space-y-4">
@@ -125,6 +158,7 @@ export default function OnboardingFlow() {
               <label className="block space-y-2"><span className="text-sm font-medium">Personal access token</span><input className={inputClass} type="password" autoComplete="off" required value={token} onChange={(e) => setToken(e.target.value)} placeholder="Paste your Canvas token" /></label>
               {error && <p role="alert" className="rounded-xl bg-error-container p-3 text-sm text-on-error-container">{error}</p>}
               <button disabled={busy} className="w-full rounded-xl bg-accent px-5 py-3 font-semibold text-on-accent disabled:opacity-60">{busy ? "Checking Canvas…" : "Connect and find courses"}</button>
+              <button type="button" onClick={() => { setError(""); setStep("username"); }} className="w-full rounded-xl border border-border px-5 py-3">Back</button>
               <p className="text-xs text-text-muted">Your token is encrypted before storage and never shown again.</p>
             </form>
           </section>
@@ -146,7 +180,7 @@ export default function OnboardingFlow() {
         </div>}
 
         {step === "courses" && <section className="rounded-3xl border border-border bg-surface p-6 sm:p-9">
-          <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 2 · Course selection</p>
+          <p className="font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 3 · Course selection</p>
           <h1 className="mt-3 font-display text-4xl">Choose what Coursa should learn.</h1>
           <p className="mt-2 text-text-muted">Only selected courses are sent for RAG indexing and used as study context. Select at least one.</p>
           {courses.length ? <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{courses.map((course) => {
@@ -157,7 +191,7 @@ export default function OnboardingFlow() {
           <div className="mt-7 flex flex-wrap items-center justify-between gap-4"><button type="button" onClick={() => setStep("connect")} className="rounded-xl border border-border px-5 py-3">Back</button><button type="button" disabled={busy || selected.length === 0} onClick={() => void finish()} className="rounded-xl bg-accent px-5 py-3 font-semibold text-on-accent disabled:opacity-50">Index {selected.length} {selected.length === 1 ? "course" : "courses"}</button></div>
         </section>}
 
-        {step === "indexing" && <section className="relative mx-auto max-w-xl rounded-3xl border border-border bg-surface p-10 text-center"><ColorOrbLoader label="Setting up your courses" /><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-border border-t-accent" /><p className="mt-6 font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 3 · Setting things up</p><h1 className="mt-3 font-display text-3xl">Getting your courses ready.</h1><div className="mt-3 text-text-muted"><SyncWaitMessages /></div></section>}
+        {step === "indexing" && <section className="relative mx-auto max-w-xl rounded-3xl border border-border bg-surface p-10 text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-border border-t-accent" /><p className="mt-6 font-code-tag text-xs uppercase tracking-widest text-accent-text">Step 4 · Setting things up</p><h1 className="mt-3 font-display text-3xl">Getting your courses ready.</h1><div className="mt-3 text-text-muted"><SyncWaitMessages /></div></section>}
       </div>
     </main>
     </>

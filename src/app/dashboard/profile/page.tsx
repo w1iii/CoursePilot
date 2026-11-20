@@ -2,6 +2,7 @@ import { UserProfile } from "@clerk/nextjs";
 import { requireUser } from "@/lib/user";
 import DashboardShell from "../DashboardShell";
 import SettingsNav from "../settings/SettingsNav";
+import UsernameForm from "./UsernameForm";
 
 function normalizeName(value: string): string {
   if (value !== value.toUpperCase()) return value;
@@ -14,7 +15,7 @@ function normalizeName(value: string): string {
 
 export default async function ProfilePage() {
   const user = await requireUser();
-  const displayName = normalizeName(
+  const displayName = user.username?.trim() || normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
 
@@ -32,7 +33,8 @@ export default async function ProfilePage() {
             </p>
           </div>
           <SettingsNav />
-          <div className="min-h-0 w-full flex-1 overflow-hidden rounded-xl bg-transparent p-0 pb-space-xl">
+          <div className="min-h-0 w-full flex-1 overflow-y-auto rounded-xl bg-transparent p-0 pb-space-xl">
+            <UsernameForm initialUsername={user.username ?? ""} />
             <UserProfile
               routing="hash"
               appearance={{

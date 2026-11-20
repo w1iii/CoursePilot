@@ -176,13 +176,13 @@ export default async function DashboardPage() {
   });
   const edition = courseRows.find((course) => course.semester)?.semester ?? semesterLabel(now);
 
-  const displayName = normalizeName(
+  const displayName = user.username?.trim() || normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
   const firstName = displayName.split(/\s+/)[0];
 
   return (
-    <DashboardShell userName={firstName} userEmail={user.email}>
+    <DashboardShell userName={displayName} userEmail={user.email}>
       <div id="dashboard-scroll" className="min-h-0 flex-1 overflow-y-auto">
         <DashboardPaper
           initialTasks={tasks}

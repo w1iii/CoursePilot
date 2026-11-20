@@ -116,7 +116,7 @@ export default async function SettingsPage() {
     selectedForRag: course.selected_for_rag,
   }));
 
-  const displayName = normalizeName(
+  const displayName = user.username?.trim() || normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
 

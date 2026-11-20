@@ -16,7 +16,7 @@ export default async function Page() {
   const user = await requireUser();
 
   return (
-    <DashboardShell userName={displayName(user.full_name, user.email)} userEmail={user.email}>
+    <DashboardShell userName={user.username?.trim() || displayName(user.full_name, user.email)} userEmail={user.email}>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <StudyPrepHome />
       </div>

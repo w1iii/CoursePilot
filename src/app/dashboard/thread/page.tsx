@@ -48,7 +48,7 @@ export default async function ThreadPage({ searchParams }: PageProps) {
     indexed: Boolean(course.rag_indexed_at),
   }));
 
-  const displayName = normalizeName(
+  const displayName = user.username?.trim() || normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "student",
   );
 
