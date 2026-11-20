@@ -45,7 +45,8 @@ cited answers.
 
 ### Prerequisites
 
-Node.js 20+, Supabase, Clerk, Canvas access, Python 3.12+, `uv`, and PostgreSQL
+Node.js 22 or later (CI tests 22 and 26), Supabase, Clerk, Canvas access,
+Python 3.12 or 3.13, `uv`, and PostgreSQL
 with pgvector. Tesseract is optional for OCR.
 
 ```bash
@@ -56,6 +57,10 @@ cd CoursePilot
 npm ci
 cp .env.example .env
 ```
+
+If using nvm, run `nvm install` and `nvm use` in this directory first. Use
+separate development Supabase and Clerk projects and a Canvas test account; do
+not reuse production credentials or user data.
 
 Run [`supabase/schema.sql`](supabase/schema.sql) in Supabase. Create a Clerk
 application and fill its keys. Generate `TOKEN_ENCRYPTION_KEY` with:
@@ -72,6 +77,9 @@ uv sync
 cp .env.example .env
 uv run uvicorn app.main:app --reload --port 8000
 ```
+
+Before starting RAG, fill in its database URL, Gemini API key, and signing
+secret. Use a dedicated local database, not staging or production.
 
 Then start CoursePilot:
 
