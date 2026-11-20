@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import ColorOrbLoader from "@/components/ColorOrbLoader";
 import SyncWaitMessages from "@/components/SyncWaitMessages";
 
@@ -27,6 +28,7 @@ const screenshots = [
 
 export default function OnboardingFlow() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [baseUrl, setBaseUrl] = useState("https://canvas.instructure.com");
   const [token, setToken] = useState("");
   const [courses, setCourses] = useState<CanvasCourse[]>([]);
@@ -76,17 +78,22 @@ export default function OnboardingFlow() {
     setError("");
     setStep("indexing");
     try {
+      const sessionToken = await getToken();
+      if (!sessionToken) throw new Error("session");
       const response = await fetch("/api/onboarding/finish", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
         body: JSON.stringify({ courseIds: selected }),
       });
+      if (response.status === 401) throw new Error("session");
       if (!response.ok) throw new Error("index");
       router.replace("/dashboard/thread");
       router.refresh();
-    } catch {
+    } catch (cause) {
       setStep("courses");
-      setError("Courses could not be indexed. Please try again.");
+      setError(cause instanceof Error && cause.message === "session"
+        ? "Your session expired. Sign in again, then retry course setup."
+        : "Courses could not be indexed. Please try again.");
     } finally {
       setBusy(false);
     }
