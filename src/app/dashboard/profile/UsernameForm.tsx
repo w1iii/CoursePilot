@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { saveUsernameRequest } from "@/lib/username-request";
 
 export default function UsernameForm({ initialUsername }: { initialUsername: string }) {
   const [username, setUsername] = useState(initialUsername);
@@ -16,13 +17,7 @@ export default function UsernameForm({ initialUsername }: { initialUsername: str
     setBusy(true);
     setMessage("");
     try {
-      const token = await getToken();
-      if (!token) throw new Error("session");
-      const response = await fetch("/api/profile/username", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ username }),
-      });
+      const response = await saveUsernameRequest(username, getToken);
       if (response.status === 401) throw new Error("session");
       if (!response.ok) throw new Error("save");
       const result = await response.json();

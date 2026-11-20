@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import SyncWaitMessages from "@/components/SyncWaitMessages";
+import { saveUsernameRequest } from "@/lib/username-request";
 
 type CanvasCourse = {
   id: string;
@@ -51,13 +52,7 @@ export default function OnboardingFlow({ initialUsername }: { initialUsername: s
     setBusy(true);
     setError("");
     try {
-      const sessionToken = await getToken();
-      if (!sessionToken) throw new Error("session");
-      const response = await fetch("/api/profile/username", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
-        body: JSON.stringify({ username }),
-      });
+      const response = await saveUsernameRequest(username, getToken);
       if (response.status === 401) throw new Error("session");
       if (!response.ok) throw new Error("save");
       setStep("connect");
