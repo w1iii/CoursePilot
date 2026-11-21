@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { dueCopy } from "@/lib/dashboard";
 import type { Course, DashboardTask } from "./types";
 
@@ -57,7 +57,19 @@ export default function TaskLedger({
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const selectedTask = tasks.find((task) => task.id === selectedTaskId);
+  const hasSelectedTask = Boolean(selectedTask);
   const now = useMemo(() => new Date(today), [today]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (hasSelectedTask && dialog && !dialog.open) dialog.showModal();
+    return () => {
+      if (dialog?.open) dialog.close();
+    };
+  }, [hasSelectedTask]);
 
   const openTasks = useMemo(
     () => tasks.filter((task) => task.status !== "completed"),
@@ -318,9 +330,9 @@ export default function TaskLedger({
                       </button>
                     </td>
                     <th scope="row" className="px-2 py-3 align-middle">
-                      <span className="font-label-md text-label-md text-on-surface">
+                      <button type="button" onClick={() => setSelectedTaskId(task.id)} className="text-left font-label-md text-label-md text-on-surface underline-offset-4 hover:text-accent-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
                         {task.title}
-                      </span>
+                      </button>
                       {task.is_manual && (
                         <span className="ml-2 font-code-tag text-[9px] uppercase tracking-[0.14em] text-text-muted">
                           Personal
@@ -392,6 +404,51 @@ export default function TaskLedger({
             </button>
           </div>
         </nav>
+      )}
+      {selectedTask && (
+        <dialog
+          ref={dialogRef}
+          aria-labelledby="task-details-heading"
+          onClose={() => setSelectedTaskId(null)}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) event.currentTarget.close();
+          }}
+          className="paper-texture m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto border border-primary-container/25 bg-surface p-space-lg text-on-surface shadow-[0_18px_60px_var(--shadow-color)] backdrop:bg-primary-container/35 backdrop:backdrop-blur-sm"
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-primary-container/25 pb-space-sm">
+            <div>
+              <p className="paper-kicker text-accent-text">Task details</p>
+              <h2 id="task-details-heading" className="mt-2 font-display text-[32px] leading-tight text-primary-container">{selectedTask.title}</h2>
+            </div>
+            <button type="button" aria-label="Close task details" onClick={() => dialogRef.current?.close()} className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-text-muted transition-colors hover:border-accent hover:text-accent-text">
+              <span className="material-symbols-outlined text-lg" aria-hidden="true">close</span>
+            </button>
+          </div>
+          <div className="mt-space-md grid gap-space-sm sm:grid-cols-2">
+            {[
+              ["Course", selectedTask.courses?.course_code ?? selectedTask.courses?.course_name ?? "Course"],
+              ["Due", dueCopy(selectedTask.due_date, now).label],
+              ["Type", selectedTask.type],
+              ["Priority", selectedTask.priority],
+              ["Status", selectedTask.status],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <p className="paper-kicker text-text-muted">{label}</p>
+                <p className="mt-1 font-body-md capitalize text-on-surface">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-space-md border-t border-border pt-space-md">
+            <p className="paper-kicker text-text-muted">Description</p>
+            <p className="mt-2 whitespace-pre-wrap font-body-md leading-relaxed text-on-surface">{selectedTask.description?.trim() || "No description provided."}</p>
+          </div>
+          {selectedTask.notes?.trim() && (
+            <div className="mt-space-md border-t border-border pt-space-md">
+              <p className="paper-kicker text-text-muted">Notes</p>
+              <p className="mt-2 whitespace-pre-wrap font-body-md leading-relaxed text-on-surface">{selectedTask.notes}</p>
+            </div>
+          )}
+        </dialog>
       )}
     </section>
   );
