@@ -4,6 +4,7 @@ import { listCourses } from "@/lib/canvas";
 import { getCanvasCredentials } from "@/lib/canvas-account";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser, UnauthorizedError } from "@/lib/user";
+import { invalidateUserCache } from "@/lib/cache";
 
 export async function GET() {
   try {
@@ -21,6 +22,7 @@ export async function GET() {
       })), { onConflict: "user_id,canvas_course_id" })
       .select("id, canvas_course_id, course_code, course_name, selected_for_rag, rag_indexed_at");
     if (error) throw error;
+    invalidateUserCache(user.id);
     return NextResponse.json({ courses: rows ?? [] }, {
       headers: { "Cache-Control": "private, no-store" },
     });

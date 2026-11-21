@@ -1,0 +1,22 @@
+name: Staging authenticated smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    environment: synthetic-staging
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Verify synthetic session and course read
+        env:
+          SYNTHETIC_SESSION_COOKIE: ${{ secrets.SYNTHETIC_SESSION_COOKIE }}
+        run: node scripts/staging-auth-smoke.mjs

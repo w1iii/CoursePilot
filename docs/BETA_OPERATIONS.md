@@ -7,6 +7,14 @@
 - GitHub Actions failure notifications and email depend on the owner's GitHub watch and notification preferences. Confirm both channels receive an actual failure; a successful workflow run does not establish delivery.
 - This workflow does **not** check Supabase health, authenticate a user, verify data isolation, or prove end-to-end function. Configure separate Supabase monitoring and synthetic-user tests before beta.
 
+### Staging authenticated smoke foundation
+
+`Staging authenticated smoke` is a manual, read-only check of the authenticated staging course-list API. It is fixed to `coursepilot-staging.vercel.app`, never follows redirects with the session cookie, and does not print credentials or response bodies. Its Node test runs in CI. It does not perform login, Canvas sync, RAG retrieval, study-pack generation or isolation testing.
+
+Before using it, fix the staging hostname and provision a dedicated synthetic account with no real data. Store a short-lived session cookie as `SYNTHETIC_SESSION_COOKIE` in the protected GitHub `synthetic-staging` environment; restrict access and rotate it. Configure any Vercel protection explicitly; do not disable protection or store production credentials to make the check pass. The workflow is manual only, and no alert delivery is implied until it is run and verified.
+
+On 2026-11-19 the availability workflow's simulated-failure run `44450542468` completed as an intentional failure; the owner confirmed receipt in both GitHub and email. This confirms delivery for that test, not every future incident.
+
 ### Test notifications safely
 
 After this workflow is merged to the default branch, use GitHub Actions > Beta availability > Run workflow and select `simulate_failure`. This intentionally fails the job without contacting or changing live services. Confirm GitHub and email delivery to `w1iii`, capture the run URL and delivery times in the release record, and clear the test incident. If email does not arrive, review GitHub notification settings and email verification. Do not mark alert delivery verified until observed.

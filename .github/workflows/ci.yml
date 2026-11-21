@@ -30,6 +30,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test -- --coverage
+      - run: node --test scripts/staging-auth-smoke.test.mjs
       - run: npm run build
 
   secrets:
