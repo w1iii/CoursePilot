@@ -10,6 +10,7 @@ import {
 import { elapsedMs, logAiRequest } from "@/lib/ai/log";
 import { checkRateLimit, getRateLimitUsage, rateLimitMessage } from "@/lib/rate-limit";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
+import { apiFailure } from "@/lib/api-error";
 
 const MAX_QUESTION_CHARS = 2000;
 
@@ -98,10 +99,8 @@ export async function POST(req: NextRequest) {
       );
     }
     if (err instanceof RagServiceError) {
-      console.error("ask RAG service status", err.status);
-      return NextResponse.json({ error: "Assistant unavailable" }, { status: 502 });
+      return apiFailure("ask.rag", err, "Assistant unavailable", 502);
     }
-    console.error("ask error", err instanceof Error ? err.name : "unknown");
-    return NextResponse.json({ error: safeErrorMessage() }, { status: 500 });
+    return apiFailure("ask.request", err, safeErrorMessage());
   }
 }
