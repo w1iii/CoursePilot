@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase", () => ({
 import { logAiRequest } from "@/lib/ai/log";
 
 describe("logAiRequest cache telemetry", () => {
-  beforeEach(() => insert.mockReset().mockResolvedValue({ error: null }));
+  beforeEach(() => { insert.mockReset().mockResolvedValue({ error: null }); });
 
   it("persists cache hit status without recording question content", async () => {
     await logAiRequest({
@@ -40,5 +40,14 @@ describe("logAiRequest cache telemetry", () => {
     });
 
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ cache_hit: false }));
+  });
+
+  it("does not leak telemetry storage errors or fail the request", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    insert.mockRejectedValue(new Error("secret database detail"));
+    await expect(logAiRequest({ userId: null, feature: "ask", status: "error", latencyMs: 1 })).resolves.toBeUndefined();
+    expect(log).toHaveBeenCalledWith("server request failed", expect.objectContaining({ operation: "ai-request-log.insert" }));
+    expect(JSON.stringify(log.mock.calls)).not.toContain("secret database detail");
+    log.mockRestore();
   });
 });

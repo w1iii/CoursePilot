@@ -32,13 +32,11 @@ export async function generateStudyPack(userId: string, course: CourseOption, in
   const token = signRagToken({ userId, courseKey: key, scope: "study-prep", ...(shared ? { canvasCourseId: course.canvas_course_id, canvasInstance: instance } : {}) });
   const response = await fetch(`${base()}/api/v1/study-prep`, { method: "POST", headers: { "Content-Type": "application/json", "X-RAG-Token": token, ...(requestId ? { "X-Request-ID": requestId } : {}) }, body: JSON.stringify({ course_key: key, module: input.module || null, module_id: input.moduleId ?? null, topic: input.topic || null, mode: input.mode, count: input.count, difficulty: input.difficulty }), signal: AbortSignal.timeout(STUDY_PREP_TIMEOUT_MS), cache: "no-store" });
   if (!response.ok) {
-    const body = await response.json().catch(() => null) as { detail?: unknown } | null;
-    const detail = typeof body?.detail === "string" ? body.detail : null;
     const message = response.status === 422
-      ? detail ?? "Invalid study request. Check the selected course and module."
+      ? "Invalid study request. Check the selected course and module."
       : response.status === 504
         ? "Study generation took too long. Try fewer items or a narrower scope."
-        : detail ?? "Study content generation failed.";
+        : "Study content generation failed.";
     throw new StudyPrepServiceError(message, response.status);
   }
   try { return await response.json() as { title: string; items: unknown[]; grounded: boolean; source_index_version: string }; }

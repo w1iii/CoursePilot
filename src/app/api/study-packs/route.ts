@@ -7,6 +7,7 @@ import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { invalidateUserCache } from "@/lib/cache";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 import { randomUUID } from "node:crypto";
+import { logServerError } from "@/lib/server-error";
 
 export const maxDuration = 300;
 
@@ -24,7 +25,8 @@ export async function GET() {
     return NextResponse.json(packs, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: "Could not load study history" }, { status: 500 });
+    const requestId = logServerError("study-packs.list", error);
+    return NextResponse.json({ error: "Could not load study history" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }
 
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error("study pack generation failed", { requestId, error });
+    logServerError("study-packs.generate", error, requestId);
     if (error instanceof StudyPrepServiceError) return NextResponse.json({ error: error.message }, { status: error.status === 422 || error.status === 504 ? error.status : 502, headers: { "X-Request-ID": requestId } });
     return NextResponse.json({ error: "Could not generate study pack" }, { status: 502, headers: { "X-Request-ID": requestId } });
   }

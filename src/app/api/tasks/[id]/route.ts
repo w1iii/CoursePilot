@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { invalidateUserResourceCache } from "@/lib/cache";
 import { enforceTaskWriteLimit, optionalDate, optionalText, readTaskJson, RequestValidationError } from "@/lib/task-api";
 import { isUuid } from "@/lib/api-validation";
+import { logServerError } from "@/lib/server-error";
 
 const VALID_STATUSES = new Set(["pending", "completed"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -16,7 +17,7 @@ async function ownsTask(userId: string, taskId: string) {
     .from("academic_tasks")
     .select("id, is_manual, course_id, courses!inner(user_id)")
     .eq("id", taskId)
-    .single();
+    .maybeSingle();
   if (error) throw new Error("Task ownership lookup failed");
   if (!data) return null;
   const owner = (data.courses as unknown as { user_id: string }).user_id;
@@ -107,8 +108,8 @@ export async function PATCH(
     if (err instanceof RequestValidationError) {
       return NextResponse.json({ error: err.message }, { status: err.message === "Request body too large" ? 413 : 400 });
     }
-    console.error("task update failed", err instanceof Error ? err.name : "unknown");
-    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
+    const requestId = logServerError("tasks.update", err);
+    return NextResponse.json({ error: "Failed to update task" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }
 
@@ -144,7 +145,7 @@ export async function DELETE(
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("task delete failed", err instanceof Error ? err.name : "unknown");
-    return NextResponse.json({ error: "Failed to delete task" }, { status: 500 });
+    const requestId = logServerError("tasks.delete", err);
+    return NextResponse.json({ error: "Failed to delete task" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }

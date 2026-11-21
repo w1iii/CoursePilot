@@ -6,6 +6,7 @@ import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { cacheUserRead, invalidateUserResourceCache } from "@/lib/cache";
 import { enforceTaskWriteLimit, optionalDate, optionalText, readTaskJson, RequestValidationError } from "@/lib/task-api";
 import { isUuid } from "@/lib/api-validation";
+import { logServerError } from "@/lib/server-error";
 
 const VALID_TYPES = new Set(["assignment", "quiz", "exam", "project", "activity", "reading"]);
 const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
@@ -66,8 +67,8 @@ export async function GET() {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("task list failed", err instanceof Error ? err.name : "unknown");
-    return NextResponse.json({ error: "Failed to load tasks" }, { status: 500 });
+    const requestId = logServerError("tasks.list", err);
+    return NextResponse.json({ error: "Failed to load tasks" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }
 
@@ -108,12 +109,13 @@ export async function POST(req: NextRequest) {
     const safeDueDate = optionalDate(dueDate);
 
     const sb = supabaseAdmin();
-    const { data: course } = await sb
+    const { data: course, error: courseError } = await sb
       .from("courses")
       .select("id")
       .eq("id", courseId)
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+    if (courseError) throw courseError;
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
@@ -143,7 +145,7 @@ export async function POST(req: NextRequest) {
     if (err instanceof RequestValidationError) {
       return NextResponse.json({ error: err.message }, { status: err.message === "Request body too large" ? 413 : 400 });
     }
-    console.error("task create failed", err instanceof Error ? err.name : "unknown");
-    return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
+    const requestId = logServerError("tasks.create", err);
+    return NextResponse.json({ error: "Failed to create task" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }

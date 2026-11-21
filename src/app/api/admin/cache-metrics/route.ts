@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { env } from "@/lib/env";
 import { loadAskCacheMetrics } from "@/lib/ai/metrics";
+import { logServerError } from "@/lib/server-error";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
       metrics,
     }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
-    console.error("cache metrics error", error);
-    return NextResponse.json({ error: "Metrics unavailable" }, { status: 503 });
+    const requestId = logServerError("cache-metrics.load", error);
+    return NextResponse.json({ error: "Metrics unavailable" }, { status: 503, headers: { "X-Request-ID": requestId } });
   }
 }

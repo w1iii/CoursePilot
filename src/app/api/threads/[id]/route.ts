@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logServerError } from "@/lib/server-error";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { messagesToTurns, type ThreadTurn } from "@/lib/thread-turns";
@@ -84,8 +85,8 @@ export async function GET(_: Request, { params }: Params) {
     });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error("thread load error", error);
-    return NextResponse.json({ error: "Failed to load chat thread" }, { status: 500 });
+    const requestId = logServerError("threads.load", error);
+    return NextResponse.json({ error: "Failed to load chat thread" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }
 
@@ -165,8 +166,8 @@ export async function PUT(request: Request, { params }: Params) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error("thread save error", error);
-    return NextResponse.json({ error: "Failed to save chat thread" }, { status: 500 });
+    const requestId = logServerError("threads.save", error);
+    return NextResponse.json({ error: "Failed to save chat thread" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }
 
@@ -185,7 +186,7 @@ export async function DELETE(_: Request, { params }: Params) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error("thread delete error", error);
-    return NextResponse.json({ error: "Failed to delete chat thread" }, { status: 500 });
+    const requestId = logServerError("threads.delete", error);
+    return NextResponse.json({ error: "Failed to delete chat thread" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }

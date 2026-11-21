@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase";
+import { logServerError } from "@/lib/server-error";
 
 export type AiFeature = "ask" | "ingest" | "sync";
 export type AiStatus = "ok" | "error";
@@ -40,10 +41,10 @@ export async function logAiRequest(entry: AiRequestLog): Promise<void> {
       });
 
     if (error) {
-      console.error("ai request log failed", error.message);
+      logServerError("ai-request-log.insert", error);
     }
   } catch (err) {
-    console.error("ai request log failed", (err as Error).message);
+    logServerError("ai-request-log.insert", err);
   }
 }
 

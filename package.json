@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:coverage:all": "vitest run --config vitest.coverage.config.mts --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {
