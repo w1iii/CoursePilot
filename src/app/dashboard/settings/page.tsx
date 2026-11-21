@@ -185,7 +185,7 @@ export default async function SettingsPage() {
                         {courses.length} {courses.length === 1 ? "course" : "courses"}
                       </span>
                     </div>
-                    <CourseIndexTable courses={courses} />
+                    <CourseIndexTable courses={courses} connected={canvas.connected && !canvas.needsReconnect} />
                   </div>
                 </SettingsSection>
               </SettingsGroup>

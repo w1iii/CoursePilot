@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       const { error } = await sb.from("courses").update({ selected_for_rag: true })
         .eq("id", course.id).eq("user_id", user.id);
       if (error) throw error;
+      invalidateUserCache(user.id);
       const ingestion = await ingestCanvasCourse({
         userId: user.id,
         courseKey: course.id,
