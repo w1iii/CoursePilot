@@ -3,6 +3,7 @@ import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { invalidateUserCache } from "@/lib/cache";
 import { isUuid } from "@/lib/api-validation";
+import { apiFailure } from "@/lib/api-error";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,7 +14,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!data) return NextResponse.json({ error: "Study pack not found" }, { status: 404 });
     invalidateUserCache(user.id);
     return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
-  } catch (error) { if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return NextResponse.json({ error: "Could not load study pack" }, { status: 500 }); }
+  } catch (error) { if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return apiFailure("study-packs.load", error, "Could not load study pack"); }
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -24,5 +25,5 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     if (error) throw error;
     if (!data) return NextResponse.json({ error: "Study pack not found" }, { status: 404 });
     return NextResponse.json({ deleted: true });
-  } catch (error) { if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return NextResponse.json({ error: "Could not delete study pack" }, { status: 500 }); }
+  } catch (error) { if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return apiFailure("study-packs.delete", error, "Could not delete study pack"); }
 }
