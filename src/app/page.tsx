@@ -268,43 +268,6 @@ export default function Home() {
             </Reveal>
           </section>
 
-          {/* ============ STUDENT PRAISE ============ */}
-          <section className="mx-auto w-full max-w-[1120px] px-gutter py-space-2xl">
-            <Reveal>
-            <div className="flex flex-col items-center justify-between gap-space-2xl rounded-xl border border-secondary/15 bg-surface-container-high/60 p-space-xl sm:p-space-2xl md:flex-row">
-              <div className="max-w-lg space-y-space-xs">
-                <span className="font-code-tag text-code-tag font-semibold uppercase text-surface-tint">
-                  Grounded in mindful practice
-                </span>
-                <h3 className="font-headline-md text-headline-md text-primary-container">
-                  “Canvas felt like a loud inbox. Coursa feels like an organized desk.”
-                </h3>
-                <p className="font-body-md text-body-md text-text-muted">
-                  — Bea R., Computer Science &amp; Linguistics Senior, Diliman
-                </p>
-              </div>
-              <div className="flex flex-col items-center space-y-space-sm text-center md:items-end md:text-right">
-                <div className="flex items-center gap-1 text-tertiary">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <span
-                      key={index}
-                      className="material-symbols-outlined text-lg leading-none"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      star
-                    </span>
-                  ))}
-                </div>
-                <p className="font-body-sm text-body-sm font-semibold text-primary-container">
-                  4.9 / 5 Average Semester Rating
-                </p>
-                <span className="font-code-tag text-code-tag text-text-muted">
-                  Verified student integrations
-                </span>
-              </div>
-            </div>
-            </Reveal>
-          </section>
 
           {/* ============ FAQ ============ */}
           <section
