@@ -14,6 +14,7 @@ import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { invalidateUserResourceCache } from "@/lib/cache";
 import { readJsonObject } from "@/lib/api-validation";
+import { apiFailure } from "@/lib/api-error";
 
 export async function POST(req: NextRequest) {
   try {
@@ -74,7 +75,6 @@ export async function POST(req: NextRequest) {
       if (err instanceof CanvasAuthError) {
         console.warn("Canvas token validation rejected", {
           host: new URL(baseUrl).host,
-          tokenLength: rawToken.length,
           status: err.statusCode,
         });
         return NextResponse.json(
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           { status: 401 },
         );
       }
-      return NextResponse.json({ error: "Could not reach Canvas" }, { status: 502 });
+      return apiFailure("canvas.validate", err, "Could not reach Canvas", 502);
     }
 
     const account = await saveCanvasAccount({
@@ -103,7 +103,6 @@ export async function POST(req: NextRequest) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("canvas connect error", err instanceof Error ? err.name : "unknown");
-    return NextResponse.json({ error: "Canvas connection failed" }, { status: 500 });
+    return apiFailure("canvas.connect", err, "Canvas connection failed");
   }
 }

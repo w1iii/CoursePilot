@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { cacheUserRead } from "@/lib/cache";
+import { logServerError } from "@/lib/server-error";
 
 export async function GET() {
   try {
@@ -24,7 +25,7 @@ export async function GET() {
     );
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.error("threads list error", error);
-    return NextResponse.json({ error: "Failed to load chat threads" }, { status: 500 });
+    const requestId = logServerError("threads.list", error);
+    return NextResponse.json({ error: "Failed to load chat threads" }, { status: 500, headers: { "X-Request-ID": requestId } });
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
+import { apiFailure } from "@/lib/api-error";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ courseId: string }> }) {
   try {
@@ -14,6 +15,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cou
     return NextResponse.json({ modules: await moduleMetadata(user.id, course) }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: "Could not load course modules" }, { status: 502 });
+    return apiFailure("study-prep.modules", error, "Could not load course modules", 502);
   }
 }
