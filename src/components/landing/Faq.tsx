@@ -24,11 +24,6 @@ const FAQ_ITEMS = [
     answer:
       "Coursa is free for individual undergraduate students across up to 5 concurrent courses.",
   },
-  {
-    question: "What if my professor changes a deadline last minute?",
-    answer:
-      "When an assignment due date shifts in Canvas, Coursa highlights the change and helps you adjust your study plan.",
-  },
 ];
 
 export default function Faq() {
