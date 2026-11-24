@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 const SECTIONS = [
   { id: "announcements", label: "Announcements" },
-  { id: "courses", label: "Courses" },
   { id: "tasks", label: "Tasks" },
   { id: "capabilities", label: "Capabilities" },
 ] as const;

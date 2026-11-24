@@ -20,6 +20,7 @@ interface Props {
   onCreate: (input: NewTaskInput) => Promise<void>;
   onToggle: (task: DashboardTask) => Promise<void>;
   onPriority: (id: string, priority: DashboardTask["priority"]) => Promise<void>;
+  onDelete: (task: DashboardTask) => Promise<void>;
 }
 
 type PriorityFilter = "all" | DashboardTask["priority"];
@@ -47,6 +48,7 @@ export default function TaskLedger({
   onCreate,
   onToggle,
   onPriority,
+  onDelete,
 }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -303,6 +305,7 @@ export default function TaskLedger({
                 <th scope="col" className="w-32 px-2 py-2 paper-kicker text-text-muted">
                   Priority
                 </th>
+                <th scope="col" className="w-20 px-2 py-2 paper-kicker text-text-muted">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -366,6 +369,23 @@ export default function TaskLedger({
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
                       </select>
+                    </td>
+                    <td className="px-2 py-3 align-middle">
+                      {task.is_manual && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!window.confirm(`Delete “${task.title}”?`)) return;
+                            try {
+                              await onDelete(task);
+                            } catch {
+                              setError("Could not delete task. Please try again.");
+                            }
+                          }}
+                          aria-label={`Delete ${task.title}`}
+                          className="font-code-tag text-[10px] uppercase tracking-[0.12em] text-text-muted underline underline-offset-4 hover:text-error"
+                        >Delete</button>
+                      )}
                     </td>
                   </tr>
                 );
