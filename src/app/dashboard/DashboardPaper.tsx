@@ -78,16 +78,35 @@ export default function DashboardPaper({
     return () => scope.revert();
   }, []);
   async function updateTask(id: string, updates: Record<string, string>) {
+    const clientUpdates = Object.fromEntries(
+      Object.entries(updates).map(([key, value]) => [key === "dueDate" ? "due_date" : key, value]),
+    );
+    const previous = tasks.find((task) => task.id === id);
+    setTasks((current) => current.map((task) => task.id === id ? { ...task, ...clientUpdates } : task));
     const response = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     });
-    const json = await response.json();
-    if (!response.ok) throw new Error("update");
-    setTasks((current) =>
-      current.map((task) => (task.id === id ? { ...task, ...json.task } : task)),
-    );
+    try {
+      const json = await response.json();
+      if (!response.ok) throw new Error("update");
+      setTasks((current) => current.map((task) => task.id === id ? { ...task, ...json.task } : task));
+    } catch (error) {
+      if (previous) {
+        setTasks((current) => current.map((task) => {
+          if (task.id !== id) return task;
+          const rollback = { ...task };
+          for (const [key, value] of Object.entries(clientUpdates)) {
+            if (rollback[key as keyof DashboardTask] === value) {
+              Object.assign(rollback, { [key]: previous[key as keyof DashboardTask] });
+            }
+          }
+          return rollback;
+        }));
+      }
+      throw error;
+    }
   }
 
   async function toggleTask(task: DashboardTask) {
@@ -135,6 +154,13 @@ export default function DashboardPaper({
         courses: course ? { course_name: course.name, course_code: course.code } : null,
       },
     ]);
+  }
+
+  async function deleteTask(task: DashboardTask) {
+    const response = await fetch(`/api/tasks/${encodeURIComponent(task.id)}`, { method: "DELETE" });
+    const json = await response.json();
+    if (!response.ok) throw new Error(json.error ?? "delete");
+    setTasks((current) => current.filter((item) => item.id !== task.id));
   }
 
   const leadDue = lead ? dueCopy(lead.due_date, now) : null;
@@ -409,6 +435,7 @@ export default function DashboardPaper({
             onCreate={createTask}
             onToggle={toggleTask}
             onPriority={setPriority}
+            onDelete={deleteTask}
           />
         </div>
 

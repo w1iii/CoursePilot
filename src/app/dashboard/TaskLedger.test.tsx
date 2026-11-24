@@ -14,6 +14,7 @@ let container: HTMLDivElement;
 let root: Root;
 const onToggle = vi.fn(async () => {});
 const onPriority = vi.fn(async () => {});
+const onDelete = vi.fn(async () => {});
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
@@ -22,7 +23,8 @@ beforeEach(() => {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  act(() => root.render(<TaskLedger tasks={tasks} courses={[]} today="2026-11-21" error={null} setError={vi.fn()} onCreate={vi.fn(async () => {})} onToggle={onToggle} onPriority={onPriority} />));
+  act(() => root.render(<TaskLedger tasks={tasks} courses={[]} today="2026-11-21" error={null} setError={vi.fn()} onCreate={vi.fn(async () => {})} onToggle={onToggle} onPriority={onPriority} onDelete={onDelete} />));
+  vi.stubGlobal("confirm", vi.fn(() => true));
 });
 
 afterEach(() => {
@@ -63,5 +65,11 @@ describe("academic task details", () => {
     act(() => { select.value = "low"; select.dispatchEvent(new Event("change", { bubbles: true })); });
     expect(onPriority).toHaveBeenCalledWith("1", "low");
     expect(container.querySelector("dialog")).toBeNull();
+  });
+
+  it("offers deletion for personal tasks only", async () => {
+    expect(container.querySelector('[aria-label="Delete Essay"]')).toBeNull();
+    await act(async () => { clickButton("Delete Review"); });
+    expect(onDelete).toHaveBeenCalledWith(tasks[1]);
   });
 });
