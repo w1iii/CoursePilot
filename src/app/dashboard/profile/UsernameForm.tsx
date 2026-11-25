@@ -39,6 +39,5 @@ export default function UsernameForm({ initialUsername }: { initialUsername: str
       <button disabled={busy || !username.trim()} className="rounded-xl bg-accent px-5 py-2 font-semibold text-on-accent disabled:opacity-50">{busy ? "Saving…" : "Save username"}</button>
     </div>
     {message && <p role="status" className="mt-2 text-sm text-text-muted">{message}</p>}
-    <h1> Test </h1>
   </form>;
 }

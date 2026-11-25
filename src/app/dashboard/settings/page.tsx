@@ -6,12 +6,9 @@ import { getCanvasStatus } from "@/lib/canvas-account";
 import { supabaseAdmin } from "@/lib/supabase";
 import { requireUser } from "@/lib/user";
 import { cacheUserRead } from "@/lib/cache";
-import { withSharedIndexCounts } from "@/lib/ai/index-counts";
 import CanvasConnect from "../CanvasConnect";
 import DashboardShell from "../DashboardShell";
-import type { Course } from "../types";
-import AppearancePreferences from "./AppearancePreferences";
-import CourseIndexTable from "./CourseIndexTable";
+import IndexedCourses, { type IndexedCourse } from "./IndexedCourses";
 import SettingsNav from "./SettingsNav";
 import SettingsSection, {
   ComingSoonBadge,
@@ -20,20 +17,6 @@ import SettingsSection, {
 } from "./SettingsSection";
 import SyncButton from "../SyncButton";
 import DeleteAccount from "./DeleteAccount";
-
-interface RawCourse {
-  id: string;
-  canvas_course_id: number;
-  course_code: string | null;
-  course_name: string;
-  instructor: string | null;
-  semester: string | null;
-  rag_indexed_at: string | null;
-  rag_document_count: number | null;
-  rag_chunk_count: number | null;
-  rag_failure_count: number | null;
-  selected_for_rag: boolean;
-}
 
 function normalizeName(value: string): string {
   if (value !== value.toUpperCase()) return value;
@@ -89,33 +72,21 @@ export default async function SettingsPage() {
 
   const [canvas, coursesResult] = await Promise.all([
     cacheUserRead("canvas-status", user.id, 60, () => getCanvasStatus(user.id)),
-    cacheUserRead("settings-courses", user.id, 300, async () => await sb
+    sb
       .from("courses")
-      .select(
-        "id, canvas_course_id, course_code, course_name, instructor, semester, rag_indexed_at, rag_document_count, rag_chunk_count, rag_failure_count, selected_for_rag",
-      )
+      .select("id, course_code, course_name")
       .eq("user_id", user.id)
+      .eq("selected_for_rag", true)
+      .not("rag_indexed_at", "is", null)
       .order("course_name", { ascending: true })
-      .limit(100)),
+      .limit(100),
   ]);
 
   if (coursesResult.error) {
     throw new Error(`Failed to load course index: ${coursesResult.error.message}`);
   }
 
-  const courseRows = await withSharedIndexCounts(user.id, (coursesResult.data ?? []) as RawCourse[]);
-  const courses: Course[] = courseRows.map((course) => ({
-    id: course.id,
-    name: course.course_name,
-    code: course.course_code,
-    instructor: course.instructor,
-    semester: course.semester,
-    ragIndexedAt: course.rag_indexed_at,
-    ragDocumentCount: course.rag_document_count,
-    ragChunkCount: course.rag_chunk_count,
-    ragFailureCount: course.rag_failure_count,
-    selectedForRag: course.selected_for_rag,
-  }));
+  const courses = (coursesResult.data ?? []) as IndexedCourse[];
 
   const displayName = user.username?.trim() || normalizeName(
     user.full_name?.trim() || user.email.split("@")[0] || "student",
@@ -154,7 +125,7 @@ export default async function SettingsPage() {
 
                 <SettingsSection
                   title="Sync & course index"
-                  description="Sync course details, tasks, announcements, and study material for courses marked Included below."
+                  description="Sync course details, tasks, announcements, and study material for your selected courses."
                   action={<SyncButton connected={canvas.connected && !canvas.needsReconnect} />}
                 >
                   <SettingsRow
@@ -180,43 +151,14 @@ export default async function SettingsPage() {
                   </SettingsRow>
                   <div className="pt-space-md">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <p className="font-label-md text-label-md text-on-surface">Course index</p>
+                      <p className="font-label-md text-label-md text-on-surface">Indexed courses</p>
                       <span className="font-code-tag text-[10px] uppercase tracking-[0.12em] text-text-muted">
                         {courses.length} {courses.length === 1 ? "course" : "courses"}
                       </span>
                     </div>
-                    <CourseIndexTable courses={courses} connected={canvas.connected && !canvas.needsReconnect} />
+                    <IndexedCourses courses={courses} />
                   </div>
                 </SettingsSection>
-              </SettingsGroup>
-
-              <SettingsGroup label="Workspace" tag="Partly available">
-                <SettingsSection
-                  title="Dashboard defaults"
-                  description="Choose what the task ledger shows when you open the dashboard."
-                >
-                  <SettingsRow label="Default task filter" comingSoon>
-                    <ComingSoonValue value="All tasks" />
-                  </SettingsRow>
-                  <SettingsRow label="Default course" comingSoon>
-                    <ComingSoonValue value="All courses" />
-                  </SettingsRow>
-                  <SettingsRow
-                    label="Hide completed tasks"
-                    helper="Completed tasks stay filed on the dashboard."
-                    comingSoon
-                  >
-                    <ComingSoonValue value="On" />
-                  </SettingsRow>
-                  <SettingsRow label="Due-soon window" comingSoon>
-                    <ComingSoonValue value="7 days" />
-                  </SettingsRow>
-                  <SettingsRow label="Week starts on" comingSoon>
-                    <ComingSoonValue value="Sunday" />
-                  </SettingsRow>
-                </SettingsSection>
-
-                <AppearancePreferences />
               </SettingsGroup>
 
               <SettingsGroup label="Ask Coursa" tag="Coming soon">
