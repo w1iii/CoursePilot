@@ -36,6 +36,12 @@ describe("ask route", () => {
     expect(await response.json()).toEqual({ answer: "answer", model: "test", dailyUsage: { used: 1 } });
   });
 
+  it("enforces the 500 word limit before calling the assistant", async () => {
+    expect((await POST(request({ question: Array(501).fill("word").join(" ") }))).status).toBe(400);
+    expect(mocks.answer).not.toHaveBeenCalled();
+    expect((await POST(request({ question: Array(500).fill("word").join(" ") }))).status).toBe(200);
+  });
+
   it("reports upstream failure with a safe correlated response", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.answer.mockRejectedValue(new RagServiceError("secret detail", 500));

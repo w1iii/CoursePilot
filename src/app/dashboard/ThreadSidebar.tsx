@@ -104,6 +104,7 @@ export default function ThreadSidebar({
         return time >= yesterday && time < startOfToday;
       }) },
       { label: "Previous 7 days", items: filtered.filter((thread) => new Date(thread.updatedAt).getTime() < yesterday && new Date(thread.updatedAt).getTime() >= week) },
+      { label: "Older", items: filtered.filter((thread) => new Date(thread.updatedAt).getTime() < week) },
     ].filter((group) => group.items.length > 0);
   }, [search, threads]);
 
