@@ -18,13 +18,13 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState(false);
   const [courseId, setCourseId] = useState("");
-  const [scope, setScope] = useState("course");
   const [modules, setModules] = useState<Array<{ id: number; name: string; chunks: number }>>([]);
   const [modulesLoading, setModulesLoading] = useState(false);
   const [refreshingModules, setRefreshingModules] = useState(false);
   const [moduleRefreshVersion, setModuleRefreshVersion] = useState(0);
   const [moduleRefreshStatus, setModuleRefreshStatus] = useState("");
-  const [module, setModule] = useState("");
+  const [selectedModules, setSelectedModules] = useState<number[]>([]);
+  const [topic, setTopic] = useState("");
   const [mode, setMode] = useState("flashcards");
   const [count, setCount] = useState(10);
   const [difficulty, setDifficulty] = useState("mixed");
@@ -41,7 +41,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   useEffect(() => {
     let cancelled = false;
     setModules([]);
-    setModule("");
+    setSelectedModules([]);
     setModulesLoading(Boolean(courseId));
     if (!courseId) {
       setModulesLoading(false);
@@ -67,10 +67,6 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
     return () => { cancelled = true; };
   }, [courseId, moduleRefreshVersion]);
 
-  useEffect(() => {
-    if (!modulesLoading && modules.length === 0 && scope === "module") setScope("course");
-  }, [modules.length, modulesLoading, scope]);
-
   async function refreshModules() {
     if (!courseId || refreshingModules) return;
     setRefreshingModules(true);
@@ -90,8 +86,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   async function generate() {
     setError(""); setLoading(true);
     try {
-      const selectedModule = modules.find((item) => String(item.id) === module);
-      const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, module: scope === "module" ? selectedModule?.name : null, moduleId: scope === "module" ? selectedModule?.id : null, topic: null, mode, count, difficulty }) });
+      const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, moduleIds: selectedModules, topic: topic.trim() || null, mode, count, difficulty }) });
       const data = await response.json();
       if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not create study materials. Please try again.");
       router.push(`/dashboard/study-prep/${data.id}`);
@@ -103,19 +98,11 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
     if (!deleteTarget) return;
     setDeleting(true);
     setDeleteError("");
-    const url = deleteTarget.kind === "pack"
-      ? `/api/study-packs/${encodeURIComponent(deleteTarget.id)}`
-      : `/api/study-packs/${encodeURIComponent(deleteTarget.packId)}/sessions/${encodeURIComponent(deleteTarget.id)}`;
+    const url = `/api/study-packs/${encodeURIComponent(deleteTarget.id)}`;
     try {
       const response = await fetch(url, { method: "DELETE" });
       if (!response.ok) throw new Error("delete");
-      if (deleteTarget.kind === "pack") {
-        setHistory((current) => current.filter((pack) => pack.id !== deleteTarget.id));
-      } else {
-        setHistory((current) => current.map((pack) => pack.id === deleteTarget.packId
-          ? { ...pack, study_sessions: pack.study_sessions.filter((session) => session.id !== deleteTarget.id) }
-          : pack));
-      }
+      setHistory((current) => current.filter((pack) => pack.id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch {
       setDeleteError("Could not delete this item. Please try again.");
@@ -125,7 +112,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   }
 
   const selectedCourse = courses.find((course) => course.id === courseId);
-  const canGenerate = Boolean(courseId && selectedCourse?.rag_indexed_at && !(scope === "module" && !module));
+  const canGenerate = Boolean(courseId && selectedCourse?.rag_indexed_at && selectedModules.length > 0 && !modulesLoading && !refreshingModules);
 
   return (
     <main className="paper-texture min-h-full w-full">
@@ -140,23 +127,26 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
         <PaperReveal delay={120} className="mt-space-lg"><div className="grid grid-cols-1 gap-space-xl lg:grid-cols-12 lg:gap-0">
           {!archive && <section className="relative lg:col-span-7 lg:pr-space-xl xl:col-span-8" aria-labelledby="builder-heading" aria-busy={loading}>
             {loading && <SyncLoadingOverlay label="Preparing your study pack" />}
-            {courses.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-space-md py-space-xl" role="status"><p className="paper-kicker text-accent-text">First, choose your sources</p><h3 className="mt-2 font-headline-sm text-headline-sm text-primary-container">No selected courses</h3><p className="mt-2 font-body-md text-body-md text-text-muted">Select courses for AI study in Settings, then sync Canvas content to make materials available.</p><Link className="mt-space-md inline-flex items-center gap-2 font-label-md text-label-md text-accent-text underline underline-offset-4" href="/dashboard/settings">Open course settings <span aria-hidden="true">→</span></Link></div> : <div className="mt-space-md">
+            {courses.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-space-md py-space-xl" role="status"><p className="paper-kicker text-accent-text">First, choose your sources</p><h3 className="mt-2 font-headline-sm text-headline-sm text-primary-container">No selected courses</h3><p className="mt-2 font-body-md text-body-md text-text-muted">Connect Canvas and sync your course content to make study materials available.</p><Link className="mt-space-md inline-flex items-center gap-2 font-label-md text-label-md text-accent-text underline underline-offset-4" href="/dashboard/settings">Open course settings <span aria-hidden="true">→</span></Link></div> : <div className="mt-space-md">
               <label className={labelClass} htmlFor="study-course">Course source</label>
-              <select id="study-course" className={fieldClass} value={courseId} disabled={refreshingModules} onChange={(e) => { setCourseId(e.target.value); setModule(""); setModuleRefreshStatus(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>
+              <select id="study-course" className={fieldClass} value={courseId} disabled={refreshingModules} onChange={(e) => { setCourseId(e.target.value); setSelectedModules([]); setModuleRefreshStatus(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>
               {selectedCourse && !selectedCourse.rag_indexed_at && <p role="status" className="mt-3 border-l-2 border-secondary px-3 py-2 font-body-sm text-body-sm text-text-muted">This course isn&apos;t indexed yet. Sync Canvas content before generating a pack.</p>}
 
-              <fieldset className="mt-space-lg"><legend className={labelClass}>Coverage</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {[["course", "Entire course", "All indexed material"], ["module", "One module", modulesLoading ? "Loading indexed modules…" : modules.length ? "Focus on a single unit" : "No indexed modules available"]].map(([value, title, detail]) => {
-                  const unavailable = value === "module" && (modulesLoading || modules.length === 0);
-                  return <label key={value} className={`border px-3 py-3 transition-colors ${unavailable ? "cursor-not-allowed border-border/60 opacity-60" : "cursor-pointer"} ${scope === value ? "border-primary-container bg-surface-container-low" : !unavailable ? "border-border hover:border-primary-container/50" : ""}`}><span className="flex items-start gap-2"><input className="mt-0.5 accent-primary-container" type="radio" name="scope" value={value} checked={scope === value} disabled={unavailable} onChange={() => setScope(value)} /><span><span className="block font-label-md text-label-md text-on-surface">{title}</span><span className="mt-1 block font-body-sm text-body-sm text-text-muted">{detail}</span></span></span></label>;
-                })}
-              </div></fieldset>
+              <fieldset className="mt-space-lg"><legend className={labelClass}>Choose modules · {selectedModules.length}/2</legend>
+                <p className="mt-2 font-body-sm text-body-sm text-text-muted">Select one or two indexed modules.</p>
+                {modulesLoading ? <p role="status" className="mt-3 text-sm text-text-muted">Loading modules…</p> : courseId && modules.length === 0 ? <p className="mt-3 text-sm text-text-muted">No modules available. Refresh module names or sync your course.</p> : null}
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">{modules.map((item) => {
+                  const checked = selectedModules.includes(item.id);
+                  const disabled = item.chunks === 0 || (!checked && selectedModules.length >= 2);
+                  return <label key={item.id} className={`flex items-start gap-3 border px-3 py-3 ${checked ? "border-primary-container bg-surface-container-low" : "border-border"} ${disabled ? "opacity-50" : "cursor-pointer hover:border-primary-container/50"}`}><input type="checkbox" className="mt-1 accent-primary-container" checked={checked} disabled={disabled} onChange={() => setSelectedModules((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : current.length < 2 ? [...current, item.id] : current)} /><span className="font-label-md text-label-md text-on-surface">{item.name}{item.chunks === 0 && <span className="block text-sm text-text-muted">No indexed material</span>}</span></label>;
+                })}</div>
+              </fieldset>
               {selectedCourse?.rag_indexed_at && <div className="mt-3"><button type="button" onClick={() => void refreshModules()} disabled={refreshingModules || modulesLoading} className="font-label-md text-label-md text-accent-text underline underline-offset-4 disabled:opacity-50">{refreshingModules ? "Refreshing modules…" : "Refresh module names from Canvas"}</button>{moduleRefreshStatus && <p role="status" className="mt-2 font-body-sm text-body-sm text-text-muted">{moduleRefreshStatus}</p>}</div>}
-              {scope === "module" && modules.length > 0 && <div className="mt-space-md"><label className={labelClass} htmlFor="study-module">Indexed module</label><select id="study-module" className={fieldClass} value={module} onChange={(e) => setModule(e.target.value)}><option value="">Choose a module</option>{modules.map((m) => <option key={m.id} value={m.id} disabled={m.chunks === 0}>{m.name}{m.chunks === 0 ? " (no indexed material)" : ""}</option>)}</select></div>}
+              <label className="mt-space-lg block"><span className={labelClass}>Study focus · optional</span><textarea className={`${fieldClass} min-h-20 resize-y`} value={topic} maxLength={300} onChange={(event) => setTopic(event.target.value)} placeholder="For example: focus on key terms or explain photosynthesis" /><span className="block text-right text-xs text-text-muted">{topic.length}/300</span></label>
 
-              <div className="mt-space-lg grid gap-x-space-lg gap-y-space-md border-t border-primary-container/25 pt-space-md sm:grid-cols-3"><label className={labelClass}>Study format<select className={fieldClass} value={mode} onChange={(e) => setMode(e.target.value)}><option value="flashcards">Flashcards</option><option value="quiz">Practice quiz</option><option value="mixed">Mixed pack</option></select></label><label className={labelClass}>Number of items<input aria-label="Question count" type="number" min={1} max={30} className={fieldClass} value={count} onChange={(e) => setCount(Number(e.target.value))} /></label><label className={labelClass}>Difficulty<select className={fieldClass} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}><option value="mixed">Mixed</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label></div>
+              <div className="mt-space-lg grid gap-x-space-lg gap-y-space-md border-t border-primary-container/25 pt-space-md sm:grid-cols-3"><label className={labelClass}>Study format<select className={fieldClass} value={mode} onChange={(e) => setMode(e.target.value)}><option value="flashcards">Flashcards</option><option value="quiz">Practice quiz</option><option value="mixed">Mixed pack</option></select></label><label className={labelClass}>Number of items<input aria-label="Question count" type="number" min={1} max={15} className={fieldClass} value={count} onChange={(e) => setCount(Number(e.target.value))} /></label><label className={labelClass}>Difficulty<select className={fieldClass} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}><option value="mixed">Mixed</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label></div>
               {error && <p role="alert" className="mt-space-md border-l-2 border-error px-3 py-2 font-body-sm text-body-sm text-error">{error}</p>}
-              <div className="mt-space-lg flex flex-wrap items-center gap-space-md"><button type="button" onClick={generate} disabled={loading || !canGenerate || count < 1 || count > 30} className="inline-flex min-h-11 items-center gap-2 bg-primary-container px-5 py-3 font-label-md text-label-md text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-50">{loading ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>Preparing your pack…</> : <>Generate study pack <span aria-hidden="true">→</span></>}</button><span className="font-body-sm text-body-sm text-text-muted">Based on your selected Canvas course material</span></div>
+              <div className="mt-space-lg flex flex-wrap items-center gap-space-md"><button type="button" onClick={generate} disabled={loading || !canGenerate || !Number.isInteger(count) || count < 1 || count > 15} className="inline-flex min-h-11 items-center gap-2 bg-primary-container px-5 py-3 font-label-md text-label-md text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-50">{loading ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>Preparing your pack…</> : <>Generate study pack <span aria-hidden="true">→</span></>}</button><span className="font-body-sm text-body-sm text-text-muted">Based on your selected Canvas modules</span></div>
             </div>}
           </section>}
 
@@ -164,7 +154,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
             {historyLoading ? <p role="status">Loading study archive…</p> : historyError ? <p role="alert">Could not load study history. Please refresh and try again.</p> : <ArchiveList history={history} preview={!archive} onDelete={(target) => { setDeleteTarget(target); setDeleteError(""); }} />}
           </aside>
         </div></PaperReveal>
-        {deleteTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-container/35 p-4 backdrop-blur-sm" role="presentation" onClick={() => { if (!deleting) setDeleteTarget(null); }}><section className="paper-texture w-full max-w-md border border-primary-container/25 bg-surface p-space-lg shadow-[0_18px_60px_var(--shadow-color)]" role="alertdialog" aria-modal="true" aria-labelledby="delete-study-heading" aria-describedby="delete-study-description" onClick={(event) => event.stopPropagation()}><p className="paper-kicker text-error">Confirm deletion</p><h2 id="delete-study-heading" className="mt-2 font-display text-3xl text-primary-container">Delete {deleteTarget.kind === "pack" ? "study pack" : "session"}?</h2><p id="delete-study-description" className="mt-space-sm font-body-md text-body-md text-text-muted">{deleteTarget.kind === "pack" ? <>“{deleteTarget.title}” and all its sessions will be permanently deleted.</> : <>This session for “{deleteTarget.title}” will be permanently deleted.</>} This cannot be undone.</p>{deleteError && <p role="alert" className="mt-space-sm font-body-sm text-body-sm text-error">{deleteError}</p>}<div className="mt-space-lg flex justify-end gap-3"><button type="button" disabled={deleting} onClick={() => setDeleteTarget(null)} className="min-h-10 border border-border px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container disabled:opacity-50">Cancel</button><button type="button" disabled={deleting} onClick={() => void deleteEntry()} className="min-h-10 bg-error px-4 font-label-md text-label-md text-on-error hover:opacity-90 disabled:opacity-50">{deleting ? "Deleting…" : "Delete permanently"}</button></div></section></div>}
+        {deleteTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-container/35 p-4 backdrop-blur-sm" role="presentation" onClick={() => { if (!deleting) setDeleteTarget(null); }}><section className="paper-texture w-full max-w-md border border-primary-container/25 bg-surface p-space-lg shadow-[0_18px_60px_var(--shadow-color)]" role="alertdialog" aria-modal="true" aria-labelledby="delete-study-heading" aria-describedby="delete-study-description" onClick={(event) => event.stopPropagation()}><p className="paper-kicker text-error">Confirm deletion</p><h2 id="delete-study-heading" className="mt-2 font-display text-3xl text-primary-container">Delete study pack?</h2><p id="delete-study-description" className="mt-space-sm font-body-md text-body-md text-text-muted">“{deleteTarget.title}” and all its sessions will be permanently deleted. This cannot be undone.</p>{deleteError && <p role="alert" className="mt-space-sm font-body-sm text-body-sm text-error">{deleteError}</p>}<div className="mt-space-lg flex justify-end gap-3"><button type="button" disabled={deleting} onClick={() => setDeleteTarget(null)} className="min-h-10 border border-border px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container disabled:opacity-50">Cancel</button><button type="button" disabled={deleting} onClick={() => void deleteEntry()} className="min-h-10 bg-error px-4 font-label-md text-label-md text-on-error hover:opacity-90 disabled:opacity-50">{deleting ? "Deleting…" : "Delete permanently"}</button></div></section></div>}
       </div>
     </main>
   );
