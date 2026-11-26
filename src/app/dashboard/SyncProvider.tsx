@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { syncErrorMessage } from "./sync-errors";
 
 export interface SyncResult {
   courses: number;
@@ -150,14 +151,16 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
 
     try {
       const response = await fetch("/api/sync", { method: "POST" });
-      const json = (await response.json()) as unknown;
       if (!response.ok) {
-        const message =
-          json && typeof json === "object" && "error" in json && typeof json.error === "string"
-            ? json.error
-            : "Sync failed";
-        throw new Error(message);
+        setState((current) => ({
+          ...current,
+          running: false,
+          error: syncErrorMessage(response.status),
+          finishedAt: new Date().toISOString(),
+        }));
+        return;
       }
+      const json = (await response.json()) as unknown;
       const result = normalizeSyncResult(json);
       if (!result) throw new Error("Sync returned an invalid response");
 
