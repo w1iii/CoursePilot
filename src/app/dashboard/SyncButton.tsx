@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useSync } from "./SyncProvider";
+import { SESSION_EXPIRED } from "./sync-errors";
 
 function finishLabel(value: string | null): string | null {
   if (!value) return null;
@@ -46,6 +48,9 @@ export default function SyncButton({ connected }: { connected: boolean }) {
           className="border border-error/30 bg-error-container/50 px-space-sm py-1 font-body-sm text-body-sm text-on-error-container"
         >
           {error}
+          {error === SESSION_EXPIRED && (
+            <> <Link className="underline" href="/sign-in?redirect_url=%2Fdashboard%2Fthread">Sign in</Link></>
+          )}
         </p>
       )}
 
