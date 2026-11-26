@@ -11,8 +11,7 @@ import { elapsedMs, logAiRequest } from "@/lib/ai/log";
 import { checkRateLimit, getRateLimitUsage, rateLimitMessage } from "@/lib/rate-limit";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 import { apiFailure } from "@/lib/api-error";
-
-const MAX_QUESTION_CHARS = 2000;
+import { MAX_QUESTION_CHARS, MAX_QUESTION_WORDS, countQuestionWords } from "@/lib/question-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,6 +37,9 @@ export async function POST(req: NextRequest) {
         { error: `question too long (max ${MAX_QUESTION_CHARS} chars)` },
         { status: 400 },
       );
+    }
+    if (countQuestionWords(question) > MAX_QUESTION_WORDS) {
+      return NextResponse.json({ error: `question too long (max ${MAX_QUESTION_WORDS} words)` }, { status: 400 });
     }
 
     const limit = await checkRateLimit(user.id);

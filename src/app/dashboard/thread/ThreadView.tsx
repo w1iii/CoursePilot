@@ -1,13 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LoomOrbit, { type OrbitCourse } from "../LoomOrbit";
 import DashboardShell from "../DashboardShell";
-import {
-  THREADS_CHANGED_EVENT,
-} from "../ThreadSidebar";
-import { hasPersistedTurns } from "@/lib/thread-turns";
+import { useChatStore } from "../ChatProvider";
+import { countQuestionWords, MAX_QUESTION_CHARS, MAX_QUESTION_WORDS, validQuestion } from "@/lib/question-limit";
 
 export interface ThreadCourse extends OrbitCourse {
   instructor: string | null;
@@ -21,7 +19,7 @@ interface RagSource {
   chunk_index: number;
 }
 
-interface RagResponse {
+interface RagResponse extends Record<string, unknown> {
   answer: string;
   sources: RagSource[];
   model: string;
@@ -105,113 +103,34 @@ export default function ThreadView({
   initialThreadId,
   initialTurns,
 }: Props) {
-  const [turns, setTurns] = useState<Turn[]>(initialTurns ?? []);
+  const store = useChatStore();
+  store.initialize(initialThreadId, initialTurns ?? []);
+  const [, refresh] = useState(0);
+  const entry = store.get(initialThreadId);
+  const turns = entry.turns as Turn[];
   const [question, setQuestion] = useState("");
-  const [courseId, setCourseId] = useState(initialCourseId || courses[0]?.id || "");
+  const [courseId, setCourseId] = useState(turns.at(-1)?.courseId || initialCourseId || courses[0]?.id || "");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [dailyUsage, setDailyUsage] = useState<{ count: number; limit: number } | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const controllerRef = useRef<AbortController | null>(null);
-  const initializedThreadId = useRef<string | null>(null);
-  const skipNextPersistRef = useRef(false);
-  const pendingSaveRef = useRef<Turn[] | null>(null);
-  const savePromiseRef = useRef<Promise<void> | null>(null);
-  const persist = useCallback((nextTurns: Turn[]) => {
-    pendingSaveRef.current = nextTurns;
-    if (savePromiseRef.current) return;
-
-    savePromiseRef.current = (async () => {
-      while (pendingSaveRef.current) {
-        const turnsToSave = pendingSaveRef.current;
-        pendingSaveRef.current = null;
-        const response = await fetch(`/api/threads/${encodeURIComponent(initialThreadId)}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            courseId: turnsToSave.at(-1)?.courseId || initialCourseId || null,
-            turns: turnsToSave,
-          }),
-        });
-        if (!response.ok) throw new Error("Failed to save chat thread");
-        window.dispatchEvent(new Event(THREADS_CHANGED_EVENT));
-      }
-    })()
-      .catch((error) => console.error(error))
-      .finally(() => {
-        savePromiseRef.current = null;
-        if (pendingSaveRef.current) persist(pendingSaveRef.current);
-      });
-  }, [initialCourseId, initialThreadId]);
-
-  const requestAnswer = useCallback(async (turnId: string, prompt: string, cid: string) => {
-    const controller = new AbortController();
-    controllerRef.current = controller;
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: prompt, course_id: cid || undefined }),
-        signal: controller.signal,
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error("request");
-      if (json.dailyUsage?.warning) setDailyUsage(json.dailyUsage);
-      setTurns((current) => {
-        const next = current.map((turn) =>
-          turn.id === turnId ? { ...turn, status: "done" as const, response: json as RagResponse } : turn,
-        );
-        return next;
-      });
-    } catch (error) {
-      if ((error as Error).name === "AbortError") return;
-      setTurns((current) =>
-        current.map((turn) =>
-          turn.id === turnId ? { ...turn, status: "error" as const, error: "I couldn’t complete that request. Please try again." } : turn,
-        ),
-      );
-    } finally {
-      controllerRef.current = null;
-    }
-  }, []);
-
-  const startTurn = useCallback((prompt: string, cid: string) => {
+  function startTurn(prompt: string, cid: string) {
     const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
     const turn: Turn = { id, question: prompt, courseId: cid, createdAt: new Date().toISOString(), status: "loading" };
-    setTurns((current) => [...current, turn]);
-    void requestAnswer(id, prompt, cid);
-  }, [requestAnswer]);
+    void store.request(initialThreadId, turn);
+  }
 
   useEffect(() => {
-    if (initializedThreadId.current === initialThreadId) return;
-    // If initialTurns are provided (thread data fetched server-side), use them
-    // and skip the client-side fetch to avoid showing "new chat" first.
-    if (hasPersistedTurns(initialTurns)) {
-      initializedThreadId.current = initialThreadId;
-      skipNextPersistRef.current = true;
-      return;
+    const unsubscribe = store.subscribe(initialThreadId, () => refresh((n) => n + 1));
+    refresh((n) => n + 1);
+    return unsubscribe;
+  }, [store, initialThreadId]);
+
+  useEffect(() => {
+    if (initialQuestion && validQuestion(initialQuestion) && store.get(initialThreadId).turns.length === 0 && (initialCourseId || courses[0]?.id)) {
+      const id = crypto.randomUUID();
+      void store.request(initialThreadId, { id, question: initialQuestion, courseId: initialCourseId || courses[0].id, createdAt: new Date().toISOString(), status: "loading" });
     }
-    initializedThreadId.current = initialThreadId;
-    controllerRef.current?.abort();
-    setTurns([]);
-    setQuestion("");
-    const load = async () => {
-      const response = await fetch(`/api/threads/${encodeURIComponent(initialThreadId)}`, { cache: "no-store" });
-      if (!response.ok) {
-        if (initialQuestion) startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
-        return;
-      }
-      const data = await response.json() as { turns?: Turn[] };
-      if (data.turns?.length) {
-        skipNextPersistRef.current = true;
-        setTurns(data.turns);
-        setCourseId(data.turns.at(-1)?.courseId || initialCourseId || courses[0]?.id || "");
-      } else if (initialQuestion) {
-        startTurn(initialQuestion, initialCourseId || courses[0]?.id || "");
-      }
-    };
-    void load();
-  }, [courses, initialCourseId, initialQuestion, initialThreadId, initialTurns, startTurn]);
+  }, [store, initialThreadId, initialQuestion, initialCourseId, courses]);
 
   useEffect(() => {
     if (turns.length > 0) {
@@ -219,20 +138,10 @@ export default function ThreadView({
     }
   }, [turns]);
 
-  useEffect(() => {
-    if (initializedThreadId.current === initialThreadId && turns.length > 0) {
-      if (skipNextPersistRef.current) {
-        skipNextPersistRef.current = false;
-        return;
-      }
-      persist(turns);
-    }
-  }, [initialThreadId, persist, turns]);
-
   function submit(event: React.FormEvent) {
     event.preventDefault();
     const prompt = question.trim();
-    if (!prompt || !courseId || busy) return;
+    if (!prompt || !courseId || busy || !validQuestion(prompt)) return;
     startTurn(prompt, courseId);
     setQuestion("");
     if (inputRef.current) inputRef.current.style.height = "auto";
@@ -254,11 +163,11 @@ export default function ThreadView({
   }
 
   function retry(turn: Turn) {
-    setTurns((current) => current.map((item) => item.id === turn.id ? { ...item, status: "loading" as const, error: undefined } : item));
-    void requestAnswer(turn.id, turn.question, turn.courseId);
+    if (!busy) void store.request(initialThreadId, turn, true);
   }
 
   const busy = turns.some((turn) => turn.status === "loading");
+  const dailyUsage = turns.at(-1)?.response?.dailyUsage?.warning ? turns.at(-1)?.response?.dailyUsage : null;
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
   const suggestions = ["What’s due this week?", "Summarize my latest announcements", "What should I study first?"];
 
@@ -286,6 +195,11 @@ export default function ThreadView({
               You are near your daily request limit: {dailyUsage.count} of {dailyUsage.limit} requests used.
             </div>
           )}
+          {entry.saveError && (
+            <div role="alert" className="mb-4 rounded-xl border border-error/30 bg-error-container p-4 text-sm text-on-error-container">
+              Chat could not be saved. <button type="button" className="underline" onClick={() => void store.save(initialThreadId)}>Retry saving</button>
+            </div>
+          )}
           {turns.length === 0 ? (
             <div className="flex w-full flex-col items-center">
               <section className="grid w-full max-w-[620px] grid-cols-1 items-center gap-6 md:grid-cols-[minmax(220px,300px)_1fr] md:gap-8">
@@ -301,9 +215,10 @@ export default function ThreadView({
                   onHubClick={() => inputRef.current?.focus()}
                 />
                 <div className="text-center md:text-left">
-                  <span className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary-container font-display text-base text-dark-text">
-                    h
-                  </span>
+                  <svg aria-label="Coursa" role="img" viewBox="0 0 32 32" className="mb-4 inline-block h-8 w-8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.1 10.2a8 8 0 1 0 0 11.6" stroke="var(--color-rule)" strokeWidth="3" strokeLinecap="round" />
+                    <circle cx="22.5" cy="16" r="2" fill="var(--color-accent)" />
+                  </svg>
                   <h1 className="font-display text-[38px] leading-tight tracking-[-0.02em] text-primary-container md:text-[46px]">
                     {greeting}, {userName.split(" ")[0]}
                   </h1>
@@ -312,11 +227,6 @@ export default function ThreadView({
                   </p>
                 </div>
               </section>
-              <div className="mt-6 w-full max-w-[680px] text-center">
-                <p className="font-code-tag text-[10px] uppercase tracking-[0.18em] text-text-muted">
-                  Choose a course or start a new thread
-                </p>
-              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-8 pb-8 pt-8">
@@ -339,8 +249,8 @@ export default function ThreadView({
                   )}
                   {turn.status === "error" && (
                     <div className="rounded-xl border border-error/30 bg-error-container p-4 text-sm text-on-error-container">
-                      I couldn’t complete that request. Please try again.
-                      <button type="button" onClick={() => retry(turn)} className="ml-3 underline">Try again</button>
+                      {turn.error || "I couldn’t complete that request. Please try again."}
+                      <button type="button" disabled={busy} onClick={() => retry(turn)} className="ml-3 underline disabled:opacity-50">Try again</button>
                     </div>
                   )}
                   {turn.response && (
@@ -387,6 +297,8 @@ export default function ThreadView({
                 <textarea
                   ref={inputRef}
                   value={question}
+                  aria-label="Message Coursa"
+                  aria-invalid={!validQuestion(question)}
                   onChange={(event) => updateQuestion(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
@@ -395,7 +307,7 @@ export default function ThreadView({
                     }
                   }}
                   rows={1}
-                  maxLength={2000}
+                  maxLength={MAX_QUESTION_CHARS}
                   placeholder="Message Coursa..."
                   className="max-h-[180px] min-h-[32px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-1.5 font-body-md text-body-md leading-relaxed text-on-surface outline-none placeholder:text-text-muted"
                 />
@@ -413,11 +325,11 @@ export default function ThreadView({
                   ))}
                 </select>
                 {busy ? (
-                  <button type="button" onClick={() => controllerRef.current?.abort()} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary" title="Stop">
+                  <button type="button" onClick={() => store.stop(initialThreadId)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary" title="Stop" aria-label="Stop response">
                     <span className="material-symbols-outlined text-[16px]">stop</span>
                   </button>
                 ) : (
-                  <button type="submit" disabled={!question.trim() || !courseId} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
+                  <button type="submit" disabled={!question.trim() || !courseId || !validQuestion(question)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-outline-variant" title="Send">
                     <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
                   </button>
                 )}
@@ -432,7 +344,7 @@ export default function ThreadView({
                 ))}
               </div>
             )}
-            <p className="mt-2 text-center font-code-tag text-[10px] text-text-muted">Enter to send · Shift + Enter for a new line</p>
+            <p aria-live="polite" className="mt-2 text-center font-code-tag text-[10px] text-text-muted">{countQuestionWords(question)} / {MAX_QUESTION_WORDS} words{!validQuestion(question) ? " · Word limit exceeded" : " · Enter to send · Shift + Enter for a new line"}</p>
           </form>
         </div>
       </div>

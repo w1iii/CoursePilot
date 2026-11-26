@@ -11,6 +11,10 @@ export default function StudyPackPage() {
   const [pack, setPack] = useState<any>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sessions, setSessions] = useState<Array<{ id: string; status: string; score: number; current_item: number; last_active_at: string }> | null>(null);
+  const [sessionError, setSessionError] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/study-packs/${packId}`)
@@ -21,6 +25,31 @@ export default function StudyPackPage() {
       })
       .catch(() => setError("Could not load this study pack. Please try again."));
   }, [packId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/study-packs/${encodeURIComponent(packId)}/sessions`, { cache: "no-store" })
+      .then((response) => { if (!response.ok) throw new Error("sessions"); return response.json(); })
+      .then((data) => { if (!cancelled) setSessions(data); })
+      .catch(() => { if (!cancelled) setSessionError("Could not load study sessions. Refresh to try again."); });
+    return () => { cancelled = true; };
+  }, [packId]);
+
+  async function deleteSession() {
+    if (!deleteId || deleting) return;
+    setDeleting(true);
+    setSessionError("");
+    try {
+      const response = await fetch(`/api/study-packs/${encodeURIComponent(packId)}/sessions/${encodeURIComponent(deleteId)}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("delete");
+      setSessions((current) => current?.filter((item) => item.id !== deleteId) ?? []);
+      setDeleteId(null);
+    } catch {
+      setSessionError("Could not delete this session. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function start() {
     setBusy(true);
@@ -59,6 +88,14 @@ export default function StudyPackPage() {
             {pack.difficulty && <span>{pack.difficulty} difficulty</span>}
           </div>
         </header></PaperReveal>
+
+        <section className="mt-space-lg border-b border-primary-container/25 pb-space-lg" aria-labelledby="sessions-heading">
+          <div className="flex items-end justify-between gap-4"><div><p className="paper-kicker text-accent-text">Your progress</p><h2 id="sessions-heading" className="mt-1 font-display text-3xl text-primary-container">Study sessions</h2></div><span className="paper-kicker text-text-muted">{sessions?.length ?? 0} saved</span></div>
+          {sessionError && <p role="alert" className="mt-3 text-sm text-error">{sessionError}</p>}
+          {!sessions && !sessionError ? <p role="status" className="mt-3 text-sm text-text-muted">Loading sessions…</p> : sessions?.length === 0 ? <p className="mt-3 text-sm text-text-muted">No sessions yet. Begin a study session to track your progress.</p> : <ul className="mt-3 divide-y divide-border">{sessions?.map((session) => <li key={session.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-label-md text-label-md text-on-surface">{session.status === "completed" ? "Completed" : session.status === "paused" ? "Paused" : "In progress"}</p><p className="mt-1 text-sm text-text-muted">{session.status === "completed" ? `Score ${session.score}/${pack.item_count}` : `Question ${Math.min(session.current_item + 1, pack.item_count)} of ${pack.item_count}`} · {new Date(session.last_active_at).toLocaleDateString()}</p></div><div className="flex items-center gap-4"><Link className="font-label-sm text-accent-text underline underline-offset-4" href={`/dashboard/study-prep/${packId}/session/${session.id}`}>{session.status === "completed" ? "Review session" : "Resume session"}</Link><button type="button" onClick={() => setDeleteId(session.id)} aria-label={`Delete ${session.status === "completed" ? "completed" : "active"} session`} className="font-label-sm text-text-muted underline underline-offset-4 hover:text-error">Delete session</button></div></li>)}</ul>}
+        </section>
+
+        {deleteId && <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-container/35 p-4" role="presentation"><section role="alertdialog" aria-modal="true" aria-labelledby="delete-session-heading" aria-describedby="delete-session-description" className="w-full max-w-md border border-border bg-surface p-space-lg shadow-xl"><h2 id="delete-session-heading" className="font-display text-3xl text-primary-container">Delete session?</h2><p id="delete-session-description" className="mt-3 text-sm text-text-muted">This session and its progress will be permanently deleted. This cannot be undone.</p>{sessionError && <p role="alert" className="mt-3 text-sm text-error">{sessionError}</p>}<div className="mt-5 flex justify-end gap-3"><button type="button" disabled={deleting} onClick={() => setDeleteId(null)} className="border border-border px-4 py-2">Cancel</button><button type="button" disabled={deleting} onClick={() => void deleteSession()} className="bg-error px-4 py-2 text-on-error disabled:opacity-50">{deleting ? "Deleting…" : "Delete permanently"}</button></div></section></div>}
 
         <PaperReveal delay={140}><section className="mt-space-lg" aria-labelledby="preview-heading">
           <div className="mb-space-md flex items-end justify-between gap-4 border-b border-primary-container/25 pb-2">

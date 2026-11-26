@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { messagesToTurns, type ThreadTurn } from "@/lib/thread-turns";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { invalidateUserResourceCache } from "@/lib/cache";
+import { MAX_QUESTION_CHARS } from "@/lib/question-limit";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -47,7 +48,7 @@ function validTurn(value: unknown): value is ThreadTurn {
   if (!value || typeof value !== "object") return false;
   const turn = value as Partial<ThreadTurn>;
   return typeof turn.id === "string" && turn.id.length <= 100 && turn.id.length > 0 &&
-    typeof turn.question === "string" && turn.question.length > 0 && turn.question.length <= 2000 &&
+    typeof turn.question === "string" && turn.question.length > 0 && turn.question.length <= MAX_QUESTION_CHARS &&
     typeof turn.courseId === "string" && (!turn.courseId || UUID.test(turn.courseId)) &&
     typeof turn.createdAt === "string" && turn.createdAt.length <= 40 && !Number.isNaN(Date.parse(turn.createdAt)) &&
     ["loading", "done", "error"].includes(turn.status ?? "") &&
