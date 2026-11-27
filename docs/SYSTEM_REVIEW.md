@@ -1,5 +1,12 @@
 # CoursePilot — System Review and Defense Reference
 
+> **Documentation addendum — 27 November 2026:** this review preserves the dated
+> audit below. Current repository-local artifacts and acceptance actions are
+> indexed in [documentation](README.md), [deliverables](DELIVERABLES_CHECKLIST.md)
+> and the [verification register](VERIFICATION_REGISTER.md). README handoff links
+> and the DevOps pack now exist locally; publication and runtime acceptance remain
+> separate owner actions. Historical labels and execution results are retained.
+
 > **Repository evidence copy:** original audit records describe the pre-documentation source snapshot. README/docs additions are authorized later changes, not a claim of currently clean Git status. New `main/docs` links require publication; private RAG links require access.
 
 **Audit date:** 27 November 2026. **Owner:** Lui Franz Lomugdang, BSCS 4C — **Solo Full-stack Developer and DevOps Engineer** (role confirmed by owner; name/section from [academic brief](https://github.com/w1iii/CoursePilot/blob/main/docs/CoursePilot.md)).

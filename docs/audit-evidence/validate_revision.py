@@ -39,7 +39,7 @@ def main():
     errors, pending, private = [], set(), set()
     urls = set()
     paths = [ROOT / "coursepilot/README.md", ROOT / "rag/canvas-ai-assistant/README.md",
-             *DOCS.glob("*.md"), *EV.glob("*.md")]
+             *DOCS.glob("*.md"), *EV.glob("*.md"), *(DOCS / "ai-evaluation").glob("*.md")]
     for source in paths:
         for url in re.findall(r"\]\(([^)]+)\)", source.read_text()):
             urls.add(url)
@@ -99,10 +99,25 @@ def main():
         "all_ten_headings_in_pdf": len(headings) == 10 and all(h in pdf_text for h in headings),
         "word_template_headings_match": headings == word_headings,
         "word_hyperlinks_match_markdown": markdown_links == word_links,
+        "demo_folder_link_in_word_and_pdf": (
+            "https://drive.google.com/drive/folders/1VEZ6SPDRTdkM5OcgxcBJ1wLIfodFx_0t?usp=sharing" in word_links
+            and any(x.get("uri") == "https://drive.google.com/drive/folders/1VEZ6SPDRTdkM5OcgxcBJ1wLIfodFx_0t?usp=sharing" for x in links)
+        ),
+        "crud_proof_entry_omitted": "Deployed CRUD proof" not in (DOCS / f"{NAME}.md").read_text(),
+        "ai_evaluation_status": "Planned only, no model-quality execution or results claimed",
         "supplied_schema_tables": len(re.findall(r"^CREATE TABLE ", sql, re.M)),
         "sql_executed": False,
         "original_tracked_files_changed": code_changes,
-        "application_source_unchanged": all(set(x) <= {"README.md"} for x in code_changes.values()),
+        "historical_baseline_unchanged_except_readmes": all(set(x) <= {"README.md"} for x in code_changes.values()),
+        "application_source_unchanged": all(
+            all(rel == "README.md" or rel.startswith(("docs/", ".github/")) for rel in changes)
+            for changes in code_changes.values()
+        ),
+        "workflow_drift_from_historical_audit": {
+            repo: [rel for rel in changes if rel.startswith(".github/")]
+            for repo, changes in code_changes.items()
+        },
+        "freeze_readiness": "Not certified: document validation is separate from current infrastructure/application acceptance",
         "limited_sensitive_pattern_findings": sensitive,
         "online_publication": "Pending: no commit/push/merge performed; local checks do not certify live URLs",
         "new_documentation_links_pending_publication": sorted(pending),
@@ -114,6 +129,7 @@ def main():
     report["local_validation_passed"] = (
         not errors and not bad_pdf and len(pdf) == 3 and report["all_ten_headings_in_pdf"]
         and report["word_template_headings_match"] and report["word_hyperlinks_match_markdown"]
+        and report["demo_folder_link_in_word_and_pdf"] and report["crud_proof_entry_omitted"]
         and report["supplied_schema_tables"] == 22 and report["application_source_unchanged"] and not sensitive
     )
     (EV / "revised-validation.json").write_text(json.dumps(report, indent=2) + "\n")

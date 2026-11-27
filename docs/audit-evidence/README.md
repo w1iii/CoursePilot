@@ -1,5 +1,13 @@
 # CoursePilot audit evidence — 27 November 2026
 
+## Current documentation
+
+[Documentation index](../README.md), [deliverables checklist](../DELIVERABLES_CHECKLIST.md)
+and [verification register](../VERIFICATION_REGISTER.md) track work after the
+dated snapshots. The [evaluation report](../ai-evaluation/REPORT.md) separates
+recorded software/transport results from provider-backed quality measurement.
+Historical logs, JSON records and exported handoff files are preserved.
+
 ## Revised handoff supporting evidence
 
 - [Revised template-based handoff](../FINAL_TECHNICAL_HANDOFF_REVISED.md) ·
@@ -7,6 +15,10 @@
 - [Readable benchmark report](offline-stream-benchmark.md) ·
   [raw observations](offline-stream-benchmark.log)
 - [Prompt-injection/hallucination controls and implementation/tests](AI_SECURITY_IMPLEMENTATION.md)
+- [AI quality/security evaluation plan — not executed](../ai-evaluation/PLAN.md)
+- [Asset sources and service-tier disclosure](ASSET_SOURCES.md)
+- [Sanitized evidence summary and demo link](SANITIZED_EVIDENCE_SUMMARY.md)
+- [Latest owner inputs and publication/access limits](FINALIZATION_NOTES.md)
 - [Owner-supplied schema/ERD](SCHEMA_CONTEXT.md) · [non-executable contextual SQL](USER_PROVIDED_SCHEMA_CONTEXT.sql)
 - [Packaging provenance](packaging-provenance.json) · [Revised rendering record](revised-render.json)
 

@@ -22,12 +22,12 @@
     {
       "page": 2,
       "scale": 1.0,
-      "spare_height_pt": 5.51
+      "spare_height_pt": 17.69
     },
     {
       "page": 3,
       "scale": 1.0,
-      "spare_height_pt": 247.33
+      "spare_height_pt": 120.53
     }
   ],
   "pdf_renderer": "Installed PyMuPDF HTML renderer; content-equivalent PDF, not Word layout engine",

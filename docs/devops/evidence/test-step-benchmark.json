@@ -1,0 +1,73 @@
+{
+  "measured_at": "2026-11-27T14:50:35.077701+00:00",
+  "scope": "Local test-step comparison only; not hosted CI or full pipeline speedup",
+  "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+  "node": "v26.7.0",
+  "commit": "e20603876b781f76ba6b068d66af2ec7d2471bdf",
+  "working_tree": "Includes uncommitted DevOps tooling/workflow changes",
+  "commands": {
+    "coverage": "npm test -- --coverage --reporter=json --outputFile=<temp>/report.json --coverage.reportsDirectory=<temp>/coverage",
+    "plain": "npm test -- --reporter=json --outputFile=<temp>/report.json"
+  },
+  "samples": [
+    {
+      "pair": 1,
+      "variant": "coverage",
+      "seconds": 9.3763,
+      "passed_tests": 370,
+      "total_tests": 370,
+      "pending_tests": 0,
+      "exit_code": 0
+    },
+    {
+      "pair": 1,
+      "variant": "plain",
+      "seconds": 6.4118,
+      "passed_tests": 370,
+      "total_tests": 370,
+      "pending_tests": 0,
+      "exit_code": 0
+    },
+    {
+      "pair": 2,
+      "variant": "plain",
+      "seconds": 6.0743,
+      "passed_tests": 370,
+      "total_tests": 370,
+      "pending_tests": 0,
+      "exit_code": 0
+    },
+    {
+      "pair": 2,
+      "variant": "coverage",
+      "seconds": 6.7881,
+      "passed_tests": 370,
+      "total_tests": 370,
+      "pending_tests": 0,
+      "exit_code": 0
+    },
+    {
+      "pair": 3,
+      "variant": "coverage",
+      "seconds": 6.3172,
+      "passed_tests": 370,
+      "total_tests": 370,
+      "pending_tests": 0,
+      "exit_code": 0
+    },
+    {
+      "pair": 3,
+      "variant": "plain",
+      "seconds": 5.2242,
+      "passed_tests": 370,
+      "total_tests": 370,
+      "pending_tests": 0,
+      "exit_code": 0
+    }
+  ],
+  "median_seconds": {
+    "coverage": 6.7881,
+    "plain": 6.0743
+  },
+  "reduction_percent": 10.52
+}

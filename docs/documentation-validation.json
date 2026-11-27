@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-27",
+  "scope": "Documentation completion across the web and RAG repositories",
+  "source_baselines": {
+    "web": "e20603876b781f76ba6b068d66af2ec7d2471bdf",
+    "rag": "e07920eb547a99d8ed3702b4302e163f325cec53",
+    "working_tree": "Includes pre-existing local work and this documentation update"
+  },
+  "checks": {
+    "new_markdown_documents": 18,
+    "markdown_files_checked": 28,
+    "local_links_checked_before_validation_record_links": 253,
+    "github_main_targets_mapped_to_local_files": 65,
+    "heading_anchors_checked": 15,
+    "link_or_anchor_errors": 0,
+    "neutral_wording_check_new_documents": "Passed",
+    "neutral_wording_check_repository_readmes": "Passed",
+    "rag_config_fields_represented_in_example": "All Config fields represented",
+    "credential_fields_checked_in_examples": 18,
+    "nonblank_credential_fields": 0,
+    "setup_sql_file_references_checked": 15,
+    "setup_sql_file_reference_errors": 0,
+    "git_diff_check_web": "Passed",
+    "git_diff_check_rag": "Passed",
+    "evidence_tooling_unit_tests": {
+      "command": "python3 -B -m unittest discover -s scripts/devops -p 'test_*.py' -v",
+      "working_directory": "coursepilot",
+      "passed": 6,
+      "failed": 0
+    },
+    "existing_metrics_recalculation": {
+      "rows": 40,
+      "success": 38,
+      "failure": 2,
+      "execution_span_median_seconds": 65,
+      "execution_span_p95_seconds": 77
+    }
+  },
+  "method": "Read-only Python pathlib/regex checks for file and heading targets, AST comparison of RAG Config fields with example assignments, explicit credential-field allowlist, CSV recalculation, existing unit tests and git diff --check",
+  "validation_note": "An initial broad suffix-based credential check classified CANVAS_ALLOW_ENV_TOKEN=false as a credential. The check was corrected to use explicit credential fields; the boolean setting was preserved.",
+  "boundaries": [
+    "GitHub targets were checked against local repository files, not remote publication or reviewer permissions.",
+    "Mermaid source was reviewed; a renderer was not available for visual validation.",
+    "Setup sequences are source-derived; no database initialization or migration was executed.",
+    "Recorded application/AI test and benchmark results were not rerun as part of this documentation update.",
+    "Historical handoff exports and raw audit measurements were preserved.",
+    "No deployment, paid inference, tag, commit, push, access change or academic submission was performed.",
+    "Credential-field checking is not a comprehensive secret or Git-history audit."
+  ]
+}

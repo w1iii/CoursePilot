@@ -1,0 +1,59 @@
+{
+  "validated_at": "2026-11-27T14:55:33.157922+00:00",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/devops",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output": "Exported 1 completed runs to /var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/tmp6mbvtje5\ntest_empty_selection_refuses_to_generate_evidence (test_collect_metrics.MetricsTests.test_empty_selection_refuses_to_generate_evidence) ... ok\ntest_export_keeps_failures_filters_running_and_pins_attempt (test_collect_metrics.MetricsTests.test_export_keeps_failures_filters_running_and_pins_attempt) ... ok\ntest_failed_fetch_does_not_write_partial_evidence (test_collect_metrics.MetricsTests.test_failed_fetch_does_not_write_partial_evidence) ... ok\ntest_missing_and_invalid_intervals (test_collect_metrics.MetricsTests.test_missing_and_invalid_intervals) ... ok\ntest_no_jobs_does_not_claim_measured_duration (test_collect_metrics.MetricsTests.test_no_jobs_does_not_claim_measured_duration) ... ok\ntest_parallel_jobs_not_mistaken_for_wall_clock (test_collect_metrics.MetricsTests.test_parallel_jobs_not_mistaken_for_wall_clock) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.005s\n\nOK\n"
+    },
+    {
+      "command": [
+        "go",
+        "run",
+        "github.com/rhysd/actionlint/cmd/actionlint@v1.7.7",
+        "-shellcheck=",
+        ".github/workflows/ci.yml",
+        ".github/workflows/pipeline-metrics.yml"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "check": "relative links",
+      "count": 62,
+      "passed": true
+    },
+    {
+      "check": "embedded and standalone Mermaid sources match",
+      "passed": true
+    },
+    {
+      "check": "all 40 CSV rows reproduce raw metadata exactly",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "actionlint shellcheck integration disabled; shellcheck unavailable",
+    "Mermaid source equality checked; no diagram rendering claimed",
+    "No hosted optimized CI, deployment, rollback, or live user acceptance performed"
+  ]
+}

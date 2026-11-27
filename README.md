@@ -5,10 +5,19 @@ tasks, announcements, deadline changes, and course-scoped AI assistance.
 
 > **Status — 27 November 2026:** [hosted frontend](https://course-pilot-pi.vercel.app)
 > has verified READY deployment metadata. Current RAG/worker attribution and
-> authenticated production CRUD/AI acceptance remain **Not Verified**.
+> authenticated production CRUD/AI acceptance await owner confirmation.
 
 ## Technical handoff and review
 
+- **Final source release: [v1.0.0](https://github.com/w1iii/CoursePilot/tree/v1.0.0)** ·
+  **[Paired RAG source](https://github.com/w1iii/CoursePilot-RAG/tree/v1.0.0)**.
+  Release identity is separate from current runtime acceptance.
+- **[Documentation index](docs/README.md)** ·
+  **[Deliverables checklist](docs/DELIVERABLES_CHECKLIST.md)** ·
+  **[Setup guide](docs/SETUP.md)** · **[Changelog](CHANGELOG.md)**
+- [Release procedure](docs/RELEASE.md) ·
+  [Verification register](docs/VERIFICATION_REGISTER.md) ·
+  [AI testing/evaluation report](docs/ai-evaluation/REPORT.md)
 - **[Revised technical handoff](docs/FINAL_TECHNICAL_HANDOFF_REVISED.md)** ·
   **[3-page PDF](docs/FINAL_TECHNICAL_HANDOFF_REVISED.pdf)** ·
   **[Word](docs/FINAL_TECHNICAL_HANDOFF_REVISED.docx)**
@@ -18,13 +27,20 @@ tasks, announcements, deadline changes, and course-scoped AI assistance.
   [Measured evaluation](docs/audit-evidence/offline-stream-benchmark.md) ·
   [AI security implementation](docs/audit-evidence/AI_SECURITY_IMPLEMENTATION.md) ·
   [Owner-supplied ERD context](docs/audit-evidence/SCHEMA_CONTEXT.md)
+- [AI evaluation plan—not executed](docs/ai-evaluation/PLAN.md) ·
+  [Asset sources](docs/audit-evidence/ASSET_SOURCES.md) ·
+  [Sanitized summary/demo link](docs/audit-evidence/SANITIZED_EVIDENCE_SUMMARY.md)
 - [Audited main CI](https://github.com/w1iii/CoursePilot/actions/runs/45988132144)
+- [DevOps delivery pack](docs/devops/README.md) — pipeline diagram, completed CI
+  metrics, optimization results, deployment/rollback runbook, and postmortems
 
 Documents and supporting evidence now live **inside this repository** under
 `docs/`. Relative links work locally; new GitHub/PDF evidence URLs require an
 approved commit/merge/push before reviewers can open them online. Accessible
 Google Doc and submission remain pending. Original workspace audit files are
 preserved; historical integrity records predate these authorized documentation edits.
+The revised handoff exports are dated snapshots; the checklist and verification
+register track subsequent documentation and acceptance work.
 
 ## Features
 
@@ -75,6 +91,9 @@ ingestion queue. Both workers run separately from the HTTP processes.
 ## Quick start
 
 ### Prerequisites
+
+Follow [the full setup guide](docs/SETUP.md) for process configuration,
+application/RAG migration destinations and isolated-install acceptance.
 
 Node.js 22 or later (CI tests 22 and 26), Supabase, Clerk, Canvas access,
 Python 3.12 or 3.13, `uv`, and PostgreSQL
@@ -167,7 +186,7 @@ Copy `.env.example` to `.env`; never commit secrets.
 | `RAG_CHAT_STREAM_ENABLED` | No | `false` | Enable budgeted streaming after matching RAG deployment |
 | `RAG_SIGNING_SECRET` | Yes with RAG | — | Shared HMAC secret |
 | `RAG_INGESTION_ENABLED` | No | `true` | Ingest during sync |
-| `RAG_INGEST_MAX_COURSES` | No | `3` | Courses per sync |
+| `RAG_INGEST_MAX_COURSES` | No | `3` if unset; example sets `1` | Courses per sync |
 | `RAG_REINDEX_HOURS` | No | `24` | Re-index interval |
 | `RAG_INGEST_TIMEOUT_MS` | No | `180000` | Ingestion timeout |
 | `RAG_INGEST_MAX_ATTEMPTS` | No | `2` | Ingestion retries |
@@ -332,12 +351,12 @@ See [testing guide](TESTING.md) and [CI configuration](.github/workflows/ci.yml)
 Canvas OAuth is not implemented; connection uses personal access tokens.
 Hosted frontend and RAG deployment-success metadata were observed, but current
 API/worker identity, authenticated acceptance, costs/tiers, and deployed schema
-remain unverified.
+await owner confirmation.
 
 Known audit gaps: account deletion omits RAG cleanup; buffered JSON chat drops
 web-source metadata preserved by streaming; deadline-event logging is not atomic
 with task updates; study archive listing accumulates all history. Representative
-AI-quality evaluation and complete current backup/restore evidence are missing.
+AI-quality evaluation and complete current backup/restore checks await execution.
 Ingestion limits control work, not currency spending. Historical pitch/runbooks
 may describe earlier behavior; consult dated evidence and current source.
 

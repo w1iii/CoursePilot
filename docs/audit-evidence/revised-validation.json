@@ -1,24 +1,36 @@
 {
   "local_link_target_errors": [],
-  "checked_markdown_files": 16,
-  "unique_markdown_links": 158,
+  "checked_markdown_files": 20,
+  "unique_markdown_links": 185,
   "pdf_pages": 3,
-  "pdf_https_link_annotations": 140,
+  "pdf_https_link_annotations": 166,
   "pdf_non_https_actions": 0,
   "all_ten_headings_in_pdf": true,
   "word_template_headings_match": true,
   "word_hyperlinks_match_markdown": true,
+  "demo_folder_link_in_word_and_pdf": true,
+  "crud_proof_entry_omitted": true,
+  "ai_evaluation_status": "Planned only, no model-quality execution or results claimed",
   "supplied_schema_tables": 22,
   "sql_executed": false,
   "original_tracked_files_changed": {
     "web": [
+      ".github/workflows/ci.yml",
       "README.md"
     ],
     "rag": [
       "README.md"
     ]
   },
+  "historical_baseline_unchanged_except_readmes": false,
   "application_source_unchanged": true,
+  "workflow_drift_from_historical_audit": {
+    "web": [
+      ".github/workflows/ci.yml"
+    ],
+    "rag": []
+  },
+  "freeze_readiness": "Not certified: document validation is separate from current infrastructure/application acceptance",
   "limited_sensitive_pattern_findings": [],
   "online_publication": "Pending: no commit/push/merge performed; local checks do not certify live URLs",
   "new_documentation_links_pending_publication": [
@@ -33,8 +45,11 @@
     "https://github.com/w1iii/CoursePilot/blob/main/docs/SYSTEM_REVIEW.md#16-prioritized-findings-and-recommended-fixes",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/SYSTEM_REVIEW.md#4-architecture-and-trust-boundaries",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/SYSTEM_REVIEW.md#6-api-contracts-and-authorization",
+    "https://github.com/w1iii/CoursePilot/blob/main/docs/ai-evaluation/PLAN.md",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence/AI_SECURITY_IMPLEMENTATION.md",
+    "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence/ASSET_SOURCES.md",
+    "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence/SANITIZED_EVIDENCE_SUMMARY.md",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence/SCHEMA_CONTEXT.md",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence/baseline.json",
     "https://github.com/w1iii/CoursePilot/blob/main/docs/audit-evidence/ci-test-summaries.json",

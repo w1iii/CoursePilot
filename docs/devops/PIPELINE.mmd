@@ -1,0 +1,23 @@
+flowchart TD
+    Change["Pull request or push to main"] --> CI["CI: parallel jobs"]
+    Change --> QL["CodeQL: JavaScript / TypeScript"]
+    CI --> N22["Node 22: npm ci, audit, lint, types, tests + coverage, smoke unit tests, build"]
+    CI --> N26["Node 26: npm ci, audit, lint, types, tests, smoke unit tests, build"]
+    CI --> DB["Disposable PostgreSQL: SQL, concurrency, permissions"]
+    CI --> SEC["Gitleaks: redacted source scan"]
+    CI --> TOOL["Python: evidence-tooling unit tests"]
+    N22 -.-> Gate["Owner verifies exact revision, RAG CI, backups and staging"]
+    N26 -.-> Gate
+    DB -.-> Gate
+    SEC -.-> Gate
+    TOOL -.-> Gate
+    QL -.-> Gate
+    Smoke["Manual protected staging authenticated smoke"] -.-> Gate
+    Gate -.-> Release["Approved Vercel / Railway release; compatible web + API + workers"]
+    Release -.-> Verify["Health, authorized synthetic E2E, isolation, queue checks"]
+    Verify -.-> Decision{"Healthy?"}
+    Decision -.->|yes| Record["Record deployment IDs and acceptance evidence"]
+    Decision -.->|no| Rollback["Stop rollout; coordinated app rollback; retain schema/data"]
+    Timer["Every 15 min or manual"] --> Availability["Public web + configured staging RAG health"]
+    Manual["Manual metrics export"] --> Metadata["Read completed CI metadata"]
+    Metadata --> Artifact["CSV + JSON artifact: 30-day retention"]

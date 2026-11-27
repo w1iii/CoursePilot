@@ -1,0 +1,28 @@
+name: Pipeline metrics export
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Export latest 40 completed CI runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/devops/collect_metrics.py --repo "${{ github.repository }}" --output "$RUNNER_TEMP/pipeline-metrics"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-metrics-${{ github.run_id }}
+          path: ${{ runner.temp }}/pipeline-metrics/
+          retention-days: 30
+          if-no-files-found: error

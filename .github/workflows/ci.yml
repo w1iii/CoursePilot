@@ -16,6 +16,7 @@ jobs:
   web:
     name: Web checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         node: [22, 26]
@@ -29,13 +30,19 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test -- --coverage
+      - name: Unit tests and coverage gate (Node 22)
+        if: matrix.node == 22
+        run: npm test -- --coverage
+      - name: Unit tests (Node 26 compatibility)
+        if: matrix.node != 22
+        run: npm test
       - run: node --test scripts/staging-auth-smoke.test.mjs
       - run: npm run build
 
   study-database:
     name: Study database contracts
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -46,6 +53,7 @@ jobs:
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
       - name: Scan source for secrets
@@ -54,3 +62,14 @@ jobs:
           -v "${{ github.workspace }}:/repo"
           zricethezav/gitleaks:v8.30.1
           detect --source=/repo --no-git --redact --config=/repo/.gitleaks.toml --exit-code 1
+
+  devops-tooling:
+    name: DevOps evidence tooling
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python3 -m unittest discover -s scripts/devops -p 'test_*.py' -v
