@@ -1,0 +1,174 @@
+{
+  "purpose": "Copy existing audit records into web repository for publication",
+  "original_records_immutable": true,
+  "production_requeried": false,
+  "historical_integrity_note": "final-integrity.json predates authorized README/docs edits",
+  "publication_status": "Pending commit/merge/push; no publication performed",
+  "files": [
+    {
+      "file": "README.md",
+      "source": "docs/audit-evidence/README.md",
+      "sha256": "f03674e5c3ca689bc86e0a03094b7d12cc2b4019e1415d06cf3544f7bbe8c5f6"
+    },
+    {
+      "file": "baseline.json",
+      "source": "docs/audit-evidence/baseline.json",
+      "sha256": "bc0ac897002d6ae699aebb877bb462d7eed0410e36193a03cfc791cb93c730d0"
+    },
+    {
+      "file": "ci-test-summaries.json",
+      "source": "docs/audit-evidence/ci-test-summaries.json",
+      "sha256": "743cd0f9def9f84ff9b4656970bd52da603da003732364ffb6e89e8290e0c211"
+    },
+    {
+      "file": "docker-local-images.json",
+      "source": "docs/audit-evidence/docker-local-images.json",
+      "sha256": "5c403d34c3765e8fe719d85d7942db497ae15b108195012945b3d3dd30ae91e6"
+    },
+    {
+      "file": "docker-local-images.log",
+      "source": "docs/audit-evidence/docker-local-images.log",
+      "sha256": "113d3f0a4b661a75cbdf07251c705277d52e7bda58cdd77ab608917f3da424f0"
+    },
+    {
+      "file": "document-validation.json",
+      "source": "docs/audit-evidence/document-validation.json",
+      "sha256": "043513b2994c0992f3e8cbfe275fdbb47bab7c03699631288cb6d195dc670d47"
+    },
+    {
+      "file": "final-integrity.json",
+      "source": "docs/audit-evidence/final-integrity.json",
+      "sha256": "05430c7269b40b591187e8e71b446ecd58e465b40c6b571a42ae12c36c5c9735"
+    },
+    {
+      "file": "github.json",
+      "source": "docs/audit-evidence/github.json",
+      "sha256": "7a3e7c64fa577e1f8574b1cc8ef13db439fdc14b37bd9206dab9458938f8810a"
+    },
+    {
+      "file": "metrics-and-history.json",
+      "source": "docs/audit-evidence/metrics-and-history.json",
+      "sha256": "9537da452e85f2d7119efb9dc4abec092de8e85fdfd65f7b4059974dc1339dd1"
+    },
+    {
+      "file": "offline-stream-benchmark.json",
+      "source": "docs/audit-evidence/offline-stream-benchmark.json",
+      "sha256": "a66b512b256c095fda06d893913105972ad29a5e66d3ced789f879090808e6fc"
+    },
+    {
+      "file": "offline-stream-benchmark.log",
+      "source": "docs/audit-evidence/offline-stream-benchmark.log",
+      "sha256": "a4c10043ec5aadbbf6300c32fa411c382f747c6a4e0310b69f875e870286e4de"
+    },
+    {
+      "file": "pdf-render.json",
+      "source": "docs/audit-evidence/pdf-render.json",
+      "sha256": "76fdcb5e2c048922b2ab9549fed503f084e3b511a05e69ac683cdaa6c506a8c0"
+    },
+    {
+      "file": "platforms.json",
+      "source": "docs/audit-evidence/platforms.json",
+      "sha256": "40f7150dd4139d4de8b849ed3ce7837e41ff343a5bb8932a286397dd9ac9d0c0"
+    },
+    {
+      "file": "rag-pytest.json",
+      "source": "docs/audit-evidence/rag-pytest.json",
+      "sha256": "26a0963409dba4a01f969a6303af1dc0a8437c819cd1c5571e3238fb813ff01f"
+    },
+    {
+      "file": "rag-pytest.log",
+      "source": "docs/audit-evidence/rag-pytest.log",
+      "sha256": "d3d5e25d69a3f27c1a71ae6154ae5bbf5c05c92b0f8deb5c68e51ae25a8952a6"
+    },
+    {
+      "file": "rag-ruff.json",
+      "source": "docs/audit-evidence/rag-ruff.json",
+      "sha256": "3379224ad5c2f8039e5c6ab4173fd5ec5e929cca5b21794c05095c7e56f3dafe"
+    },
+    {
+      "file": "rag-ruff.log",
+      "source": "docs/audit-evidence/rag-ruff.log",
+      "sha256": "98733c3446b52dc3e6b6943142b19a142025d9727521f6abc3783a20e4b6d3c6"
+    },
+    {
+      "file": "remote-tags.json",
+      "source": "docs/audit-evidence/remote-tags.json",
+      "sha256": "5cc58cbb35dbc0d164692b8e6b963ee9671c1841fefbe628e785999230cc9f5f"
+    },
+    {
+      "file": "render_handoff.py",
+      "source": "docs/audit-evidence/render_handoff.py",
+      "sha256": "4174b0a7d20713b961acbd2ab16f8cb02399abcdd3f1414c12ac8681d7df7e4d"
+    },
+    {
+      "file": "source-inventory.json",
+      "source": "docs/audit-evidence/source-inventory.json",
+      "sha256": "3939d2ba2d1eb9fd0428fbc6d8a365e379667eb696f2edf7c4aff3544063622f"
+    },
+    {
+      "file": "template-access.json",
+      "source": "docs/audit-evidence/template-access.json",
+      "sha256": "935646145bd6fd743ec2c1ced37f8840daac23994a8bbbe3bb6fbee6b2c4e707"
+    },
+    {
+      "file": "web-build.json",
+      "source": "docs/audit-evidence/web-build.json",
+      "sha256": "930aa4d397bcf1a67920b540874302edfe2a9203660386f29ab17c9383721788"
+    },
+    {
+      "file": "web-build.log",
+      "source": "docs/audit-evidence/web-build.log",
+      "sha256": "e3c70cc157ed55554b048873cbe4008d3071683f78db6a9bc46ca759756c0293"
+    },
+    {
+      "file": "web-dependency-audit.json",
+      "source": "docs/audit-evidence/web-dependency-audit.json",
+      "sha256": "440e4a6fc0aeca9f14bfdabef8ce104e271140c491c7059055721ef488e8a229"
+    },
+    {
+      "file": "web-dependency-audit.log",
+      "source": "docs/audit-evidence/web-dependency-audit.log",
+      "sha256": "7de2ba7c20f0cbf28825e4a37b4599e637df18bd3cade0a8c279510a5cf53d3b"
+    },
+    {
+      "file": "web-lint.json",
+      "source": "docs/audit-evidence/web-lint.json",
+      "sha256": "068e9c2185a129b5817712555f03dee320d48057fe321b04dbdeb8243ff18585"
+    },
+    {
+      "file": "web-lint.log",
+      "source": "docs/audit-evidence/web-lint.log",
+      "sha256": "ec2e990f8f3c995f554ca6d749babdc6d3e1aa0c0f7d7b237e4abd5474e33b3a"
+    },
+    {
+      "file": "web-smoke-unit.json",
+      "source": "docs/audit-evidence/web-smoke-unit.json",
+      "sha256": "1ea7274616c8aa8d3260fe300e107aa34cc8c065e3377966448652a3154fcaa4"
+    },
+    {
+      "file": "web-smoke-unit.log",
+      "source": "docs/audit-evidence/web-smoke-unit.log",
+      "sha256": "c8c0281a0e162d86b57841ddb70733d820022eb95f223841b1c77003b516d693"
+    },
+    {
+      "file": "web-typecheck.json",
+      "source": "docs/audit-evidence/web-typecheck.json",
+      "sha256": "60d2d981392f470b9df1012565962cf4a97e0059ad6521af2f2038d4cf36d706"
+    },
+    {
+      "file": "web-typecheck.log",
+      "source": "docs/audit-evidence/web-typecheck.log",
+      "sha256": "7b8597a0473610c3637a135b5e75bd63eacfcb0502ce7dad8d127ae503771c17"
+    },
+    {
+      "file": "web-vitest.json",
+      "source": "docs/audit-evidence/web-vitest.json",
+      "sha256": "4e301861eac7d1bb2b098ac89f04020b9519154bcacc8966d625e99c75c6068e"
+    },
+    {
+      "file": "web-vitest.log",
+      "source": "docs/audit-evidence/web-vitest.log",
+      "sha256": "4b273a4de2e4e0d1b579bae53926e48f5d2c4f3d9f0488623c2d387c94df3c77"
+    }
+  ]
+}

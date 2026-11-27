@@ -1,0 +1,18 @@
+{
+  "name": "docker-local-images",
+  "command": [
+    "docker",
+    "image",
+    "inspect",
+    "postgres:17",
+    "pgvector/pgvector:pg17",
+    "--format",
+    "{{.Id}}"
+  ],
+  "cwd": "/private/var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/opencode/coursepilot-audit-20261127",
+  "started_at": "2026-11-27T11:37:44.367389+00:00",
+  "duration_seconds": 0.201,
+  "exit_status": 1,
+  "environment": "isolated tracked-source copy; project .env excluded; synthetic configuration",
+  "log": "docker-local-images.log"
+}

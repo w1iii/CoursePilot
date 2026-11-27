@@ -1,0 +1,44 @@
+{
+  "url": "https://docs.google.com/document/d/1nstfqO42Pj1OpvX7_z6y1KifGaqb7rjJ/edit",
+  "webfetch_text_export": {
+    "available": true,
+    "date": "2026-11-27",
+    "title": "Final Technical Documentation",
+    "numbered_sections": [
+      "Product status & architecture",
+      "Technology & dependency disclosure",
+      "Data model, API & user workflow",
+      "AI feature: design, output processing & evidence",
+      "Security, data protection & reliability",
+      "Testing: report actual counts and results",
+      "Engineering process & CI/CD",
+      "Contribution and external-work disclosure",
+      "Current limitations and final status",
+      "Reviewer evidence index"
+    ],
+    "formatting_verified": false
+  },
+  "original_template_modified": false,
+  "separate_google_copy_created": false,
+  "note": "Below txt/docx failures describe Python urllib downloads, not successful tool-based plain-text export.",
+  "txt": {
+    "available": false,
+    "reason": "URLError"
+  },
+  "docx": {
+    "available": false,
+    "reason": "URLError"
+  },
+  "render_tools": {
+    "weasyprint": "/Library/Frameworks/Python.framework/Versions/3.14/bin/weasyprint",
+    "soffice": null,
+    "libreoffice": null,
+    "tesseract": "/opt/homebrew/bin/tesseract"
+  },
+  "libreoffice_app": false,
+  "render_execution": {
+    "weasyprint": "Unavailable: native gobject library missing; nothing installed",
+    "used": "Existing PyMuPDF with Markdown",
+    "validation": "pdf-render.json"
+  }
+}

@@ -1,0 +1,1813 @@
+{
+  "web_routes": [
+    {
+      "path": "/api/account",
+      "source": "src/app/api/account/route.ts",
+      "methods": [
+        {
+          "method": "DELETE",
+          "line": 7
+        }
+      ],
+      "auth": "Clerk auth",
+      "tables": [
+        "users"
+      ],
+      "rpcs": [
+        "delete_account_data"
+      ]
+    },
+    {
+      "path": "/api/admin/cache-metrics",
+      "source": "src/app/api/admin/cache-metrics/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 23
+        }
+      ],
+      "auth": "custom",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/ask",
+      "source": "src/app/api/ask/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 21
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/canvas/connect",
+      "source": "src/app/api/canvas/connect/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 19
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/canvas/disconnect",
+      "source": "src/app/api/canvas/disconnect/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 7
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/canvas/status",
+      "source": "src/app/api/canvas/status/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 7
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/courses/selection",
+      "source": "src/app/api/courses/selection/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 14
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "courses"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/cron/sync",
+      "source": "src/app/api/cron/sync/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 43
+        }
+      ],
+      "auth": "custom",
+      "tables": [
+        "canvas_accounts",
+        "users"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/jobs/[jobId]",
+      "source": "src/app/api/jobs/[jobId]/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 6
+        },
+        {
+          "method": "PATCH",
+          "line": 23
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "background_jobs"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/jobs",
+      "source": "src/app/api/jobs/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 6
+        },
+        {
+          "method": "POST",
+          "line": 23
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "background_jobs"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/onboarding/courses",
+      "source": "src/app/api/onboarding/courses/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 9
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "courses"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/onboarding/finish",
+      "source": "src/app/api/onboarding/finish/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 12
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "courses"
+      ],
+      "rpcs": [
+        "finish_onboarding_queued"
+      ]
+    },
+    {
+      "path": "/api/profile/username",
+      "source": "src/app/api/profile/username/route.ts",
+      "methods": [
+        {
+          "method": "PUT",
+          "line": 6
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "users"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-packs/[id]",
+      "source": "src/app/api/study-packs/[id]/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 8
+        },
+        {
+          "method": "DELETE",
+          "line": 23
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "study_packs"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-packs/[id]/sessions/[sessionId]",
+      "source": "src/app/api/study-packs/[id]/sessions/[sessionId]/route.ts",
+      "methods": [
+        {
+          "method": "DELETE",
+          "line": 6
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "study_sessions"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-packs/[id]/sessions",
+      "source": "src/app/api/study-packs/[id]/sessions/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 8
+        },
+        {
+          "method": "POST",
+          "line": 13
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "study_sessions"
+      ],
+      "rpcs": [
+        "start_study_session"
+      ]
+    },
+    {
+      "path": "/api/study-packs",
+      "source": "src/app/api/study-packs/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 14
+        },
+        {
+          "method": "POST",
+          "line": 33
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "study_packs"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-prep/courses/[courseId]/modules/refresh",
+      "source": "src/app/api/study-prep/courses/[courseId]/modules/refresh/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 11
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "courses"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-prep/courses/[courseId]/modules",
+      "source": "src/app/api/study-prep/courses/[courseId]/modules/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 6
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-prep/courses",
+      "source": "src/app/api/study-prep/courses/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 6
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/study-sessions/[id]/attempts",
+      "source": "src/app/api/study-sessions/[id]/attempts/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 9
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": [
+        "save_study_attempt"
+      ]
+    },
+    {
+      "path": "/api/study-sessions/[id]",
+      "source": "src/app/api/study-sessions/[id]/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 8
+        },
+        {
+          "method": "PATCH",
+          "line": 24
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "study_sessions"
+      ],
+      "rpcs": [
+        "update_study_session"
+      ]
+    },
+    {
+      "path": "/api/sync/courses/[courseId]",
+      "source": "src/app/api/sync/courses/[courseId]/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 11
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "courses"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/sync",
+      "source": "src/app/api/sync/route.ts",
+      "methods": [
+        {
+          "method": "POST",
+          "line": 11
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [],
+      "rpcs": []
+    },
+    {
+      "path": "/api/tasks/[id]",
+      "source": "src/app/api/tasks/[id]/route.ts",
+      "methods": [
+        {
+          "method": "PATCH",
+          "line": 28
+        },
+        {
+          "method": "DELETE",
+          "line": 116
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "academic_tasks"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/tasks",
+      "source": "src/app/api/tasks/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 14
+        },
+        {
+          "method": "POST",
+          "line": 75
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "academic_tasks",
+        "courses"
+      ],
+      "rpcs": []
+    },
+    {
+      "path": "/api/threads/[id]",
+      "source": "src/app/api/threads/[id]/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 61
+        },
+        {
+          "method": "PUT",
+          "line": 94
+        },
+        {
+          "method": "DELETE",
+          "line": 175
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "chat_messages",
+        "chat_threads",
+        "courses"
+      ],
+      "rpcs": [
+        "save_chat_thread"
+      ]
+    },
+    {
+      "path": "/api/threads",
+      "source": "src/app/api/threads/route.ts",
+      "methods": [
+        {
+          "method": "GET",
+          "line": 7
+        }
+      ],
+      "auth": "requireUser",
+      "tables": [
+        "chat_threads"
+      ],
+      "rpcs": []
+    }
+  ],
+  "rag_routes": [
+    {
+      "file": "app/api/chat.py",
+      "line": 107,
+      "decorator": "@router.post(\"/stream\")"
+    },
+    {
+      "file": "app/api/chat.py",
+      "line": 135,
+      "decorator": "@router.post(\"\", response_model=ChatResponse)"
+    },
+    {
+      "file": "app/api/ingestion.py",
+      "line": 83,
+      "decorator": "@delete_router.delete(\"/course/{course_key}\")"
+    },
+    {
+      "file": "app/api/ingestion.py",
+      "line": 162,
+      "decorator": "@router.post(\n    \"/canvas-module\",\n    response_model=BatchIngestionResult,\n    responses={\n        502: {\"description\": \"Canvas request failed\"},\n        503: {\"description\": \"Canvas is not configured\"},\n    },\n)"
+    },
+    {
+      "file": "app/api/ingestion.py",
+      "line": 208,
+      "decorator": "@router.post(\n    \"/canvas-course\",\n    response_model=CourseIngestionResult,\n    responses={\n        400: {\"description\": \"Invalid Canvas credentials\"},\n        401: {\"description\": \"Canvas rejected the access token\"},\n        502: {\"description\": \"Canvas request failed\"},\n        503: {\"description\": \"Canvas is not configured\"},\n    },\n)"
+    },
+    {
+      "file": "app/api/ingestion_jobs.py",
+      "line": 31,
+      "decorator": "@router.post(\"/jobs/{job_id}\", status_code=202)"
+    },
+    {
+      "file": "app/api/ingestion_jobs.py",
+      "line": 53,
+      "decorator": "@router.get(\"/jobs/{job_id}\")"
+    },
+    {
+      "file": "app/api/study_prep.py",
+      "line": 99,
+      "decorator": "@router.get(\"/courses/{course_key}/index-counts\")"
+    },
+    {
+      "file": "app/api/study_prep.py",
+      "line": 112,
+      "decorator": "@router.get(\"/courses/{course_key}/modules\")"
+    },
+    {
+      "file": "app/api/study_prep.py",
+      "line": 205,
+      "decorator": "@router.post(\"/study-prep\")"
+    }
+  ],
+  "history": {
+    "web": [
+      {
+        "sha": "12a2855d40ca52b9dbc4631907898fa1a3b5fdc0",
+        "date": "2026-11-27",
+        "subject": "feat: validate study focus and answer inputs"
+      },
+      {
+        "sha": "c9ed86763a82eab36e7937b5f70c75b69ff95c7d",
+        "date": "2026-11-27",
+        "subject": "fix: make study creation reliable and single-flight"
+      },
+      {
+        "sha": "6ebb444d69cbf8f612ff7fd1c8767a2d00bcc6b1",
+        "date": "2026-11-27",
+        "subject": "docs: record successful pgvector release validation"
+      },
+      {
+        "sha": "befbca39f002c03f3d7721da50f4239335bba5da",
+        "date": "2026-11-27",
+        "subject": "feat: stream chat responses with bounded deadlines"
+      },
+      {
+        "sha": "b68b8965b4a6a8c11ca59db5d6eff9e11d77f30e",
+        "date": "2026-11-27",
+        "subject": "merge: preserve main UI with background jobs"
+      },
+      {
+        "sha": "b769612f1ccfd1e248804dc6ba0d8eb6e212a122",
+        "date": "2026-11-27",
+        "subject": "feat: run sync and study prep as background jobs"
+      },
+      {
+        "sha": "b6ecd78259d585f6bdb3250a8bbf3dfc51c1f3e1",
+        "date": "2026-11-26",
+        "subject": "Merge remote-tracking branch 'origin/main'"
+      },
+      {
+        "sha": "30cc0a3d43f9c474597bc796c7e0ab39294f90cd",
+        "date": "2026-11-26",
+        "subject": "fix: handle expired Clerk sessions"
+      },
+      {
+        "sha": "3ebc715016950547696b767cca784bec12b1cefb",
+        "date": "2026-11-26",
+        "subject": "fix: handle expired Clerk sessions"
+      },
+      {
+        "sha": "475993c80b15f25ea4d43ebe866ff81c6c726e5c",
+        "date": "2026-11-25",
+        "subject": "feat: focus study packs on selected modules"
+      },
+      {
+        "sha": "8845d6a67ae0c09bb4ee515c253c457de4fbf3d7",
+        "date": "2026-11-25",
+        "subject": "fix: simplify indexed courses settings"
+      },
+      {
+        "sha": "ced0a7c41d6eebc84a39fb79cf289c6334474b1b",
+        "date": "2026-11-25",
+        "subject": "fix: preserve chat responses across navigation"
+      },
+      {
+        "sha": "27013a0a780266c256fbe2cc1620fbb1bc024fb7",
+        "date": "2026-11-25",
+        "subject": "fix: preserve chat responses across navigation"
+      },
+      {
+        "sha": "e0531fb412829665463d88d827a17e5f782493b2",
+        "date": "2026-11-24",
+        "subject": "merge: dashboard task fixes"
+      },
+      {
+        "sha": "73e37f611ce6ab71e4e43b37c4cc25c197959094",
+        "date": "2026-11-24",
+        "subject": "fix: improve dashboard task updates"
+      },
+      {
+        "sha": "67ab5e05caf0d829351049fd5501c134849a708b",
+        "date": "2026-11-22",
+        "subject": "Merge pull request #12 from w1iii/landing-page-edit"
+      },
+      {
+        "sha": "90fe1f42efb6d3b4758bfcc18359c27815e1d98e",
+        "date": "2026-11-22",
+        "subject": "remove student praise and last FAQ QA"
+      },
+      {
+        "sha": "8473c723adb909f3a2474811484ab3504e29e21d",
+        "date": "2026-11-22",
+        "subject": "Merge pull request #11 from w1iii/test"
+      },
+      {
+        "sha": "d7c031853051925afb3bf44ae3cd6e30d29bbd4f",
+        "date": "2026-11-22",
+        "subject": "docs: explain testing and CI flow"
+      },
+      {
+        "sha": "c88c471c200c56bbcd0cc662a9a06daf8e30526e",
+        "date": "2026-11-21",
+        "subject": "test: cover assistant and Canvas failures"
+      },
+      {
+        "sha": "f04cdd8915d5794d848d692b2172e995a6a92bbc",
+        "date": "2026-11-21",
+        "subject": "fix: report study route failures safely"
+      },
+      {
+        "sha": "38414ac8a3c337026cb2609123c25787336d1881",
+        "date": "2026-11-21",
+        "subject": "test: improve API error diagnostics and coverage"
+      },
+      {
+        "sha": "b6cbb662c0452ff0f06ead8baf5b798f8ae760b8",
+        "date": "2026-11-21",
+        "subject": "Merge pull request #10 from w1iii/feature/dashboard-task-details"
+      },
+      {
+        "sha": "6d45da97befd059c1a1d2bb4327775a38e660db5",
+        "date": "2026-11-21",
+        "subject": "feat: show dashboard task details"
+      },
+      {
+        "sha": "a08f3d884f9776d5a2b6538266d3fe6cf5343895",
+        "date": "2026-11-21",
+        "subject": "Merge pull request #9 from w1iii/ops/synthetic-smoke-foundation"
+      },
+      {
+        "sha": "5f487f9eef5b37d229278dd7e328b06f6055350a",
+        "date": "2026-11-21",
+        "subject": "feat: add selected Canvas courses in settings"
+      },
+      {
+        "sha": "3e138d9c7f26eba687cdc2587a2e9b0d1e8cda24",
+        "date": "2026-11-21",
+        "subject": "ci: add staging authenticated smoke check"
+      },
+      {
+        "sha": "5bfeb52fcf7a7bb7935b9378e675d03fec852a80",
+        "date": "2026-11-20",
+        "subject": "Merge pull request #8 from w1iii/test"
+      },
+      {
+        "sha": "f86fcb1ec8fa0425b16731c20c27134fe23e911e",
+        "date": "2026-11-20",
+        "subject": "test workflow"
+      },
+      {
+        "sha": "baf9309e5d4c68e44bbb49e65912296cb32eb137",
+        "date": "2026-11-20",
+        "subject": "fix: prevent username save from hanging"
+      },
+      {
+        "sha": "0ef62d3755a632f86aa1ff855920915fb99fe9b3",
+        "date": "2026-11-20",
+        "subject": "feat: add account deletion and sync feedback"
+      },
+      {
+        "sha": "0d239a674391bdf0212fa5500696a62381e066e0",
+        "date": "2026-11-20",
+        "subject": "feat: add onboarding username"
+      },
+      {
+        "sha": "0ca0c6b329fc8cf3689632893f2328dcac3bec2d",
+        "date": "2026-11-20",
+        "subject": "fix: refresh session for onboarding"
+      },
+      {
+        "sha": "2c2f3497e11808805c1f8259cba88fec1b647cdc",
+        "date": "2026-11-20",
+        "subject": "fix: clarify local runtime setup"
+      },
+      {
+        "sha": "9ec430105d6d77e1884225e1fefb95a3932e24a1",
+        "date": "2026-11-19",
+        "subject": "Merge pull request #7 from w1iii/ops/beta-monitoring-runbook"
+      },
+      {
+        "sha": "dd851fe10262e30947364fa580f5d8f2e8f87127",
+        "date": "2026-11-19",
+        "subject": "ops: add beta availability monitoring"
+      },
+      {
+        "sha": "29cd2f8b7380604e98ac3dc1ba057a6966ac9b77",
+        "date": "2026-11-19",
+        "subject": "Merge pull request #6 from w1iii/fix/security-headers-ci-versions"
+      },
+      {
+        "sha": "f1c967c5bbec32bdd5b7e902a03d74b773617478",
+        "date": "2026-11-19",
+        "subject": "fix: cover all routes with security headers"
+      },
+      {
+        "sha": "5feabeef7f7c18336800ae2bd4acb4e974bc529d",
+        "date": "2026-11-19",
+        "subject": "Merge pull request #5 from w1iii/fix/study-module-refresh"
+      },
+      {
+        "sha": "1b7595ff6b21affa6bf6d1e7fc304497f3c72f0a",
+        "date": "2026-11-19",
+        "subject": "feat: add module metadata refresh action"
+      },
+      {
+        "sha": "136f18067fbcf9d1f23a39e59e0a59e20ab0be5e",
+        "date": "2026-11-18",
+        "subject": "Merge branch 'feature/study-prep-archive-pr'"
+      },
+      {
+        "sha": "dc4010730235f8395839f6eaeda7b8140ea58e6e",
+        "date": "2026-11-18",
+        "subject": "feat: add study prep archive page"
+      },
+      {
+        "sha": "e6763e9b70dcc5863256b027c7660d7f844c6ee0",
+        "date": "2026-11-18",
+        "subject": "Merge fix/secure-module-metadata-backfill"
+      },
+      {
+        "sha": "ee71a8cdf7f582e809b249c79eebf7e1977d1e67",
+        "date": "2026-11-17",
+        "subject": "feat: show wait messages during canvas sync"
+      },
+      {
+        "sha": "d6b7c6ca3e69f7206c5ffad75f66965c96c37194",
+        "date": "2026-11-17",
+        "subject": "Merge branch 'fix/secure-module-metadata-backfill'"
+      },
+      {
+        "sha": "9c6fda2056c62f65e3ea5377cebb171f47ff5555",
+        "date": "2026-11-17",
+        "subject": "style: update sync loading overlays"
+      },
+      {
+        "sha": "22256a869fee91fd384092ff76044356367e3bbb",
+        "date": "2026-11-17",
+        "subject": "Merge branch 'fix/secure-module-metadata-backfill'"
+      },
+      {
+        "sha": "91aeeab8a1343bd28870b02d4c5c0531d2d1d0d3",
+        "date": "2026-11-17",
+        "subject": "fix: improve study pack generation"
+      },
+      {
+        "sha": "0553982e67ccc73fc443694e2bab45b708533a59",
+        "date": "2026-11-17",
+        "subject": "feat: add scoped module metadata refresh"
+      },
+      {
+        "sha": "d3c6ea00e97c342bc4d81b1de1fff51cef9742a5",
+        "date": "2026-11-16",
+        "subject": "fix: describe study prep on landing page"
+      },
+      {
+        "sha": "94010a06a982a356ee918d58135ec090bbbbcb25",
+        "date": "2026-11-16",
+        "subject": "fix: allow study prep generation timeout"
+      },
+      {
+        "sha": "dabaf9361e3beab4ad61eff8824b859bb867a22b",
+        "date": "2026-11-15",
+        "subject": "merge: staging into main"
+      },
+      {
+        "sha": "bccaad7afa7e25fb30db4ea7d59b7b555dd78d30",
+        "date": "2026-11-15",
+        "subject": "rebrand: replace Habi with Coursa"
+      },
+      {
+        "sha": "af8813dc1f27824596c4e033badbe88d547f1b22",
+        "date": "2026-11-15",
+        "subject": "rebrand: replace Habi with Coursa"
+      },
+      {
+        "sha": "4efe22fdfe99fd2637f99da875a5be815308c8e8",
+        "date": "2026-11-15",
+        "subject": "feat(ui): add anime.js reveals and orb loader"
+      },
+      {
+        "sha": "01ea532a03702ae13060d74110c1b02aa838c6e1",
+        "date": "2026-11-15",
+        "subject": "fix(study-prep): check shared index, not local timestamp"
+      },
+      {
+        "sha": "d503d4a71de2a035c74c32dac6812454dc7b83cc",
+        "date": "2026-11-15",
+        "subject": "fix(study-prep): allow partially indexed courses"
+      },
+      {
+        "sha": "fe919c22b57b6fd88047d3ac1a7cd7a6837d4f95",
+        "date": "2026-11-15",
+        "subject": "fix(shared-index): show one live count per shared course"
+      },
+      {
+        "sha": "23233d1ea5a35baf33d166b7ee00ea42b2130f4e",
+        "date": "2026-11-15",
+        "subject": "style(study-prep): redesign pack and session pages with newspaper theme"
+      },
+      {
+        "sha": "69127f47eeaf12510cede250adb049cdd37ede46",
+        "date": "2026-11-15",
+        "subject": "style(dashboard): align feature cards with newspaper design"
+      },
+      {
+        "sha": "e064d4ed349112d7af368d0da6957926e3151e81",
+        "date": "2026-11-15",
+        "subject": "Merge pull request #2 from w1iii/fix/friendly-error-messages"
+      },
+      {
+        "sha": "048b273543cc7db4ae9d94978ee07f39df19da35",
+        "date": "2026-11-15",
+        "subject": "fix(ui): show friendly messages instead of raw errors"
+      },
+      {
+        "sha": "b2f934d77eee8125b504fcd2d2d62104d4c896af",
+        "date": "2026-11-15",
+        "subject": "Merge pull request #1 from w1iii/ops/harden-schema-migrations"
+      },
+      {
+        "sha": "e1a904a9250c8095ded5362e39ae501fb6a688ca",
+        "date": "2026-11-15",
+        "subject": "fix(db): pin definer search_path and enable sync_locks RLS"
+      },
+      {
+        "sha": "85d9fea6be4e7c1ff2bf8ac4e548d32b351703a5",
+        "date": "2026-11-14",
+        "subject": "ci: add coverage gate, dependency audit, and security scans"
+      },
+      {
+        "sha": "0b7ac0f64e4ffc6bc966f7485fdd4770e9ac47dd",
+        "date": "2026-11-14",
+        "subject": "fix(api): enforce strict input validation across routes"
+      },
+      {
+        "sha": "6caa1005102c7a80eb9f833edc5e220fb5412860",
+        "date": "2026-11-14",
+        "subject": "feat: add study prep capabilities"
+      },
+      {
+        "sha": "7d1240a03c03aea8a6e5f8387080dca55ceb0811",
+        "date": "2026-11-14",
+        "subject": "feat(dashboard): focus lead and queue on upcoming work"
+      },
+      {
+        "sha": "a4d5f39dbe8b42144cb6a752e80aaf7be5e7c544",
+        "date": "2026-11-14",
+        "subject": "feat(chat): warn when near daily request limit"
+      },
+      {
+        "sha": "3be5eb361c64229accb79126a63a9b0a048fe95b",
+        "date": "2026-11-14",
+        "subject": "fix(rag): enforce Canvas enrollment for shared index"
+      },
+      {
+        "sha": "1f7784b2c449f4a4af7fe6bccc6366bfcdf3fb31",
+        "date": "2026-11-14",
+        "subject": "chore(dashboard): drop unused course and deadline rails"
+      },
+      {
+        "sha": "79095e22b274b9d213bccd3f2453cd2d659e9d73",
+        "date": "2026-11-14",
+        "subject": "feat(rag): send course scope and web sources"
+      },
+      {
+        "sha": "682b579025c95dccd637e8f01ecdedda147f00d1",
+        "date": "2026-11-13",
+        "subject": "feat(onboarding): gate dashboard and curate RAG courses"
+      },
+      {
+        "sha": "9f48aca0de9e6e76f87dd606aef5d92752a999a7",
+        "date": "2026-11-13",
+        "subject": "fix: harden task and sync APIs"
+      },
+      {
+        "sha": "3ee8550d6fe9500f103b56d7f477fd64f683ea36",
+        "date": "2026-11-11",
+        "subject": "fix(sync): collapse status to summary counts"
+      },
+      {
+        "sha": "fd85fd684692e015845e4c62407f5f80e368a22d",
+        "date": "2026-11-11",
+        "subject": "feat(ai): staged cache rollout and in-flight dedup"
+      },
+      {
+        "sha": "90a7086abbaaf4f5aa8159d61effd5f1a00eb8aa",
+        "date": "2026-11-10",
+        "subject": "feat(cache): add metrics endpoint and staged RAG rollout"
+      },
+      {
+        "sha": "c115551967ff4234b2ed5f398fcb103f5ef49e99",
+        "date": "2026-11-10",
+        "subject": "fix(cache): scope invalidation and serialize syncs"
+      },
+      {
+        "sha": "5a68366de01ba5aa0e442e8881013cd24207ef28",
+        "date": "2026-11-10",
+        "subject": "readme.md update"
+      },
+      {
+        "sha": "36193e062d10cb4817695df1f2eb9851fa5e667a",
+        "date": "2026-11-10",
+        "subject": "feat(cache): add request and client-side caching"
+      },
+      {
+        "sha": "f814ae06d540fcabcbccdd600d810fda8d0a9661",
+        "date": "2026-11-10",
+        "subject": "feat(ai): cache exact-match RAG answers"
+      },
+      {
+        "sha": "a35bd11b9919cf9723f2407095b5fdc74604f600",
+        "date": "2026-11-10",
+        "subject": "feat(cache): add user-scoped server data cache"
+      },
+      {
+        "sha": "dff918c05859f6466fcf1e8e88ad126302d92dd4",
+        "date": "2026-11-09",
+        "subject": "fix(canvas): accept copy-pasted Bearer tokens"
+      },
+      {
+        "sha": "1cbd9e00192c8fdf8a9be17fcc193f13034ba334",
+        "date": "2026-11-09",
+        "subject": "feat(sync): surface RAG ingestion details"
+      },
+      {
+        "sha": "fee4699c3c9b96147635afd1587b94da410be476",
+        "date": "2026-11-09",
+        "subject": "fix(chat): render markdown answers with source chips"
+      },
+      {
+        "sha": "1ad31e2f91df135a9279fe2628f52e3b02aaefc0",
+        "date": "2026-11-08",
+        "subject": "chore(db): add atomic chat write and RPC grants"
+      },
+      {
+        "sha": "0bc5d12c992cd62e7bc54a28245e590457263779",
+        "date": "2026-11-08",
+        "subject": "fix(security): bind RAG tokens to Canvas course"
+      },
+      {
+        "sha": "2c14b5f069caff21845fb0d27f24194f5170cbc3",
+        "date": "2026-11-08",
+        "subject": "fix(chat): keep one canonical thread per conversation"
+      },
+      {
+        "sha": "08b063ebb207fcbcaefbc85fdb581acf3caa2255",
+        "date": "2026-11-08",
+        "subject": "fix(sync): paginate Canvas collections fully"
+      },
+      {
+        "sha": "56bae038fd52d1f9b898c3bed614eb36886aeacf",
+        "date": "2026-11-08",
+        "subject": "fix(threads): assign message id on save"
+      },
+      {
+        "sha": "df5de06a9fe4ba7fdee370fe65ae8f3a6bf85e9a",
+        "date": "2026-11-08",
+        "subject": "fix: cap question length at 2000 to match RAG"
+      },
+      {
+        "sha": "b3bb6a3361eb7dd78af429de4387a6c5d90aff99",
+        "date": "2026-11-08",
+        "subject": "fix: harden tenant isolation, RAG auth, SSRF"
+      },
+      {
+        "sha": "4308fe5c1f3358074a06687c6993a0d04857ae93",
+        "date": "2026-11-06",
+        "subject": "fix: prevent duplicate thread save when initialTurns provided from server"
+      },
+      {
+        "sha": "80c4ff43091a58fb49444ed11a6e2285b8352da4",
+        "date": "2026-11-06",
+        "subject": "fix: direct sidebar chat click to thread, no new chat redirect"
+      },
+      {
+        "sha": "972d49ff7a0eb2cbd37b72b3648e56c1b7337019",
+        "date": "2026-11-06",
+        "subject": "Fix duplicate key error: remove turn.id as chat_messages primary key"
+      },
+      {
+        "sha": "e6397babd8aa49ba24427e6a2adafdabd0a13e95",
+        "date": "2026-11-06",
+        "subject": "docs: add remaining system hardening tasks documentation"
+      },
+      {
+        "sha": "030876a7988abab7804ce3e83db2ead21a2dade6",
+        "date": "2026-11-06",
+        "subject": "style(sidebar): compact thread rows"
+      },
+      {
+        "sha": "bb6a5c14c3b34bca7ec683d46972f943a27d9d89",
+        "date": "2026-11-06",
+        "subject": "style(sidebar): tighten thread item gap"
+      },
+      {
+        "sha": "998f636a53cdb1fe3a554da28571133b53f85351",
+        "date": "2026-11-06",
+        "subject": "feat(theme): add newspaper palette and dark mode"
+      },
+      {
+        "sha": "8326516ceaa1195b465ecb4551b8b2853728e5b3",
+        "date": "2026-11-06",
+        "subject": "clean: small details"
+      },
+      {
+        "sha": "d7ea33ec630f486980d0af00ff986f5910fd9d4e",
+        "date": "2026-11-06",
+        "subject": "feat(sync): persist sync across dashboard routes"
+      },
+      {
+        "sha": "add995014dfd3110ee1dcc28650b765e2e5bfa84",
+        "date": "2026-11-06",
+        "subject": "feat(settings): build settings page layout"
+      },
+      {
+        "sha": "9a57ac6657b05fd08fa205256707b26d7f2ca48a",
+        "date": "2026-11-05",
+        "subject": "feat: concise announcement summaries, deadline feed wire label"
+      },
+      {
+        "sha": "16644ff8f22640468fa9233acf93af7a87ff32f4",
+        "date": "2026-11-05",
+        "subject": "feat: add section nav with slow scroll-to and active state"
+      },
+      {
+        "sha": "d48157a432523f764b01bb2e91ac5170b3887abf",
+        "date": "2026-11-05",
+        "subject": "feat: redesign dashboard as newspaper edition"
+      },
+      {
+        "sha": "3bf04774c63826d9cad08fc8895e8c837a5a12c2",
+        "date": "2026-11-04",
+        "subject": "Add forceRedirectUrl to SignIn and SignUp components pointing to /dashboard/thread"
+      },
+      {
+        "sha": "a682fb7b6b81b37261be76fd8ecec9d8a261cf7f",
+        "date": "2026-11-04",
+        "subject": "Increase max question chars from 2000 to 12000 and add constant"
+      },
+      {
+        "sha": "1cc2fbe7b3c193299246721e054d55d98e5af1f2",
+        "date": "2026-11-04",
+        "subject": "Restructure layout: move ClerkProvider inside html element and reorganize head/body structure"
+      },
+      {
+        "sha": "a808e96c1ef56ef630e8a846f159f4faed5f291b",
+        "date": "2026-11-04",
+        "subject": "fix: add onConflict to thread upsert and update ThreadView UI"
+      },
+      {
+        "sha": "041de79874eca671e3999292b92e5c670b1a5c2c",
+        "date": "2026-11-04",
+        "subject": "fix: update ThreadView textarea and course select"
+      },
+      {
+        "sha": "fa291c17f71629d4a3d11951646f5ae6ce18f8d5",
+        "date": "2026-11-04",
+        "subject": "feat: add dashboard settings and profile page"
+      },
+      {
+        "sha": "e674cdf94b867ce99f7f88ce860fab44e376108a",
+        "date": "2026-11-04",
+        "subject": "feat: add auth middleware and redirect"
+      },
+      {
+        "sha": "0119f75be45a81284aaed28213c9360a6383b74b",
+        "date": "2026-11-04",
+        "subject": "feat: add dashboard settings and sign-in/up page updates"
+      },
+      {
+        "sha": "89d4364de98dee8a31a91a1f98bae7e52a4266c1",
+        "date": "2026-11-03",
+        "subject": "feat: add ThreadSidebar API, TaskBoard, and dashboard updates"
+      },
+      {
+        "sha": "ad9bdacb8f42918483a4f30bc556c4bec73fe8bf",
+        "date": "2026-11-01",
+        "subject": "feat: thread page schema - update SQL sync task queries"
+      },
+      {
+        "sha": "469df8046e436dd8b7c9ceb8a0215f6f3414bc63",
+        "date": "2026-11-01",
+        "subject": "feat(dashboard): page restructuring - add TaskBoard, CanvasConnect, SyncButton, refactor AskBox"
+      },
+      {
+        "sha": "1e0f5b03e61b53d661c96c9563cebb2de9c672ad",
+        "date": "2026-11-01",
+        "subject": "feat(dashboard): ThreadView - persist via API, init from server, useEffect cleanup"
+      },
+      {
+        "sha": "f080dfcc169c60d0c8025ada98b09d5219ab8bb7",
+        "date": "2026-11-01",
+        "subject": "feat(dashboard): ThreadSidebar - migrate to API, update widths, add delete, refine UI"
+      },
+      {
+        "sha": "a5206b9af5ca63b67e65b25e85b913cd59a02d82",
+        "date": "2026-11-01",
+        "subject": "feat(dashboard): update ThreadSidebar and ThreadView"
+      },
+      {
+        "sha": "b1355dc6bdc21f786e5a2149666f4a52486fbcfc",
+        "date": "2026-11-01",
+        "subject": "Add dashboard components and update UI"
+      },
+      {
+        "sha": "1513daa2bd4430e77eaa505801a557df7f9e59e9",
+        "date": "2026-11-01",
+        "subject": "style(dashboard): move ask form into left column"
+      },
+      {
+        "sha": "8c947ad3ba62e69e81fb8df273e3d65d1006f091",
+        "date": "2026-11-01",
+        "subject": "style(dashboard): make navbar transparent glass"
+      },
+      {
+        "sha": "0ec7f9fc161559a77e2e308d5c297b0fbd48cba2",
+        "date": "2026-10-31",
+        "subject": "feat(dashboard): add toggleable sidebar to thread page - Add sidebarOpen state with toggle button (material-symbols-outlined: arrow_left/arrow_right) - Aside (LoomOrbit + course context) now conditional: lg:col-span-7 when open, lg:col-span-12 when closed - Remove duplicated fixed header from thread page; ThreadView provides its own header - Adjust main min-h from 140px to 40px offset - Dashboard page unchanged: retains top navbar navigation - TypeScript + ESLint pass clean"
+      },
+      {
+        "sha": "b1130339c1706fcfc84b26ac1d236725266ccd5f",
+        "date": "2026-10-31",
+        "subject": "feat(dashboard): add thread page and route AskBox to it - Add src/app/dashboard/thread/page.tsx async server component   - requireUser(), fetch courses, parse q/course/tid search params   - render ambient/mesh/header/footer shell + ThreadView client   - pass userName, userEmail, courses, initialQuestion, initialCourseId, initialThreadId - Rewrite AskBox.tsx: on Send builds thread URL and pushes /dashboard/thread?...   - Removes inline answer/error rendering   - Uses URLSearchParams (tid, q, course) + router.push   - Simplified to prompt-only component that navigates away - ThreadView.tsx already handles turn state, sessionStorage persistence,   loading/error/done cards, copy/retry, follow-up form, suggestion chips,   LoomOrbit aside, reduce-motion friendly animations"
+      },
+      {
+        "sha": "f74b40636bf814de5bb8838463849703f6ebc1bd",
+        "date": "2026-10-31",
+        "subject": "feat(dashboard): redesign Ask Habi workspace"
+      },
+      {
+        "sha": "5dc925d2727d2c0a475abaac25c4c6bac450f658",
+        "date": "2026-10-31",
+        "subject": "docs: add data flow notes and diagram"
+      },
+      {
+        "sha": "59b53cf4df215841f3a305d9daac836952109124",
+        "date": "2026-10-31",
+        "subject": "feat: order nav by section and track active item"
+      },
+      {
+        "sha": "8adf5508c9eb34dd2b6c7f888e221d96c9f4188f",
+        "date": "2026-10-31",
+        "subject": "fix: glide nav scroll past reduced-motion setting"
+      },
+      {
+        "sha": "87923c39f3b0cbbbb0a7d3289e9c985db7a42e27",
+        "date": "2026-10-31",
+        "subject": "feat: smooth scroll nav and scroll-reveal sections"
+      },
+      {
+        "sha": "c8e577705a55ee9ebfbce3966f97190e643e491c",
+        "date": "2026-10-31",
+        "subject": "refactor: rebrand landing page to Habi"
+      },
+      {
+        "sha": "3a3f401f642cde4468d431e221c957131e67cc62",
+        "date": "2026-10-31",
+        "subject": "feat: rebuild landing page with woven loom design"
+      },
+      {
+        "sha": "ff8a5b6b4b9ba60de02ad51744db0680eabd14ec",
+        "date": "2026-10-31",
+        "subject": "fix: resolve /dashboard 404 in dev"
+      },
+      {
+        "sha": "193b9f25ca52385306d74d0d112b4354057a79fe",
+        "date": "2026-10-31",
+        "subject": "feat: add /api/cron/sync scheduled sync endpoint"
+      },
+      {
+        "sha": "140b3d9838983241748d97c76bae968b1257b7de",
+        "date": "2026-10-31",
+        "subject": "feat: rate limit AI questions per user"
+      },
+      {
+        "sha": "2033732429c702f6ba0e830eaf8d53a2ed0f92be",
+        "date": "2026-10-31",
+        "subject": "feat: manage tasks from the dashboard"
+      },
+      {
+        "sha": "7477f4f2bc9d4ea510edf5e48e15bc79a55d2125",
+        "date": "2026-10-31",
+        "subject": "feat: index Canvas modules into RAG on sync"
+      },
+      {
+        "sha": "36bcd72722d2f07079d63f2440393235b9b19359",
+        "date": "2026-10-31",
+        "subject": "feat: connect Canvas with per-user encrypted tokens"
+      },
+      {
+        "sha": "0735de8b52a19c559a406f6a2a1c60a110353803",
+        "date": "2026-10-31",
+        "subject": "fix: isolate user data and authenticate RAG chat"
+      },
+      {
+        "sha": "453708525abc2313d1ff24b52464855061f6b246",
+        "date": "2026-10-31",
+        "subject": "feat: connect RAG service, restore Canvas sync"
+      },
+      {
+        "sha": "6894b56732960628775a3ec1a92504aa94c4a7cd",
+        "date": "2026-10-23",
+        "subject": "first commit"
+      },
+      {
+        "sha": "e51b7d3925972bb37dec6ad599c8a16a5d88bfdb",
+        "date": "2026-10-22",
+        "subject": "rewrite embeddings"
+      },
+      {
+        "sha": "3c1a475fb157410f422a2e40dc5faf1f36908150",
+        "date": "2026-10-21",
+        "subject": "copy pasted rag setup - rewrite"
+      },
+      {
+        "sha": "a671b4dab595482f48df5ccb6fda79b6888aa328",
+        "date": "2026-10-21",
+        "subject": "wrong sync.ts"
+      },
+      {
+        "sha": "801cd06843ca01fd33485905b52c167797c867d3",
+        "date": "2026-10-21",
+        "subject": "docs: add PROGRESS tracking initial scaffold status"
+      },
+      {
+        "sha": "e789d53039d3c3d9353253ad31a11e66d22b1ebf",
+        "date": "2026-10-21",
+        "subject": "docs: add README with setup steps and API table"
+      },
+      {
+        "sha": "b8218e73d77d95ea4ae46e53dbf8d67c4ddc58a3",
+        "date": "2026-10-21",
+        "subject": "feat(dashboard): add dashboard with priorities, deadlines, announcements, AI ask box"
+      },
+      {
+        "sha": "ed9a4358ceca57f9a80e759f1dacc2f1bf26a33c",
+        "date": "2026-10-21",
+        "subject": "feat(api): add POST /api/ask RAG endpoint"
+      },
+      {
+        "sha": "62e8d7d5bf7f0a93f66ad95c58a1621ba520856c",
+        "date": "2026-10-21",
+        "subject": "feat(api): add tasks CRUD endpoints (list, create, update, delete)"
+      },
+      {
+        "sha": "6b4f59e602cf5b270540521d6fc7952b245fe748",
+        "date": "2026-10-21",
+        "subject": "feat(api): add POST /api/sync Canvas sync endpoint"
+      },
+      {
+        "sha": "7ca9f081eb1317c3b8f2d2c7449fca4c521e1bbf",
+        "date": "2026-10-21",
+        "subject": "feat(auth): add Clerk middleware, provider layout, landing + auth pages"
+      },
+      {
+        "sha": "a4eaafab4949776a8c443182de4c50271b243d23",
+        "date": "2026-10-21",
+        "subject": "feat(lib): add Clerk->users upsert and Canvas sync pipeline"
+      },
+      {
+        "sha": "d2a5dffec6fcca3f512b460d7ae32062b7293751",
+        "date": "2026-10-21",
+        "subject": "feat(ai): add OpenAI client, embeddings, and RAG pipeline"
+      },
+      {
+        "sha": "97f42c529280792e3ae86965e6d327d64b205ba4",
+        "date": "2026-10-21",
+        "subject": "feat(lib): add env helpers, Supabase admin client, Canvas API client"
+      },
+      {
+        "sha": "b3cec8a1eb1fae275e85ac72f5c592857bb967c1",
+        "date": "2026-10-21",
+        "subject": "feat(db): add Postgres schema with pgvector + match_documents RPC"
+      },
+      {
+        "sha": "737801aae1d04dc253f24882333ee0cf75f25763",
+        "date": "2026-10-21",
+        "subject": "chore: add .env.example with all required variables"
+      },
+      {
+        "sha": "74f592abd838f0b4ab586aaea494ba50e850d7cf",
+        "date": "2026-10-21",
+        "subject": "docs: add CoursePilot project spec"
+      },
+      {
+        "sha": "700aaf5e78c432d6e266c30ccaa206f01dcfdb85",
+        "date": "2026-10-21",
+        "subject": "chore: scaffold Next.js 15 + TS + Tailwind project"
+      }
+    ],
+    "rag": [
+      {
+        "sha": "c50770126f4f6c6a3d6120c56bfa6d6b0b41d494",
+        "date": "2026-11-27",
+        "subject": "feat: ground and validate optional study focus"
+      },
+      {
+        "sha": "452e191263f975bf92c8defd614c9c52103df5d6",
+        "date": "2026-11-27",
+        "subject": "Merge pull request #6 from w1iii/fix/rag-container-security"
+      },
+      {
+        "sha": "ea52f4140730789b12698f66f7f7a1fbe2f96dc2",
+        "date": "2026-11-27",
+        "subject": "fix: enforce RAG image and source security gates"
+      },
+      {
+        "sha": "332dcd7e7abcae8214c18243a10ad64d1dfecea9",
+        "date": "2026-11-27",
+        "subject": "fix: preserve study generation fallback deadlines"
+      },
+      {
+        "sha": "8494d06d8b8f807308d5fd4ccf3dc87d505e0b67",
+        "date": "2026-11-27",
+        "subject": "feat: add durable ingestion and budgeted chat streams"
+      },
+      {
+        "sha": "2b07c0ede0fdd4d6f900675788735ad7d9f7e9e0",
+        "date": "2026-11-25",
+        "subject": "feat: retrieve study material from multiple modules"
+      },
+      {
+        "sha": "04ad4560327f666887aed8b5909cbc346bba1903",
+        "date": "2026-11-25",
+        "subject": "fix: align chat question limits"
+      },
+      {
+        "sha": "4852808e209d0ebb7b94249c5566e21376279dbc",
+        "date": "2026-11-20",
+        "subject": "fix: complete RAG local setup defaults"
+      },
+      {
+        "sha": "368fdff02f87f7211ef4bd0e269e485a98134258",
+        "date": "2026-11-20",
+        "subject": "Merge pull request #5 from w1iii/ops/r2-backup-preflight"
+      },
+      {
+        "sha": "d8a51ccf4c77e165d5e2546cec438c2adc7a7f09",
+        "date": "2026-11-20",
+        "subject": "docs: describe RAG backup coverage"
+      },
+      {
+        "sha": "06ee97066bdc659052829cb73ec60d3b1f7d127e",
+        "date": "2026-11-20",
+        "subject": "ops: add R2 backup preflight"
+      },
+      {
+        "sha": "301f2c5e4da9adede348a499b8757754a111ec2e",
+        "date": "2026-11-17",
+        "subject": "Merge branch 'fix/rag-request-size-and-module-backfill'"
+      },
+      {
+        "sha": "d2b7f788a7c784996adfc97365faf1b55261c270",
+        "date": "2026-11-17",
+        "subject": "fix: harden study pack generation"
+      },
+      {
+        "sha": "6804bd040fae1cb9db2638be2aea2df30d27b588",
+        "date": "2026-11-16",
+        "subject": "ops: add atomic staging embedding migration"
+      },
+      {
+        "sha": "a3b3a03263acc1b22aec981e28c077ad5e77c68f",
+        "date": "2026-11-15",
+        "subject": "Merge pull request #4 from w1iii/fix/rag-request-size-and-module-backfill"
+      },
+      {
+        "sha": "c2ae502e2e028035dea25e7158d755f1d6e9d9b7",
+        "date": "2026-11-15",
+        "subject": "fix: bound RAG bodies and backfill modules"
+      },
+      {
+        "sha": "66936f4fab194deb6078ff17018e81b3415b3314",
+        "date": "2026-11-15",
+        "subject": "Merge pull request #3 from w1iii/fix/rag-container-startup"
+      },
+      {
+        "sha": "52a022841a9fe94032826bbf7077487ac97ecefe",
+        "date": "2026-11-15",
+        "subject": "fix: start uvicorn without writable uv cache"
+      },
+      {
+        "sha": "9325c5088c93782058f8ed5687171ce3e44cc681",
+        "date": "2026-11-15",
+        "subject": "fix(study-prep): report empty modules before generation"
+      },
+      {
+        "sha": "291a1efc557f68f2e5f9a8f20ce05cbb5a29f797",
+        "date": "2026-11-15",
+        "subject": "fix(shared-index): report shared totals, not per-sync counts"
+      },
+      {
+        "sha": "1c0acb8b7d973b2db341081d9f2fdfcb65ed293d",
+        "date": "2026-11-15",
+        "subject": "Merge pull request #2 from w1iii/ops/codeql-sarif-artifact"
+      },
+      {
+        "sha": "fb2a1b05b0dcb185c93ef52fc4a88b366c5a8578",
+        "date": "2026-11-15",
+        "subject": "ci: preserve CodeQL SARIF without upload entitlement"
+      },
+      {
+        "sha": "41bb60a808688597544983f6229a0a77c1fc6996",
+        "date": "2026-11-15",
+        "subject": "Merge pull request #1 from w1iii/ops/rag-readiness-ci"
+      },
+      {
+        "sha": "6877d5e8bba16c51ad73dff9694e2d888b9028cd",
+        "date": "2026-11-15",
+        "subject": "test: isolate Canvas API fixtures"
+      },
+      {
+        "sha": "ba9995f255704fbd7c2209d3eafc9aba1b08be0d",
+        "date": "2026-11-15",
+        "subject": "fix: harden RAG CI and staging checks"
+      },
+      {
+        "sha": "fa25a00dcac1d28cc46326f205c48b55b8f10964",
+        "date": "2026-11-14",
+        "subject": "feat(study-prep): add grounded study pack generation"
+      },
+      {
+        "sha": "833fcc57b5b0cd2508fba927dc9b75013acc9691",
+        "date": "2026-11-14",
+        "subject": "ci: add database integration, audit, and image scans"
+      },
+      {
+        "sha": "cd5e4aca3ee1fd07a541a4ad9ce18c59a67d93b6",
+        "date": "2026-11-14",
+        "subject": "fix(deps): pin audited dependencies and run as non-root"
+      },
+      {
+        "sha": "cf7c4e5ba93c31380b58b89b1dad9463e66169d5",
+        "date": "2026-11-14",
+        "subject": "feat(rag): add web search fallback"
+      },
+      {
+        "sha": "575b2c3287308ee19a309736875c6bf4d30fd02f",
+        "date": "2026-11-14",
+        "subject": "revert(rag): use Gemini embeddings instead of OpenAI"
+      },
+      {
+        "sha": "7208ca060e13869a0ab47e72a538a2ff3ebc31f8",
+        "date": "2026-11-14",
+        "subject": "feat(shared): add opt-in shared course index with fingerprints"
+      },
+      {
+        "sha": "adc22d7e19e698c35a4a1f10e3b96807aed9459e",
+        "date": "2026-11-13",
+        "subject": "feat(ingest): delete course index with delete-scope token"
+      },
+      {
+        "sha": "3a8cd0ffb6eeeb6ddba5b2ec6e6f4b4214ef8920",
+        "date": "2026-11-13",
+        "subject": "fix(rag): lock embeddings to OpenAI"
+      },
+      {
+        "sha": "2ddf717582567b9ebf759f39fd0622418c8422b8",
+        "date": "2026-11-13",
+        "subject": "fix: enforce RAG tenant ownership"
+      },
+      {
+        "sha": "8a7018c62a785725a7c33e0eb5633481a4b70010",
+        "date": "2026-11-11",
+        "subject": "feat(rag): add OpenAI embedding provider"
+      },
+      {
+        "sha": "cc27e483b3453097ed58bf2b281f6f9f55d59d5d",
+        "date": "2026-11-10",
+        "subject": "readme.md updated"
+      },
+      {
+        "sha": "052d9d08d9ad892ec307662f28d92d02adbe7aba",
+        "date": "2026-11-09",
+        "subject": "feat(ingest): widen Canvas content support"
+      },
+      {
+        "sha": "2172f2197792edf5037c897f4f37bb7c9b3bb400",
+        "date": "2026-11-08",
+        "subject": "fix(rag): bound context and Canvas work"
+      },
+      {
+        "sha": "cf0432ec3491a7da6cb8f7b50dd6554dd18e16fd",
+        "date": "2026-11-08",
+        "subject": "fix(ingest): scope document IDs by module"
+      },
+      {
+        "sha": "3f2802e374f8ddda30d45b44c55ddc71c0a35299",
+        "date": "2026-11-08",
+        "subject": "fix(auth): bind ingest tokens to Canvas course"
+      },
+      {
+        "sha": "1a02eeadb9cb2fb720050e279c8fd9bc02d215a9",
+        "date": "2026-11-08",
+        "subject": "fix(llm): add cross-provider fallback"
+      },
+      {
+        "sha": "0f4136997560d4e2183ff0c825067a8cd6121d44",
+        "date": "2026-11-08",
+        "subject": "fix: harden tenant isolation, RAG auth, SSRF"
+      },
+      {
+        "sha": "2dfdfd0a1b324307714d222772be0edd3b330c1d",
+        "date": "2026-11-06",
+        "subject": "Fix DocumentRecord.course_key: add missing column, fix indentation, update retriever to use course_key"
+      },
+      {
+        "sha": "3612b3f25cefca6b9664258f201df0b145f2d47d",
+        "date": "2026-11-04",
+        "subject": "Update RAG chain and tests"
+      },
+      {
+        "sha": "794df9809c900690812f92886bf96cf5474d2ae9",
+        "date": "2026-11-04",
+        "subject": "Update RAG components and documentation"
+      },
+      {
+        "sha": "5226ed4f34818e5140fb8ba132f0da18c50142c9",
+        "date": "2026-10-31",
+        "subject": "feat: fall back across Gemini models"
+      },
+      {
+        "sha": "f2b6edf0674bddf98f0b93a4d79d30914f653556",
+        "date": "2026-10-31",
+        "subject": "feat: ingest every module in a Canvas course"
+      },
+      {
+        "sha": "de5d13fed590cb847fc67c520bec6c9d18a67b91",
+        "date": "2026-10-31",
+        "subject": "feat: require service token for chat endpoint"
+      },
+      {
+        "sha": "86de9bda5347844352ecbc1d6676f1eb2439274d",
+        "date": "2026-10-30",
+        "subject": "add api routes and canvas service"
+      },
+      {
+        "sha": "4164e5a4ca6f9680e8e3473f9efca657b7f11d19",
+        "date": "2026-10-30",
+        "subject": "add rag chain with gemini chat client"
+      },
+      {
+        "sha": "238e47bf664a0be52a8598b82f58cc7c2ede7b0f",
+        "date": "2026-10-30",
+        "subject": "add ingestion pipeline and vector retriever"
+      },
+      {
+        "sha": "abe7bc56e03ddec595bbc2da5e3b604f2d33f9a6",
+        "date": "2026-10-29",
+        "subject": "add gemini embedder"
+      },
+      {
+        "sha": "816b6bf5d32d9f278e39617f1fec64d83b2717e2",
+        "date": "2026-10-29",
+        "subject": "add ingestion cleaner and chunker"
+      },
+      {
+        "sha": "9ebabb18c7efa2c61870d345f8d53d730275be61",
+        "date": "2026-10-27",
+        "subject": "add ingestion loader and parser"
+      },
+      {
+        "sha": "91d2968b81cfa5b06afed55b0804865cdf900862",
+        "date": "2026-10-27",
+        "subject": "add vector store foundation"
+      },
+      {
+        "sha": "3c5a664193fd3f2eaa04b5e71f2faaaff438587d",
+        "date": "2026-10-27",
+        "subject": "add README"
+      },
+      {
+        "sha": "feb2247085b32fa3a3b378ec0d5bd6cd4d54e6f9",
+        "date": "2026-10-27",
+        "subject": "chunk model"
+      },
+      {
+        "sha": "49d28529c791090902a9830a3bbcd81a964d601f",
+        "date": "2026-10-26",
+        "subject": "order implementation for the ai"
+      },
+      {
+        "sha": "0275714e33c33d5e7f9ea077e69084666e132e6e",
+        "date": "2026-10-25",
+        "subject": "document model"
+      },
+      {
+        "sha": "197f95e12d15f2afccc77e238295c405204593c4",
+        "date": "2026-10-25",
+        "subject": "load .env on Config.py"
+      },
+      {
+        "sha": "57b1342bcd44fa72e7ca2043372ec026928d6ad4",
+        "date": "2026-10-25",
+        "subject": "chore: ignore env files and untrack .env"
+      },
+      {
+        "sha": "6e1f80184f9efb0aa1f145eca38f3215870b7789",
+        "date": "2026-10-25",
+        "subject": "folder structure for RAG implementation"
+      }
+    ]
+  },
+  "direct_imports": {
+    "@clerk/nextjs": [
+      "src/middleware.ts",
+      "src/middleware.test.ts",
+      "src/lib/user.ts",
+      "src/app/api/account/route.test.ts",
+      "src/app/api/account/route.ts",
+      "src/app/layout.tsx",
+      "src/app/page.tsx",
+      "src/components/AuthRedirect.tsx",
+      "src/app/dashboard/ThreadSidebar.tsx",
+      "src/app/onboarding/OnboardingFlow.tsx",
+      "src/app/sign-in/[[...sign-in]]/page.tsx",
+      "src/app/dashboard/settings/page.test.tsx",
+      "src/app/dashboard/settings/DeleteAccount.tsx",
+      "src/app/dashboard/settings/page.tsx",
+      "src/app/dashboard/profile/UsernameForm.tsx",
+      "src/app/dashboard/profile/page.tsx",
+      "src/app/dashboard/profile/UsernameForm.test.tsx",
+      "src/app/sign-up/[[...sign-up]]/page.tsx"
+    ],
+    "@supabase/supabase-js": [
+      "src/lib/supabase.ts"
+    ],
+    "animejs": [
+      "src/components/PaperReveal.tsx",
+      "src/app/dashboard/DashboardPaper.tsx",
+      "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.test.tsx",
+      "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.tsx"
+    ],
+    "next": [
+      "src/middleware.ts",
+      "src/middleware.test.ts",
+      "src/lib/canvas.ts",
+      "src/lib/cache.test.ts",
+      "src/lib/api-error.ts",
+      "src/lib/security-headers.test.ts",
+      "src/lib/canvas-pagination.test.ts",
+      "src/lib/dashboard.ts",
+      "src/lib/task-api.ts",
+      "src/lib/cache.ts",
+      "src/lib/dashboard.test.ts",
+      "src/lib/theme.ts",
+      "src/lib/priority.test.ts",
+      "src/lib/user.ts",
+      "src/lib/ai/rag.ts",
+      "src/lib/ai/rag.test.ts",
+      "src/lib/ai/chat-response.test.ts",
+      "src/app/api/tasks/route.test.ts",
+      "src/app/api/tasks/route.ts",
+      "src/app/api/ask/route.test.ts",
+      "src/app/api/ask/route.ts",
+      "src/app/api/threads/route.ts",
+      "src/app/api/study-packs/route.ts",
+      "src/app/api/sync/route.ts",
+      "src/app/api/jobs/route.ts",
+      "src/app/api/account/route.test.ts",
+      "src/app/api/account/route.ts",
+      "src/app/api/cron/sync/route.ts",
+      "src/app/api/onboarding/courses/route.ts",
+      "src/app/api/onboarding/finish/route.ts"
+    ],
+    "react": [
+      "src/lib/user.ts",
+      "src/app/dashboard/study-prep/archive/archive.test.ts",
+      "src/components/AuthRedirect.tsx",
+      "src/components/SyncWaitMessages.test.tsx",
+      "src/components/SyncWaitMessages.tsx",
+      "src/components/PaperReveal.tsx",
+      "src/components/landing/HeroLoom.tsx",
+      "src/components/landing/NavLinks.tsx",
+      "src/components/landing/SoundToggle.tsx",
+      "src/components/landing/AskCoursa.tsx",
+      "src/components/landing/SmoothScroll.tsx",
+      "src/components/landing/Workflow.tsx",
+      "src/components/landing/Faq.tsx",
+      "src/components/landing/WeaveView.tsx",
+      "src/components/landing/Reveal.tsx",
+      "src/app/dashboard/CanvasConnect.test.tsx",
+      "src/app/dashboard/ChatProvider.tsx",
+      "src/app/dashboard/DashboardPaper.tsx",
+      "src/app/dashboard/ThreadSidebar.tsx",
+      "src/app/dashboard/DashboardShell.tsx",
+      "src/app/dashboard/TaskLedger.tsx",
+      "src/app/dashboard/JobProvider.test.tsx",
+      "src/app/dashboard/JobProvider.tsx",
+      "src/app/dashboard/SyncProvider.tsx",
+      "src/app/dashboard/TaskLedger.test.tsx",
+      "src/app/dashboard/LoomOrbit.tsx",
+      "src/app/dashboard/AskBox.tsx",
+      "src/app/dashboard/SectionNav.tsx",
+      "src/app/dashboard/SectionNav.test.tsx",
+      "src/app/dashboard/error.test.tsx"
+    ],
+    "react-dom": [
+      "src/app/dashboard/study-prep/archive/archive.test.ts",
+      "src/components/SyncWaitMessages.test.tsx",
+      "src/app/dashboard/CanvasConnect.test.tsx",
+      "src/app/dashboard/JobProvider.test.tsx",
+      "src/app/dashboard/TaskLedger.test.tsx",
+      "src/app/dashboard/SectionNav.test.tsx",
+      "src/app/dashboard/error.test.tsx",
+      "src/app/dashboard/settings/page.test.tsx",
+      "src/app/dashboard/settings/IndexedCourses.test.tsx",
+      "src/app/dashboard/study-prep/study-prep-home.test.tsx",
+      "src/app/dashboard/profile/UsernameForm.test.tsx",
+      "src/app/dashboard/study-prep/[packId]/page.test.tsx",
+      "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.test.tsx"
+    ],
+    "tsx": [],
+    "undici": [
+      "src/lib/canvas-network.test.ts",
+      "src/lib/canvas-network.ts"
+    ],
+    "@tailwindcss/postcss": [],
+    "@tailwindcss/turbopack": [],
+    "@types/node": [],
+    "@types/react": [],
+    "@types/react-dom": [],
+    "@vitest/coverage-v8": [],
+    "eslint": [
+      "src/app/layout.tsx",
+      "src/app/onboarding/OnboardingFlow.tsx",
+      "src/app/dashboard/study-prep/[packId]/page.tsx",
+      "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.tsx"
+    ],
+    "eslint-config-next": [],
+    "jsdom": [
+      "src/app/dashboard/CanvasConnect.test.tsx",
+      "src/app/dashboard/JobProvider.test.tsx",
+      "src/app/dashboard/TaskLedger.test.tsx",
+      "src/app/dashboard/SectionNav.test.tsx",
+      "src/app/dashboard/error.test.tsx",
+      "src/app/dashboard/study-prep/study-prep-home.test.tsx",
+      "src/app/dashboard/study-prep/[packId]/page.test.tsx",
+      "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.test.tsx"
+    ],
+    "tailwindcss": [],
+    "typescript": [
+      "src/app/dashboard/study-prep/[packId]/page.tsx",
+      "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.tsx"
+    ],
+    "vitest": [
+      "src/middleware.test.ts",
+      "src/lib/client-cache.test.ts",
+      "src/lib/chat-stream.test.ts",
+      "src/lib/canvas-network.test.ts",
+      "src/lib/question-limit.test.ts",
+      "src/lib/cache.test.ts",
+      "src/lib/canvas.test.ts",
+      "src/lib/task-api.test.ts",
+      "src/lib/security-headers.test.ts",
+      "src/lib/username-request.test.ts",
+      "src/lib/canvas-pagination.test.ts",
+      "src/lib/jobs.test.ts",
+      "src/lib/api-validation.test.ts",
+      "src/lib/server-error.test.ts",
+      "src/lib/rate-limit.test.ts",
+      "src/lib/chat-budget.test.ts",
+      "src/lib/thread-turns.test.ts",
+      "src/lib/thread-navigation.test.ts",
+      "src/lib/dashboard.test.ts",
+      "src/lib/canvas-account.test.ts",
+      "src/lib/study-focus.test.ts",
+      "src/lib/job-worker.test.ts",
+      "src/lib/priority.test.ts",
+      "src/lib/sync-lock.test.ts",
+      "src/lib/crypto.test.ts",
+      "src/lib/ai/ingest.test.ts",
+      "src/lib/ai/metrics.test.ts",
+      "src/lib/ai/log.test.ts",
+      "src/lib/ai/rag.test.ts",
+      "src/lib/ai/chat-response.test.ts"
+    ]
+  },
+  "tool_presence": {
+    "gitleaks": false,
+    "pip-audit": false,
+    "pdftotext": false,
+    "pdftoppm": false,
+    "typst": false,
+    "weasyprint": true,
+    "sandbox-exec": true
+  },
+  "ai_disclosure_indicators": {
+    "web": [],
+    "rag": [
+      "Gemini",
+      "gemini"
+    ]
+  },
+  "env_file_history": {
+    "web": [],
+    "rag": [
+      "57b1342bcd44fa72e7ca2043372ec026928d6ad4 2026-10-25 chore: ignore env files and untrack .env",
+      "6e1f80184f9efb0aa1f145eca38f3215870b7789 2026-10-25 folder structure for RAG implementation"
+    ]
+  }
+}

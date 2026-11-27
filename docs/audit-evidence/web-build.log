@@ -1,0 +1,76 @@
+
+> coursepilot@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+   ▲ Next.js 15.5.29
+   - Experiments (use with caution):
+     · staleTimes
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 11.3s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/27) ...
+   Generating static pages (6/27) 
+   Generating static pages (13/27) 
+   Generating static pages (20/27) 
+ ✓ Generating static pages (27/27)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                Size  First Load JS
+┌ ƒ /                                                   9.49 kB         163 kB
+├ ○ /_not-found                                            1 kB         104 kB
+├ ƒ /api/account                                          216 B         103 kB
+├ ƒ /api/admin/cache-metrics                              216 B         103 kB
+├ ƒ /api/ask                                              216 B         103 kB
+├ ƒ /api/canvas/connect                                   216 B         103 kB
+├ ƒ /api/canvas/disconnect                                216 B         103 kB
+├ ƒ /api/canvas/status                                    216 B         103 kB
+├ ƒ /api/courses/selection                                216 B         103 kB
+├ ƒ /api/cron/sync                                        216 B         103 kB
+├ ƒ /api/jobs                                             216 B         103 kB
+├ ƒ /api/jobs/[jobId]                                     216 B         103 kB
+├ ƒ /api/onboarding/courses                               216 B         103 kB
+├ ƒ /api/onboarding/finish                                216 B         103 kB
+├ ƒ /api/profile/username                                 216 B         103 kB
+├ ƒ /api/study-packs                                      216 B         103 kB
+├ ƒ /api/study-packs/[id]                                 216 B         103 kB
+├ ƒ /api/study-packs/[id]/sessions                        216 B         103 kB
+├ ƒ /api/study-packs/[id]/sessions/[sessionId]            216 B         103 kB
+├ ƒ /api/study-prep/courses                               216 B         103 kB
+├ ƒ /api/study-prep/courses/[courseId]/modules            216 B         103 kB
+├ ƒ /api/study-prep/courses/[courseId]/modules/refresh    216 B         103 kB
+├ ƒ /api/study-sessions/[id]                              216 B         103 kB
+├ ƒ /api/study-sessions/[id]/attempts                     216 B         103 kB
+├ ƒ /api/sync                                             216 B         103 kB
+├ ƒ /api/sync/courses/[courseId]                          216 B         103 kB
+├ ƒ /api/tasks                                            216 B         103 kB
+├ ƒ /api/tasks/[id]                                       216 B         103 kB
+├ ƒ /api/threads                                          216 B         103 kB
+├ ƒ /api/threads/[id]                                     216 B         103 kB
+├ ƒ /dashboard                                          10.8 kB         177 kB
+├ ƒ /dashboard/profile                                  1.64 kB         158 kB
+├ ƒ /dashboard/settings                                 5.94 kB         163 kB
+├ ƒ /dashboard/study-prep                                 140 B         174 kB
+├ ƒ /dashboard/study-prep/[packId]                      3.42 kB         123 kB
+├ ƒ /dashboard/study-prep/[packId]/session/[sessionId]  4.66 kB         124 kB
+├ ƒ /dashboard/study-prep/archive                         142 B         174 kB
+├ ƒ /dashboard/thread                                    7.6 kB         160 kB
+├ ƒ /onboarding                                         3.94 kB         153 kB
+├ ƒ /sign-in/[[...sign-in]]                               335 B         150 kB
+└ ƒ /sign-up/[[...sign-up]]                               335 B         150 kB
++ First Load JS shared by all                            103 kB
+  ├ chunks/1255-9bfe3949ae83ff7f.js                     46.6 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js                 54.2 kB
+  └ other shared chunks (total)                         1.93 kB
+
+
+ƒ Middleware                                            92.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (281kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)

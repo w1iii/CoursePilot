@@ -1,0 +1,49 @@
+{
+  "renderer": "PyMuPDF",
+  "renderer_version": "1.25.5",
+  "paper": "A4",
+  "body_font_pt": 10.5,
+  "pages": [
+    {
+      "page": 1,
+      "remaining_height_pt": 117.44,
+      "scale": 1.0
+    },
+    {
+      "page": 2,
+      "remaining_height_pt": 89.3,
+      "scale": 1.0
+    },
+    {
+      "page": 3,
+      "remaining_height_pt": 179.02,
+      "scale": 1.0
+    }
+  ],
+  "page_count": 3,
+  "link_count": 111,
+  "external_https_links": 70,
+  "text_present_each_page": [
+    true,
+    true,
+    true
+  ],
+  "page_body_font_sizes": [
+    [
+      10.0,
+      10.5,
+      12.5,
+      19.0
+    ],
+    [
+      10.0,
+      10.5,
+      12.5
+    ],
+    [
+      10.0,
+      10.5,
+      12.5
+    ]
+  ]
+}

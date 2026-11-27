@@ -1,0 +1,52 @@
+{
+  "checked_at": "2026-11-27T11:59:58.020905+00:00",
+  "documents": {
+    "SYSTEM_REVIEW.md": {
+      "sha256": "e41621d976e3cdba262cde10bc128f21130b7a81972952f9d964283d1aa8e15c",
+      "words": 7695,
+      "numbered_sections": 19,
+      "mermaid_diagrams": 6,
+      "expected_structure_pass": true
+    },
+    "FINAL_TECHNICAL_HANDOFF.md": {
+      "sha256": "8dd2b5ba350350e8fd356148cf6e6191e9d3783f84090f4245f2206a72398763",
+      "words": 1282,
+      "numbered_sections": 7,
+      "mermaid_diagrams": 0,
+      "expected_structure_pass": true
+    }
+  },
+  "broken_local_links": [],
+  "broken_heading_links": [],
+  "remote_source_paths_missing": [],
+  "pdf": {
+    "sha256": "5ff8dbf1e4b43887fdda37aa597a3eed66a9a2f2798f9016d79bb896d6eba4c5",
+    "pages": 3,
+    "all_seven_headings_present": true,
+    "https_link_annotations": 70,
+    "local_link_targets": [
+      "SYSTEM_REVIEW.md",
+      "audit-evidence",
+      "audit-evidence/offline-stream-benchmark.log"
+    ],
+    "body_font_pt": 10.5,
+    "no_font_shrink": true,
+    "visual_review": "All three rendered pages inspected; no clipped text, overlapping text, or split tables observed. Link-only correction after inspection preserves layout.",
+    "render_log": "pdf-render.json",
+    "text_comparison_normalization": "Unicode NFKC to expand font ligatures before comparison"
+  },
+  "limited_sensitive_pattern_scan": {
+    "findings": [],
+    "scope": "Generated document text and audit JSON/logs; not a comprehensive secret or history scanner."
+  },
+  "submission_pending": [
+    "Separate Google template copy and exact-format confirmation",
+    "Accessible Google Doc and panel permissions",
+    "Prominent repository README link",
+    "Release tag",
+    "Continuous unedited deployment-challenge video",
+    "Final submission and receipt"
+  ],
+  "passed": true,
+  "document_hashes_match": true
+}

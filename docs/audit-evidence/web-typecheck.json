@@ -1,0 +1,14 @@
+{
+  "name": "web-typecheck",
+  "command": [
+    "npm",
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/private/var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/opencode/coursepilot-audit-20261127/web",
+  "started_at": "2026-11-27T11:36:43.312816+00:00",
+  "duration_seconds": 19.325,
+  "exit_status": 0,
+  "environment": "isolated tracked-source copy; project .env excluded; synthetic configuration",
+  "log": "web-typecheck.log"
+}

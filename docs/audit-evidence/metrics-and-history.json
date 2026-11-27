@@ -1,0 +1,74 @@
+{
+  "CoursePilot": {
+    "ci_run_count": 45,
+    "ci_success_count": 43,
+    "ci_success_pct": 95.56,
+    "earliest_observed_ci": {
+      "conclusion": "success",
+      "created_at": "2026-11-14T14:24:32Z",
+      "event": "push",
+      "head_sha": "85d9fea6be4e7c1ff2bf8ac4e548d32b351703a5",
+      "id": 43604706355,
+      "name": "CI",
+      "run_attempt": 1,
+      "run_started_at": "2026-11-14T14:24:32Z",
+      "status": "completed",
+      "updated_at": "2026-11-14T14:25:44Z",
+      "url": "https://github.com/w1iii/CoursePilot/actions/runs/43604706355"
+    },
+    "latest_observed_ci": {
+      "conclusion": "success",
+      "created_at": "2026-11-27T11:09:32Z",
+      "event": "push",
+      "head_sha": "e351689499fd063d22b0128047e7d5c8e3f7a130",
+      "id": 45988132144,
+      "name": "CI",
+      "run_attempt": 1,
+      "run_started_at": "2026-11-27T11:09:32Z",
+      "status": "completed",
+      "updated_at": "2026-11-27T11:10:43Z",
+      "url": "https://github.com/w1iii/CoursePilot/actions/runs/45988132144"
+    },
+    "source_tree_match": true
+  },
+  "CoursePilot-RAG": {
+    "ci_run_count": 25,
+    "ci_success_count": 18,
+    "ci_success_pct": 72.0,
+    "earliest_observed_ci": {
+      "conclusion": "failure",
+      "created_at": "2026-11-14T14:24:39Z",
+      "event": "push",
+      "head_sha": "833fcc57b5b0cd2508fba927dc9b75013acc9691",
+      "id": 43604716387,
+      "name": "CI",
+      "run_attempt": 1,
+      "run_started_at": "2026-11-14T14:24:39Z",
+      "status": "completed",
+      "updated_at": "2026-11-14T14:26:08Z",
+      "url": "https://github.com/w1iii/CoursePilot-RAG/actions/runs/43604716387"
+    },
+    "latest_observed_ci": {
+      "conclusion": "success",
+      "created_at": "2026-11-27T11:09:24Z",
+      "event": "push",
+      "head_sha": "142bcb1d65153dcb73ec174670ae443d0c3eb916",
+      "id": 45988114364,
+      "name": "CI",
+      "run_attempt": 1,
+      "run_started_at": "2026-11-27T11:09:24Z",
+      "status": "completed",
+      "updated_at": "2026-11-27T11:10:52Z",
+      "url": "https://github.com/w1iii/CoursePilot-RAG/actions/runs/45988114364"
+    },
+    "source_tree_match": true
+  },
+  "historical_environment": {
+    "commit": "6e1f80184f9efb0aa1f145eca38f3215870b7789",
+    "historical_env_blob_bytes": 0,
+    "pre_removal_env_blob_bytes": 0,
+    "removal_commit": "57b1342bcd44fa72e7ca2043372ec026928d6ad4",
+    "sensitive_fields": [],
+    "note": "The added .env blob and pre-removal .env blob were empty. No credential exposure established by these blobs. No credential validity probing or full-history secret-scan certification."
+  }
+}

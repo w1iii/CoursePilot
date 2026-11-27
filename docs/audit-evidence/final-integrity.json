@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-11-27T11:58:29.657573+00:00",
+  "repositories": {
+    "web": {
+      "head": "12a2855d40ca52b9dbc4631907898fa1a3b5fdc0",
+      "head_unchanged": true,
+      "tracked_files_checked": 270,
+      "changed_tracked_files": [],
+      "git_status_porcelain": "",
+      "clean": true
+    },
+    "rag": {
+      "head": "c50770126f4f6c6a3d6120c56bfa6d6b0b41d494",
+      "head_unchanged": true,
+      "tracked_files_checked": 98,
+      "changed_tracked_files": [],
+      "git_status_porcelain": "",
+      "clean": true
+    }
+  },
+  "code_freeze_verified": true
+}

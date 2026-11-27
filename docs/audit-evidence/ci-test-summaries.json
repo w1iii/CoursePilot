@@ -1,0 +1,32 @@
+{
+  "CoursePilot": {
+    "run": "45988132144",
+    "exit": 0,
+    "extracted_summary": [
+      "65 passed",
+      "370 passed",
+      "65 passed",
+      "370 passed",
+      "Tests  370 passed",
+      "Tests  370 passed",
+      "Test Files  65 passed",
+      "Test Files  65 passed",
+      "found 0 vulnerabilities",
+      "found 0 vulnerabilities",
+      "found 0 vulnerabilities",
+      "found 0 vulnerabilities",
+      "All files          |   61.61 |    62.19 |    73.5 |   63.27 |                   ",
+      "All files          |   61.61 |    62.19 |    73.5 |   63.27 |                   "
+    ]
+  },
+  "CoursePilot-RAG": {
+    "run": "45988114364",
+    "exit": 0,
+    "extracted_summary": [
+      "395 passed",
+      "Total coverage: 85.18%",
+      "TOTAL                               3279    486    85%",
+      "No known vulnerabilities found"
+    ]
+  }
+}

@@ -1,0 +1,146 @@
+
+> coursepilot@0.1.0 test
+> vitest run --coverage
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.1.0 [39m[90m/private/var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/opencode/coursepilot-audit-20261127/web[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m src/app/dashboard/ChatProvider.stream.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 314[2mms[22m[39m
+ [32m✓[39m src/lib/ai/rag.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 240[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/SectionNav.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 140[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/CanvasConnect.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 228[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/study-prep/[packId]/page.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 504[2mms[22m[39m
+   [33m[2m✓[22m[39m shows sessions on the pack page and confirms deletion[33m 416[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/JobProvider.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[33m 407[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/TaskLedger.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 391[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[33m 704[2mms[22m[39m
+ [32m✓[39m src/app/api/courses/selection/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 109[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/ChatProvider.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 196[2mms[22m[39m
+ [32m✓[39m src/lib/client-cache.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 127[2mms[22m[39m
+ [32m✓[39m src/app/api/study-packs/route.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 90[2mms[22m[39m
+ [32m✓[39m src/lib/ai/study-prep-errors.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 83[2mms[22m[39m
+ [32m✓[39m src/lib/ai/ingest-jobs.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 148[2mms[22m[39m
+ [32m✓[39m src/lib/ai/ingest.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 179[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/study-prep/study-prep-home.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[33m 1681[2mms[22m[39m
+   [33m[2m✓[22m[39m requires indexed modules and limits selection to two[33m 366[2mms[22m[39m
+ [32m✓[39m src/app/api/ask/route.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 96[2mms[22m[39m
+ [32m✓[39m src/lib/api-validation.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 205[2mms[22m[39m
+ [32m✓[39m src/lib/username-request.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 356[2mms[22m[39m
+   [32m✓[39m saveUsernameRequest [2m(2)[22m
+     [33m[2m✓[22m[39m sends a fresh token when available[33m 340[2mms[22m[39m
+ [32m✓[39m src/app/api/admin/cache-metrics/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 168[2mms[22m[39m
+ [32m✓[39m src/lib/ai/index-counts.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 285[2mms[22m[39m
+ [32m✓[39m src/app/api/jobs/[jobId]/route.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 96[2mms[22m[39m
+ [32m✓[39m src/app/api/study-route-errors.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+ [32m✓[39m src/lib/dashboard.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 172[2mms[22m[39m
+ [32m✓[39m src/app/api/jobs/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m src/lib/jobs.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m src/lib/chat-stream.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+ [32m✓[39m src/lib/ai/chat-response.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 143[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/error.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 116[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/settings/page.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 177[2mms[22m[39m
+ [32m✓[39m src/app/api/study-session-reliability.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 200[2mms[22m[39m
+ [32m✓[39m src/app/api/study-prep/courses/[courseId]/modules/refresh/route.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 94[2mms[22m[39m
+ [32m✓[39m src/app/api/tasks/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m src/lib/ai/log.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32m✓[39m src/app/api/account/route.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 120[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/study-prep/archive/archive.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 113[2mms[22m[39m
+ [32m✓[39m src/lib/task-api.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 157[2mms[22m[39m
+ [32m✓[39m src/app/api/threads/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 109[2mms[22m[39m
+ [32m✓[39m src/components/SyncWaitMessages.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 84[2mms[22m[39m
+ [32m✓[39m src/app/api/canvas/connect/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 77[2mms[22m[39m
+ [32m✓[39m src/lib/server-error.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/lib/canvas-network.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/settings/IndexedCourses.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 51[2mms[22m[39m
+ [32m✓[39m src/lib/crypto.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 73[2mms[22m[39m
+ [32m✓[39m src/lib/job-worker.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 76[2mms[22m[39m
+ [32m✓[39m src/lib/study-focus.test.ts [2m([22m[2m36 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m src/lib/canvas.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/profile/UsernameForm.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m src/lib/canvas-account.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m src/lib/sync-lock.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m src/lib/chat-budget.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/app/api/tasks/[id]/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 96[2mms[22m[39m
+ [32m✓[39m src/lib/canvas-pagination.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/lib/rate-limit.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/lib/ai/study-prep-courses.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/sync-errors.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/lib/cache.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m src/middleware.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m src/lib/thread-navigation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m src/lib/thread-turns.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/lib/priority.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/lib/security-headers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/app/api/study-packs/deployment.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/lib/question-limit.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/lib/ai/metrics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m65 passed[39m[22m[90m (65)[39m
+[2m      Tests [22m [1m[32m370 passed[39m[22m[90m (370)[39m
+[2m   Start at [22m 19:36:49
+[2m   Duration [22m 12.34s[2m (environment 39%, import 21%, tests 18%, transform 12%, worker 10%)[22m
+
+[2m    Isolate [22m [33m65 workers spawned[39m[2m · ~689ms startup each (spawn + environment, per file)[22m
+[2m            [22m [2mat least ~5.71s faster with [22m[33misolate: false[39m[2m — reuses workers across files instead of one per file[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   61.61 |    62.19 |    73.5 |   63.27 |                   
+ lib               |    54.2 |    57.78 |   66.25 |   54.83 |                   
+  api-error.ts     |     100 |      100 |     100 |     100 |                   
+  ...validation.ts |   90.62 |    89.47 |     100 |   96.55 | 32                
+  cache.ts         |     100 |      100 |     100 |     100 |                   
+  ...as-account.ts |   70.45 |    63.33 |      70 |      75 | 118,166,175-199   
+  ...as-network.ts |   72.09 |    75.67 |     100 |   72.09 | 35,83-84,90-100   
+  canvas.ts        |   73.68 |    80.64 |      50 |   75.38 | ...97,149-153,173 
+  chat-budget.ts   |     100 |       75 |     100 |     100 | 9                 
+  chat-stream.ts   |   97.14 |    95.23 |     100 |     100 | 16                
+  client-cache.ts  |   93.33 |    80.95 |     100 |     100 | 48,55-56          
+  crypto.ts        |     100 |      100 |     100 |     100 |                   
+  dashboard.ts     |   93.97 |    81.42 |   95.45 |    94.2 | 101,131-133       
+  env.ts           |      80 |       50 |     100 |      80 | 4                 
+  error-safety.ts  |     100 |      100 |     100 |     100 |                   
+  features.ts      |       0 |      100 |     100 |       0 | 15-62             
+  job-context.ts   |     100 |      100 |     100 |     100 |                   
+  job-worker.ts    |      35 |    43.75 |   53.33 |   38.35 | 62-70,80-135      
+  jobs.ts          |   96.15 |     97.5 |     100 |     100 | 19                
+  loom-sound.ts    |       0 |        0 |       0 |       0 | 7-194             
+  priority.ts      |    97.5 |    84.37 |     100 |   96.77 | 33                
+  ...tion-limit.ts |     100 |      100 |     100 |     100 |                   
+  rate-limit.ts    |   61.36 |    59.52 |      80 |    64.1 | ...95,101-106,121 
+  server-error.ts  |     100 |    56.52 |     100 |     100 | 5-6,10-13         
+  study-focus.ts   |     100 |      100 |     100 |     100 |                   
+  supabase.ts      |       0 |        0 |       0 |       0 | 4-9               
+  sync-lock.ts     |      64 |    35.71 |   66.66 |      70 | 28-38             
+  sync.ts          |       0 |        0 |       0 |       0 | 46-438            
+  task-api.ts      |   87.23 |    81.81 |     100 |      90 | 9-14,67           
+  theme.ts         |       0 |        0 |       0 |       0 | 2-59              
+  ...navigation.ts |     100 |    66.66 |     100 |     100 | 13-14             
+  thread-turns.ts  |   88.23 |    60.86 |     100 |     100 | 19-20,25-34       
+  user.ts          |       0 |        0 |       0 |       0 | 18-46             
+  ...me-request.ts |   88.88 |       75 |      75 |   85.71 | 7                 
+ lib/ai            |   81.59 |    70.58 |   90.14 |    86.6 |                   
+  chat-response.ts |   89.58 |    80.48 |   66.66 |   97.36 | 38                
+  course-index.ts  |   71.42 |    81.81 |     100 |   71.42 | 7,14              
+  index-counts.ts  |   80.76 |       80 |     100 |   94.73 | 33                
+  ingest.ts        |   84.44 |       70 |   93.75 |    90.9 | 56,76,145,209-218 
+  log.ts           |   71.42 |    83.33 |      50 |   71.42 | 44,52             
+  metrics.ts       |   68.75 |       50 |   85.71 |      60 | 43-52             
+  rag-token.ts     |   71.42 |    80.64 |     100 |   71.42 | 19,22,25,29       
+  rag.ts           |   79.59 |    59.66 |     100 |   83.33 | ...66,370,374-378 
+  ...ep-courses.ts |   85.71 |    91.66 |     100 |     100 | 8                 
+  study-prep.ts    |      85 |    72.72 |      80 |   91.17 | 26,62-63          
+-------------------|---------|----------|---------|---------|-------------------
+
+[90mstderr[2m | src/app/api/courses/selection/route.test.ts[2m > [22m[2mcourse selection[2m > [22m[2minvalidates cached selection even when queue publication fails
+[22m[39mcourse selection update failed Error
+
+[90mstderr[2m | src/app/api/account/route.test.ts[2m > [22m[2maccount deletion[2m > [22m[2mkeeps Clerk identity when application data deletion fails
+[22m[39maccount deletion failed Error
+
+[90mstderr[2m | src/lib/rate-limit.test.ts[2m > [22m[2mcheckRateLimit[2m > [22m[2mfails closed when the limiter is unavailable
+[22m[39mrate limit check failed connection refused
+

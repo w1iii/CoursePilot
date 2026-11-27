@@ -1,0 +1,17 @@
+{
+  "name": "rag-ruff",
+  "command": [
+    "/private/var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/opencode/coursepilot-audit-20261127/rag/.venv/bin/ruff",
+    "check",
+    "--select",
+    "E4,E7,E9,F",
+    "app",
+    "tests"
+  ],
+  "cwd": "/private/var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/opencode/coursepilot-audit-20261127/rag",
+  "started_at": "2026-11-27T11:36:43.713086+00:00",
+  "duration_seconds": 0.135,
+  "exit_status": 0,
+  "environment": "isolated tracked-source copy; project .env excluded; synthetic configuration",
+  "log": "rag-ruff.log"
+}

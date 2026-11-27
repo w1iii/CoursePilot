@@ -1,0 +1,73 @@
+{
+  "vercel_production_list": [
+    {
+      "id": null,
+      "url": "course-pilot-i5yoo9gy3-w1iiis-projects.vercel.app",
+      "state": "READY",
+      "target": "production",
+      "created": 1795777772159,
+      "git": {
+        "githubCommitRef": "main",
+        "githubCommitRepo": "CoursePilot",
+        "githubCommitSha": "e351689499fd063d22b0128047e7d5c8e3f7a130"
+      }
+    },
+    {
+      "id": null,
+      "url": "course-pilot-2ivvtq70w-w1iiis-projects.vercel.app",
+      "state": "READY",
+      "target": "production",
+      "created": 1795757254343,
+      "git": {
+        "githubCommitRef": "main",
+        "githubCommitRepo": "CoursePilot",
+        "githubCommitSha": "c9ed86763a82eab36e7937b5f70c75b69ff95c7d"
+      }
+    },
+    {
+      "id": null,
+      "url": "course-pilot-bj1npaim6-w1iiis-projects.vercel.app",
+      "state": "READY",
+      "target": "production",
+      "created": 1795751636084,
+      "git": {
+        "githubCommitRef": "main",
+        "githubCommitRepo": "CoursePilot",
+        "githubCommitSha": "6ebb444d69cbf8f612ff7fd1c8767a2d00bcc6b1"
+      }
+    },
+    {
+      "id": null,
+      "url": "course-pilot-c88fursim-w1iiis-projects.vercel.app",
+      "state": "READY",
+      "target": "production",
+      "created": 1795751548593,
+      "git": {
+        "githubCommitRef": "main",
+        "githubCommitRepo": "CoursePilot",
+        "githubCommitSha": "6ebb444d69cbf8f612ff7fd1c8767a2d00bcc6b1"
+      }
+    },
+    {
+      "id": null,
+      "url": "course-pilot-9228t7msw-w1iiis-projects.vercel.app",
+      "state": "READY",
+      "target": "production",
+      "created": 1795742442965,
+      "git": {
+        "githubCommitRef": "main",
+        "githubCommitRepo": "CoursePilot",
+        "githubCommitSha": "b68b8965b4a6a8c11ca59db5d6eff9e11d77f30e"
+      }
+    }
+  ],
+  "vercel_production_alias": {
+    "id": "dpl_5N4UySrv85mp3nYKEQm35CeKHyiW",
+    "url": "course-pilot-i5yoo9gy3-w1iiis-projects.vercel.app",
+    "state": "READY",
+    "target": "production",
+    "created": 1795777772159,
+    "git": {}
+  },
+  "captured_at": "2026-11-27T11:38:49.378270+00:00"
+}

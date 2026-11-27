@@ -1,0 +1,749 @@
+{
+  "captured_at": "2026-11-27T11:36:33.723137+00:00",
+  "repositories": {
+    "web": {
+      "path": "coursepilot",
+      "branch": "fix/study-input-validation",
+      "head": "12a2855d40ca52b9dbc4631907898fa1a3b5fdc0",
+      "tree": "276314716b916a4638fe6e23be68358610ec678e",
+      "status": "",
+      "tags": "",
+      "tracked_file_hashes": {
+        ".dockerignore": "53fe00fb2ee96f1a68a17a62616af0e548265da90df041c6c32bbaaaf3af616e",
+        ".env.example": "dc7382986fa68bc109e865ab0b2addd637f4097ad5c9427d5b898c8961ff7dd8",
+        ".github/workflows/beta-availability.yml": "c2c9a799e68d7ea76fa651fcaab4ab87ca3ff3011b1754e55a664af04b6e4855",
+        ".github/workflows/ci.yml": "26f24d2170c616a71204aafc46b3ee8df492305b7e43a2a17346a2cc3d453e1c",
+        ".github/workflows/codeql.yml": "445ca6eb2e4247d5e1f0b3e2d38fda3cf865aa273ba91a2f82e21548a657c685",
+        ".github/workflows/staging-auth-smoke.yml": "13fb77c1824906bcb5f8afc1331b84a1ec49e28ee0db860b25ff715b77fee388",
+        ".gitignore": "306f6ac26000b2ac4de4c16bdf293a4363fea284a11f802e86aa952acb44af6e",
+        ".gitleaks.toml": "d80ce5992cc5d4f491006112b157bca8ddfefa66804a84f1f73f7461035e0019",
+        ".nvmrc": "f14b4987904bcb5814e4459a057ed4d20f58a633152288a761214dcd28780b56",
+        ".vercelignore": "bfc70df0a5a52d08512cb68fedf1fbe721908981af7e965f13f9000b8465c576",
+        "DATA FLOW.doc": "5c4f68e540be8e39a10da11426476d51d1afcc86d6d4f251640e6fd2aa4b9275",
+        "DATA FLOW.md": "bfad552a09bdd7d3d6959c47833a8d8c2094c61eae4958378f2357bc2cba08ea",
+        "Dockerfile.worker": "02a45e9ec0c584481fdabfc3e60f2089327da2d1e0d380baa4adbcbed27144eb",
+        "PROGRESS.md": "686296e4338a73e9985a93db6257115b2e8d20ec51cefa4d765e7e460f32756e",
+        "README.md": "aa1aa588628b82eae72031fde31e8e11bcbb105ecc95481a5b7d2b1201cc141d",
+        "REMAINING_SYSTEM_HARDENING.md": "d9e9559a77c1e337263a7a21a038fd2d8ee4ca889323e77e8973d732e4c0a884",
+        "TESTING.md": "655b55266632f78b053cc032fb89d7ecdaf2eec44c68f3c25bd03cd54e868a25",
+        "dataflow_diagram.png": "3a7101f3fa5cf7bcb8e55587dd1c59b730c90c2a377df96b2f1d35ebea66f43d",
+        "docs/BACKGROUND_JOBS.md": "4980efe1e3693f7af14d3359ee88e9367a3487c5736b4993ed8030b46b984236",
+        "docs/BACKGROUND_JOBS_RELEASE_20261127.md": "8bb5b9790f6aafd37a099c010cf6300730c6deacf4f859ec41e0c8cb58b3488d",
+        "docs/BETA_OPERATIONS.md": "de91e512c4e887ab2b4dd1dff0924ff1571d1ec26ec191f9a91dc86031f9e5eb",
+        "docs/CHAT_UX_METRICS_20261127.md": "c6ee556bc469a6a038f892d0f7e38b582e355b7ba1896b30953ee4b1519fdf76",
+        "docs/CoursePilot.md": "beaa6c911ce7a58c56a1086e75e67c67321d9a3f236ed1883fb02d5b62c4e265",
+        "docs/STUDY_INPUT_VALIDATION.md": "fd11c058823f398491ca8af7c861eba9c2eacf2d1e7858b9abf24c6e29c69076",
+        "docs/STUDY_PREP_RELIABILITY.md": "4ff0c397695ad74c79110fde6c0e5c9d44b4c7b7068b04c85daf0969546951c4",
+        "eslint.config.mjs": "be7ce89e801a0a50c21bb4960b0e34e9792f118f68cf25fbe2c7666462f1faf4",
+        "next.config.ts": "af4cb0a619fc4e56fe907e06d67aa2406d3973ba77fb72d73203a29af440c784",
+        "package-lock.json": "a05db2072c8e252ea2d7ffbd4e4b0c34f562c6871fe6d284724ad4e17702a3c4",
+        "package.json": "25799456ea2a45912e6dab5a6db7d8358fbf47267241bf6b56f50fce88aef12c",
+        "postcss.config.mjs": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde",
+        "public/file.svg": "2b67812c325c199a02536cdbeea0c593a72f707d323b72ee3e08dbab06753bd4",
+        "public/globe.svg": "b614b9bf183925957661ac851498fe1d8029fd43a62fbfed86f9e2624a57e7cf",
+        "public/next.svg": "55995dfad6ecb4945a1e856ddca03c5e16aa5bf13fd21b4df6a74ae79357bcfc",
+        "public/onboarding/canvas/01-login.png": "bda741be0245edff7d1964daca19cf1ed69cc58301f484c8202ccf91f679df20",
+        "public/onboarding/canvas/02-dashboard.png": "1b594996f638a8a8d4f5562cd1a397c9b98ab859815d5239ab6753667be56f54",
+        "public/onboarding/canvas/03-click_account.png": "8673196946e373e6b6050b29d27ace311197b3a95d55a9dd8d49b8e0a7b96d23",
+        "public/onboarding/canvas/04-account_page.png": "d02fe2ab6dbdd65ae9d33edada4be59501a1a123be3639aaa6dacac392763878",
+        "public/onboarding/canvas/05-scroll_down.png": "d0e0f3a3c1fc537af94ad9a56489c38f77352b543840d1de7d35251213cb8a11",
+        "public/onboarding/canvas/06-click_access_token.png": "831db248e25604185b036a83f5b6bed1faa47d240ec79819c310dfdfd4d7308a",
+        "public/onboarding/canvas/07-copy_access_token.png": "0f7703ac4ffeb36882c68418e0e809f6ac11aa0f3bb67bd0f2c2c5bab25d374a",
+        "public/vercel.svg": "f081337b2fee635b455b63275406a3e7f39d6a014e25ad90dab5a67e62a12ac4",
+        "public/window.svg": "644768c4aaeb4767bce293344eeb0c125fb804a94d801440424072202d85e3a1",
+        "scripts/job-worker.ts": "aae4e7ef5e68c1befcf6bbd2ac5d6b4515238025c45be16f74e0b64faab60ffb",
+        "scripts/staging-auth-smoke.mjs": "af2fd41a65e1a4852b172c215ce90230b42c528608ad252f7ab1f5812fb3e300",
+        "scripts/staging-auth-smoke.test.mjs": "c343db61e368ec2f69f6e2e6d0b2599cc7f44ea9213ea6e3985ed09fab193172",
+        "scripts/validate-study-database.mjs": "95b662928058ea55ff246a18002b0ffcb68cf9f0525d947b980ded22af543bde",
+        "src/app/api/account/route.test.ts": "3a314dffd0c8de757fe27054c932a52c80f8ef90cd86cde3c90857479fcec1c2",
+        "src/app/api/account/route.ts": "6f71b72371ed962d8fd3229d7cbdd0159e7fc4b9287cf2e4a1ae742dfd766d29",
+        "src/app/api/admin/cache-metrics/route.test.ts": "89c265bdbfa5548af297e7885f5bcf6a3ed95b4ea55771856ccaeda63246aabd",
+        "src/app/api/admin/cache-metrics/route.ts": "fccfa763835adcd0b51720e07f14b5406dbc11fb33495d01ca2363081f08cb3a",
+        "src/app/api/ask/route.test.ts": "ddbb1e8a929b29aa0940f1acc7ce9ef04514af0d8c5c6de62c206a969b2965c3",
+        "src/app/api/ask/route.ts": "e36265e5fed02785f70756592b4d43a2063ff7194b25e62f81543da67047ec12",
+        "src/app/api/canvas/connect/route.test.ts": "72e4923561972b4749a05a4ec4ec8efeeca65068038be6927a9db051a53edaa0",
+        "src/app/api/canvas/connect/route.ts": "3ba0d7fed34eb40a60996c87f659f679d759fc36af04609dc62b7eb2c4e9e155",
+        "src/app/api/canvas/disconnect/route.ts": "049879bf961f7a97dacdc89f41e2ef5914302a2b1a1762eea7833bef6305999e",
+        "src/app/api/canvas/status/route.ts": "4fc476b97e4107e1f0501917175287780625867db8936e4b8211c561ef81058d",
+        "src/app/api/courses/selection/route.test.ts": "c0e797aa2391b138a9a6e028443403c3492cf08c85106541acb047a67ebbdccd",
+        "src/app/api/courses/selection/route.ts": "3f96f14fe8e1b497a55c478140575df4b5aa472364f455664a1706e081962757",
+        "src/app/api/cron/sync/route.ts": "2f498d563aa374dce5b4f8d603fd6750213f52c7fb910e2c6df914e6fca5b82a",
+        "src/app/api/jobs/[jobId]/route.test.ts": "7411b44bd7902cff4bab2d2712404bf3e0401d022c85415e71bc7b5a2fe277c1",
+        "src/app/api/jobs/[jobId]/route.ts": "e83300a2dc806b8fb3b5b9764c9860f1c2e7d4b05c0c0d3f1b18eefb7a6d6ace",
+        "src/app/api/jobs/route.test.ts": "b1729c2f62c6d27efa22b3ad29b09f488b9c811168b34b5ec3a55c88702bde9f",
+        "src/app/api/jobs/route.ts": "8bb71450c809d3bc7598ca896dbb797bf6933d662f5fdc48123d0099e1c41148",
+        "src/app/api/onboarding/courses/route.ts": "a27b415ec220b94eb730f159a01ca7b2490c17842245e723c4572cf03c6a748f",
+        "src/app/api/onboarding/finish/route.ts": "43c13749c589873b34dc9e4725307b486b4d552be41464e5efc48659cf8df07d",
+        "src/app/api/profile/username/route.ts": "98e1faa1ce118005a566a44b4c8f4cab7ae65a59c0d973650a9e8361eeb30b93",
+        "src/app/api/study-packs/[id]/route.ts": "6915a8b8e494e2780525f484c6a4aa7378d1afd96bf6f0a5675d1a8e509e507a",
+        "src/app/api/study-packs/[id]/sessions/[sessionId]/route.ts": "aa928268bc48faa604d1e6c6d37aa04bdf3a4d45f501461ffb9490cc0767998d",
+        "src/app/api/study-packs/[id]/sessions/route.ts": "4c80304456ac6597bae84e75fea305571e3448a92ef540a490166f7b87dc64ba",
+        "src/app/api/study-packs/deployment.test.ts": "ffef45f71e671de064f21bf23654b0abd5b4f596c77d18e0f73712600a6d2636",
+        "src/app/api/study-packs/route.test.ts": "05aad009d3e611dd105104b9afaa0d5b7124a9940cec3744ef8c62c2807e2a62",
+        "src/app/api/study-packs/route.ts": "05cdd72878d18ef45c2070ba80ca660cb3e0bee858cd6b0bd6f4d161434c1b0b",
+        "src/app/api/study-prep/courses/[courseId]/modules/refresh/route.test.ts": "df53be74a42906a8ccd86745e08d770711b83263fc7058b1a023fac7bc0db70d",
+        "src/app/api/study-prep/courses/[courseId]/modules/refresh/route.ts": "8d43fad4c65e893e72469e4923c9eedfd147a176f637d04f3edb56d76e0aedb6",
+        "src/app/api/study-prep/courses/[courseId]/modules/route.ts": "2188881dfb9f1143f72979c4002bde79cab6f20b55bd5b4516cd1a7759cb839e",
+        "src/app/api/study-prep/courses/route.ts": "66d31fcd0aff05d8194f06eef8eca44a03c9309ec3e35a5365a32e9fce38f9ba",
+        "src/app/api/study-route-errors.test.ts": "772efd5aeb35cbd3fc83f5fb191986c395dfe916cdb3d1a26179a6037ac50e7c",
+        "src/app/api/study-session-reliability.test.ts": "bb8c06d3cab5b0a6bf67c5a401463dfe13b2e41cc6f03772bb38c1f29592f6e6",
+        "src/app/api/study-sessions/[id]/attempts/route.ts": "42cb032424be206f170e57f5f246d8ea6be3327d67c571d9659ef198e8307f54",
+        "src/app/api/study-sessions/[id]/route.ts": "bc21321e1a7d50c8166647498e7bfd6261d904733d46eafb0823e0ce285ad370",
+        "src/app/api/sync/courses/[courseId]/route.ts": "ebbf268a90d5d5ccca45425246bb684ecc4e9ac5f8295af17149828ce95b1f77",
+        "src/app/api/sync/route.ts": "f425da72b680789569d69448dd389e3f44bf5c26c65d77eaab83ddf4206da86a",
+        "src/app/api/tasks/[id]/route.test.ts": "d600cf47090007f6a8030112c13569caf57f7ca5634e1624f4f1aeeb716565be",
+        "src/app/api/tasks/[id]/route.ts": "30a5cab05521a59827bae807ee40a56821c6652dc43ea0906cd6fb39e0001075",
+        "src/app/api/tasks/route.test.ts": "08e436d59f363792d9f0f621c25ea098a94c32e44fd688492482f3e85625f2c2",
+        "src/app/api/tasks/route.ts": "93b1aeb44a4f46b1af9bf9a22dac7428e3b51ea61b6595423af82e55a2e71e1f",
+        "src/app/api/threads/[id]/route.ts": "3f72c8ce3d972fb90d5ff54144f6c3680f5fc97b90206d416a1228313df73068",
+        "src/app/api/threads/route.test.ts": "1cc79710f1c98185b20603a2d3e0cab2e9dc15fde9f5f421899275b08d1002f6",
+        "src/app/api/threads/route.ts": "2d37834c3059d64185dede6df61c2bee0e95240cc0981fce3ffec1494cc937e1",
+        "src/app/dashboard/AccountLoading.tsx": "964823e55a14907a2c6a74e8a758902b8287b51050e617a5f71633ed0d91f39a",
+        "src/app/dashboard/AnnouncementsFeed.tsx": "82f04b05fdeb342e5b5f57dc76c5ee0f8ebbef956cdae72d7ef59a370176697e",
+        "src/app/dashboard/AskBox.tsx": "a0b7258bb3d066fcaeec50ed0e034e2114685f4ab0fd07f08655d869d9a3a307",
+        "src/app/dashboard/AskCoursaCard.tsx": "c86a6c4a58c93c7043211902c0dc2a39237d6b6b4b2d93ae38d9650e438b741d",
+        "src/app/dashboard/CanvasConnect.test.tsx": "366acb24082f993d360bf999eed4415b87831ce75e247a0deb23aa143c2017c2",
+        "src/app/dashboard/CanvasConnect.tsx": "27bb009f1d74b6675e752902c3adfb2e590a9f5d5371f4f802711b3e1b99e1cd",
+        "src/app/dashboard/Capabilities.tsx": "168d93f22e55446b140b4fefe4b01f34e3beba55cc8a77da094b9b2d81ace2b3",
+        "src/app/dashboard/ChatProvider.stream.test.ts": "c375e84b12c1659c278ba0f0fda79b075f521b472d3bbfedac075fed00d9cca1",
+        "src/app/dashboard/ChatProvider.test.ts": "104316cd0251a80cbbdc85d1e85f4ad36289b2b8e6e5d7725adfec18ef7ea166",
+        "src/app/dashboard/ChatProvider.tsx": "ca3829bb6d113a243d486b59d9b297311a1b7498c32b793283472d90d4888e5f",
+        "src/app/dashboard/DashboardPaper.tsx": "b7cc1e9bd4fd06e090a0656f755083ca353044c54729b5b2f6c33691c9b2c1ca",
+        "src/app/dashboard/DashboardShell.tsx": "83b37a99f7abbeda57093c97477d1191bd80867b092bcf5558e08a33d780b8d6",
+        "src/app/dashboard/JobProvider.test.tsx": "e05a6e8ba68a16f2aef11e2036deb7e93b591acb30063bf069bf313690700349",
+        "src/app/dashboard/JobProvider.tsx": "a85c21bb5b2a35c1d6351135c9974a39b681989f4b4c68bc609b4d086625107e",
+        "src/app/dashboard/LoadingShell.tsx": "22b3aa3c83c782d06ca00855e45153641e273d988852c5818d7da28d6169e5bc",
+        "src/app/dashboard/LoomOrbit.tsx": "a7f16f388d8ea549d136a98149756812c9cbd4fee13c428c87873b8023fb0e82",
+        "src/app/dashboard/PaperMasthead.tsx": "f671aef918cc1a4ca90a1002eb2b5a06d9d040cdefb3086a8baf90772a7d7702",
+        "src/app/dashboard/SectionNav.test.tsx": "56141d7c4c1869a64d6f72f85774e5f199d5c49992a8bd1fbd3b73448c790bc7",
+        "src/app/dashboard/SectionNav.tsx": "770fb260d825d48954c5e22b04078cd757500e267dd8977ed93444e5779f524d",
+        "src/app/dashboard/StatStrip.tsx": "e0cfdf0a4eb8211aaaf9fecaeb4b854a9aa3e18c0bdd935110ebc60fde7a428c",
+        "src/app/dashboard/SyncButton.tsx": "7ada62480f40c4e1326108270b95571804153998697526709268464cdf4ed8c7",
+        "src/app/dashboard/SyncProvider.tsx": "683fe8ad9fbd74510df9c9ed4c86cea1b141036303d245c46e54f8652c20191d",
+        "src/app/dashboard/TaskLedger.test.tsx": "be60dfc1cf79e41c8386a0f82cbc511c4f526e80c06bb176927f10104b1a9819",
+        "src/app/dashboard/TaskLedger.tsx": "a5a6631df2572bad25f93f6262d058c9f825d07183432b269e29e90ef5ad02b5",
+        "src/app/dashboard/ThreadSidebar.tsx": "2c24ab42f7e356035bedca1f21421a68b785cf3c487dcc7468adcff4d3076e35",
+        "src/app/dashboard/error.test.tsx": "83b852602c069de7e7ab20771bb64c92be9600d609fe40084958e0ec6edc1fa4",
+        "src/app/dashboard/error.tsx": "e785c3d2b4c7defd6660ae98ae70a24a32ef1a1c37ec1e778c266a2d61235d56",
+        "src/app/dashboard/layout.tsx": "70490e36020efa936535b00f5161d55e1b713e3fe2e10c584f31780a67441c2b",
+        "src/app/dashboard/loading.tsx": "bee9e6b196223e3c4c13355c25248e22ba2b426282ebb4caf5ceabf739a970c0",
+        "src/app/dashboard/page.tsx": "6a88635a7ac2bb61bb4917a6c9595746045d021499f92ebbbe64cd63c0e671ce",
+        "src/app/dashboard/profile/UsernameForm.test.tsx": "305c7d5e0cf671832f296aa62f0409bb361ca55e68634e7d2d3b024907deb435",
+        "src/app/dashboard/profile/UsernameForm.tsx": "b005cc55953896b578533fbe082fe1b5556397057d8c692be36fc3cbea9748a3",
+        "src/app/dashboard/profile/loading.tsx": "bffe1910e1c2d8d1a525f2c25e7d9231c528b702ade329001642ec8e00c51409",
+        "src/app/dashboard/profile/page.tsx": "644f6c1f75bbdcedf8bcf7374e45ca2aad3f579f363b2336ebf21fc324752636",
+        "src/app/dashboard/settings/AppearancePreferences.tsx": "950aa3d5acc1f223c0ce4b7da5e10c2d4ed597896b7fbf076b1b976f607c2267",
+        "src/app/dashboard/settings/DeleteAccount.tsx": "4e118628bd9297ac7ebdd5c4249d1c991fb64254d66377acea2e561114fee236",
+        "src/app/dashboard/settings/IndexedCourses.test.tsx": "a983fd2a1e9cb55b26892391362bcbb4905028e4ad3dff1f35878df99e369dd5",
+        "src/app/dashboard/settings/IndexedCourses.tsx": "627b8417447f001552d8ce1f16d1c206f6f8067d4282828e84b474dd4d803a05",
+        "src/app/dashboard/settings/SettingsNav.tsx": "3caadc0886345b0c07856ab9285bf6f6db3f760cb65016481dd446cb444cba76",
+        "src/app/dashboard/settings/SettingsSection.tsx": "32f58fb7870e4bb5b5e3d4399f6ea0f2314cd987c17eb3f7794abeb74112940e",
+        "src/app/dashboard/settings/loading.tsx": "0a0554558803908617fbe57d01c5edc09295e26fd335f91b93d53467df854b99",
+        "src/app/dashboard/settings/page.test.tsx": "eb598e3eb03bfe5c209042dde4c32bbbd197d5c630fd2d0ea1a380b5ad521540",
+        "src/app/dashboard/settings/page.tsx": "183b22a7da501f26f930b4cb67435eaa5fa81e7c129f46a7f4fe9a2e4e6ce6e5",
+        "src/app/dashboard/study-prep/[packId]/page.test.tsx": "03d0ed02ba6a5c8102fc3ef432b8f9019839bdae3eb57c3ed0fb8ab07c9024b3",
+        "src/app/dashboard/study-prep/[packId]/page.tsx": "948ef08d0c34b05f3b05fd0cb5e5d17559cadbbe3b3b73903b4ed7b466fe3f15",
+        "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.test.tsx": "a49bded33e231b8a3cbd89d03efcda1133e4d5bec1b18da9e5fff3c977333b88",
+        "src/app/dashboard/study-prep/[packId]/session/[sessionId]/page.tsx": "83c4623982f66c9d9de52469c612048be8c0908f481069f2d690a93a9677dede",
+        "src/app/dashboard/study-prep/archive-list.tsx": "4f66e7189508c0fd4e074820a9d0deb4607f0fefcfff8fa06d1a6055879a7b3b",
+        "src/app/dashboard/study-prep/archive/archive.test.ts": "347102456edd83fb175beb5ed164d209abcf48de43d621290d9fbf7d79e73c7b",
+        "src/app/dashboard/study-prep/archive/page.tsx": "41b8edbd6bcce3f8500e925e4c0928030f6230a9d13b36e4fb89577355a77a41",
+        "src/app/dashboard/study-prep/page.tsx": "ea3a462b532492bd786392ac6fdfa01ecb1a57867529a9a8a3c4a19746f4b1b0",
+        "src/app/dashboard/study-prep/study-prep-home.test.tsx": "2da08563673a2059ec73cc7d9b5bbd4843dc198fdc97cd20f56bd3371ff540d4",
+        "src/app/dashboard/study-prep/study-prep-home.tsx": "91dc59c800c9d4ebb51c42682d290404dce6bd1cda716d75bc5a312a81ce7942",
+        "src/app/dashboard/sync-errors.test.ts": "778c69eafd6054a2f4b1cca13733d9b981a737316499a00ad991848679a849e2",
+        "src/app/dashboard/sync-errors.ts": "b67860eb7e2450842441ad92a8c4768b8334081a5c16c1b94647549005a9e967",
+        "src/app/dashboard/thread/ThreadView.tsx": "ed52b5f4d6619817fa6cab0e56a42f14365b78ea4ee822b1c4216c437c793266",
+        "src/app/dashboard/thread/loading.tsx": "646e95ba0b5626662f4b3964ab0517641833626569590526428f77487c9c69c3",
+        "src/app/dashboard/thread/page.tsx": "e435557b9a8a324b106d9bbcdefef85719296384157f010b94d61da4dad43d76",
+        "src/app/dashboard/types.ts": "0a130311021d34da6af844ed95c9fa4875e1863ee8f00431dbbce52f9e567f73",
+        "src/app/error.tsx": "b59f64d3691fe47e721a070a4ef0cd4527f310cd82cab8737776041ee040ae9f",
+        "src/app/favicon.ico": "c28fdd2a4f31e2dc64f653962286da5c82a4cdfc518b242d32812c624e9a19a4",
+        "src/app/globals.css": "44fb9dbc3c8ff0dc86ea071daf5b859724ff945cb84d5ffc370657e9964957d7",
+        "src/app/layout.tsx": "7277119cf7464d684cdd46beaad7f183e25330697f4f64f2befd1a86005c0eac",
+        "src/app/onboarding/OnboardingFlow.tsx": "0ea791ec945329949dd5b8e4d39f09f4b17fb4ef9070f92163ba15cab2edb67f",
+        "src/app/onboarding/page.tsx": "65fbbf026d36129b30f6a6401b221db38d1c024bf0338bb0361d460d7eca6960",
+        "src/app/page.tsx": "5cd29440674acd60fe88b11424f9f9c08cdbaaf7ad05f6ddd5003cfa1c651a9a",
+        "src/app/sign-in/[[...sign-in]]/page.tsx": "6f6907ba15b4d64a747603a880df0bc44565159125fb95f619b2c6c7996cec3b",
+        "src/app/sign-up/[[...sign-up]]/page.tsx": "68df4fec11b8cd39505892dd38cfa6940752c8d3c6f8d925ea5ada959dd16091",
+        "src/components/AuthRedirect.tsx": "10d567ca06e3a99cf035f07da162346275722a29f2a67f3cccf6e83a3f7e8da2",
+        "src/components/ColorOrbLoader.tsx": "5756e480dcabdffe10f5ed3e47201789880bb0ccc52df793eeb3451e28de80a7",
+        "src/components/FeatureCards.tsx": "d8dd7cc75b80ea4600d5d2ed5105c25953d86ef94dc4c522a456368041af6f27",
+        "src/components/PaperReveal.tsx": "1f945f851a7072cc1b53662432c706c6033167994e95694f7779177b1074f70e",
+        "src/components/SyncLoadingOverlay.tsx": "766ace9f61788d0e08d329e29550401838962e7f86af47d118274fab272f2d44",
+        "src/components/SyncWaitMessages.test.tsx": "bee3d54d1bfe3945bfa86f02fb7f13e93689f49f8bc8379b3b6545697655354f",
+        "src/components/SyncWaitMessages.tsx": "c627ccddc23abc64e9b237fda000667fce5bead5a3d78b63c5ab090114ebff42",
+        "src/components/landing/AskCoursa.tsx": "5b4ef42e08ba403d222332e7b986f6cf7b406149fb932eb93d38b5bf7234816b",
+        "src/components/landing/Faq.tsx": "fce4cc013feb652011d386c4dbb99bd70dbeadd89f31739173b1fa1e4d464feb",
+        "src/components/landing/HeroLoom.tsx": "07987d11c69dd1e58ff29459f33e141d0d009f7ce780c72cfa909f0de0180991",
+        "src/components/landing/NavLinks.tsx": "2f2a6672cea8b075f71b7b13bd40ba7966ce0f43aa5bc92bb8c5b658e3e223ba",
+        "src/components/landing/Reveal.tsx": "58fd464d979502da80f763906a4d17daceebf2be27675b7aafa5ee642b73f57f",
+        "src/components/landing/SmoothScroll.tsx": "3410d51aacd9865899227810675e7c4b0288367e006594347f0b25fc1432d565",
+        "src/components/landing/SoundToggle.tsx": "4122623744960bd8e8af929b9dae121eeb72c89b8849ae63d0cf7965574fdc92",
+        "src/components/landing/WeaveView.tsx": "639d804e805d9be969c33318e41d836e54bfe7ffe0b2bc70b1b45c0ac3fc06e9",
+        "src/components/landing/Workflow.tsx": "57b2b951f1f66f13577c1ae3da41061b7d091a7996c4006dccd7c926ed4e467b",
+        "src/lib/ai/chat-response.test.ts": "b1d63c1a0ae7b564172e05da0137cdb9a53b57e2403f7e236bd4d93d1ce0951c",
+        "src/lib/ai/chat-response.ts": "8d78d6a2446eb6160bbbd9c210fae610cbacae5dacc27a19e954f3d430c1be7a",
+        "src/lib/ai/course-index.ts": "fd63a21d10cbf1d1e325f6d87e48a566aa3fee761ff3ed0f6aa63d277f8d781f",
+        "src/lib/ai/index-counts.test.ts": "5946bc11a28cb027f412be0790ca3293142987b742db349c3c9e7713b2b4a5e2",
+        "src/lib/ai/index-counts.ts": "4607203017d099676e5bddb0230f245d69541f953dffee1e0c1b2471f367b06e",
+        "src/lib/ai/ingest-jobs.test.ts": "5a7f0aec15ef480130611ed135006727a88629237c1efe8729fe337729c88e58",
+        "src/lib/ai/ingest.test.ts": "5fa06a2ba60a75da5288f935767c5b99df99d09e007aa9b65b802c13424b2332",
+        "src/lib/ai/ingest.ts": "2da8907b88427b76e14954e74dbe5aa96f9e339f3aa8c9ccdcf0c29de83a3383",
+        "src/lib/ai/log.test.ts": "90b7de1e1704583b85333a9dd2dab0862079a0383dab056d74a32e2e75018d9d",
+        "src/lib/ai/log.ts": "bb2753429d6ea2cc5952e133898aab10f5b34f3350e3b1c8fb2bc3a2a894561d",
+        "src/lib/ai/metrics.test.ts": "74887ea52dcf7f2a88207cc7685c1db4ba0d90979a7d4403dc9cd3ce0c937e56",
+        "src/lib/ai/metrics.ts": "e29580e6493b042ea1eee5949ab2fc805a62b2d1d16440cecdf6b908068909ca",
+        "src/lib/ai/rag-token.ts": "f740fc77bd2f0e3140b6833486a7fc4f9e5b44394884cc565e4376b94a0834de",
+        "src/lib/ai/rag.test.ts": "8d21c4320f38d5bda3a05958717db44cdb9dd3adae1921d107d89eea582265e5",
+        "src/lib/ai/rag.ts": "f70f159757f8abdef4fca3b50232ef56ebb7826069b69838a98e25b75042560d",
+        "src/lib/ai/study-prep-courses.test.ts": "0047aa1606ed8a86a53d3be919d5db171c1c12b6a067bfe08ecc078bfbbe61d5",
+        "src/lib/ai/study-prep-courses.ts": "e2233ed1742b9ddedabdc65b54fa949b6a92e5b87e33fc32ce67b6930e1807f7",
+        "src/lib/ai/study-prep-errors.test.ts": "ae843237c29b804dc6ea4bdbcd636333f9ae0769dce4b7ce7672e0e404d573ad",
+        "src/lib/ai/study-prep.ts": "ca1e526029696032f838e4d826fcb9e285cf60adee43b89425948be974138cf7",
+        "src/lib/api-error.ts": "edf42d80b65d8e603803772986e5aebd63489fb1cd3a08a5fa2745f4e408c16a",
+        "src/lib/api-validation.test.ts": "5ac306878772f07f77db32b750608b23e2c6568235b9c7374a72f6527e366c52",
+        "src/lib/api-validation.ts": "740118405ff08bceea3f90f8acc5dc18c338829d4e7bd0b6f2b9337a9cbf95e1",
+        "src/lib/cache.test.ts": "3eaafc388f68a86ac2455b5b0c5334a5c172446f1794719729ff47acbf6ef18f",
+        "src/lib/cache.ts": "b60afe765b4c1e1d9ed121b8c095c72831cee48d8df09952d2b55360739708ab",
+        "src/lib/canvas-account.test.ts": "d6a758c00bc322e5302b0cd2daf9e26b4d7599e7697a8e109bdcd1b659e03091",
+        "src/lib/canvas-account.ts": "519a7d9494b2ce3aa343f35a7abeb874a0ea0eb0e3d9603189a70ef5eb8f27c7",
+        "src/lib/canvas-network.test.ts": "2f2fc2f898a1c5c8c3a612efcd47e105bf7d2b47c5d7780303cf5e1d69dc258a",
+        "src/lib/canvas-network.ts": "29167a58e36f5f920f875e419abc229b681866430db38d5d5f396c20e6c9ac2c",
+        "src/lib/canvas-pagination.test.ts": "f659bfc82e48e6af32f2f5e73388a8edcdd8d847e1b11d55c01710385dacf2fb",
+        "src/lib/canvas.test.ts": "9ad1d8a9f95ffefacce13f66faf65dc63017b1417bc04219da93230bec093c71",
+        "src/lib/canvas.ts": "224f67e464c31526106c3d7c361e2a64d0126540aa52780fc78e2ea5085e1706",
+        "src/lib/chat-budget.test.ts": "315744be0db6298e6ea01f0e64920f6866931397bd62d55f66ebab654659fd35",
+        "src/lib/chat-budget.ts": "366e9eebc0327bef291c52dacbd0f08409ab18aac80e3bcda6c0a82e79a038bd",
+        "src/lib/chat-stream.test.ts": "3ba66d4a0f015f78a991e0232c275e0d3aaa81b90719c361a101abe14599771a",
+        "src/lib/chat-stream.ts": "6d47ffb5f0ae02251f28a36cf9f3f8f64655a73375558d6cb06e4cffc2ba4e73",
+        "src/lib/client-cache.test.ts": "85c95b30d161673a531a6810e42781168e9b326793c8261a324273bab21f49a4",
+        "src/lib/client-cache.ts": "c76e6600be29d170712f8d2573d81277de26241f819248807f1e9530203eb273",
+        "src/lib/crypto.test.ts": "28a13cd557dc4c159c3e1eef3c5b5b4e7f49440d6475b5f6962623ee23edc5fb",
+        "src/lib/crypto.ts": "fd03bff77bb6f2a5209dce0780e97cf7bc98a58fb45a970ccc72a4f2d31eaccb",
+        "src/lib/dashboard.test.ts": "04d80409d3a8be2b2acddba69421154df3d8c3a24fe9ed89dc258dd07879ad27",
+        "src/lib/dashboard.ts": "a8549839fa1825cf82ebe30de146ea437884f9eefdc86cdd84167af4e1939653",
+        "src/lib/env.ts": "34b29b9c533805b3ffcb00a2bbded607ad44c4aafedf49327d8774b39a6b05cc",
+        "src/lib/error-safety.ts": "ef5dd13662e249dcf7332855fcb1a89cbbd047414c2b1e1d11f758a9689dc4dc",
+        "src/lib/features.ts": "72b240e892bb7626d494f332701a9f54b4b50b3049b327a6b99d1ea9b78fad1f",
+        "src/lib/job-context.ts": "db544c17cc3bb292c933cc86332298b89aa38fe55a400b77a4e9e3485e8ea9a1",
+        "src/lib/job-worker.test.ts": "2a1c89a0e524024f932c113d05244f18dc3a81463e56cff0df57151b24130b0a",
+        "src/lib/job-worker.ts": "180d5f0b9ab73b3f1db2643a0409fb3e154c6f812c945a36fef440a6f2eecc73",
+        "src/lib/jobs.test.ts": "0bf9d28a20b1680d12642bc81efb5f01d8a729c2a2ad67dc335f863f54551ba1",
+        "src/lib/jobs.ts": "5c57eab463c32e157060e97388bf1d6b29b3ba50d058f846cc7756f1a5881a11",
+        "src/lib/loom-sound.ts": "9663336cfdf2f232a467a2a3a3b32c82b3e946605203370192a66d4eb30b3cb1",
+        "src/lib/priority.test.ts": "b1cd8070da6fe4cd55b2dbbd484d56857914e4b3e64fdb5b72466b84f5b66795",
+        "src/lib/priority.ts": "ede65dfcedba23563cc917b84f8de52e1b5346381e6b6e9dcd52d2c8bf7d2d96",
+        "src/lib/question-limit.test.ts": "6921acf2b044246149373e30ec399ca40f62883c8719b79dea75529f2bb70d40",
+        "src/lib/question-limit.ts": "679b7330deeab0da0556ebcff4dc4a618e8299f5e14a4d203493727578157bd0",
+        "src/lib/rate-limit.test.ts": "0f33787774cd4584d34ff74efeb9d2ab604b54cefd0ee86bf4b31c8d1caccec7",
+        "src/lib/rate-limit.ts": "335d5a50eb07a29132a51a2518760f9a5c810eee060bf00987a257341b72d485",
+        "src/lib/security-headers.test.ts": "5cb185cf4da5e7624515e808427f4d46d545eb2f2529bdac8703df6db24ac232",
+        "src/lib/server-error.test.ts": "554baf0e6bd6ea2680351b4ff8020c7a2fa17e4fe9c5be6c3b287738e703778d",
+        "src/lib/server-error.ts": "d5888ab12a78518085547fd7307c1beb0059dee224b92f40763783a6fe972352",
+        "src/lib/study-focus.test.ts": "99cfac76c7f25f5aa0f71ca93cb1850176f2a0c028c1f85337706ee2ee16f8f8",
+        "src/lib/study-focus.ts": "996eebf67dc5288deab4eae15e1b838a9a51fb507c8edfe5a3efb9b97bbcfc9f",
+        "src/lib/supabase.ts": "3470b37e1fc9c05e935822191547f32564768a9bb6dd6bd9406ba05ce7078191",
+        "src/lib/sync-lock.test.ts": "f5e2bc8b671f583c277c5d6ede5e0ff3128e226434518cff387a3b279001f4ae",
+        "src/lib/sync-lock.ts": "85cf9080639bac37c46332b8a20b2a7e72e86f6707917ea5db3741eba9d26101",
+        "src/lib/sync.ts": "099396befd40770c7afc3f64478608828b0cdeb7318174a953f25f5e59b93ba0",
+        "src/lib/task-api.test.ts": "67df27cbaa1f452204da3568438a7f353dfcc41819420d1e6280795ff4bd6e7a",
+        "src/lib/task-api.ts": "eb7a9230ff6b8d36ba200496c0380b0468212c19ded4ae855a9922a6e0569943",
+        "src/lib/theme.ts": "e022b4e521e702e7155d92ee457e1058b82b08fcd1e17aa18e85cc2b97cb0961",
+        "src/lib/thread-navigation.test.ts": "865245b097129a4d7e3430febe5ab458f22859e81f0f3347ca978077d59b5d4e",
+        "src/lib/thread-navigation.ts": "4f51ec750aefc65d35c44f9686438e0781a57f95a33241bfa9749aeb8a00c626",
+        "src/lib/thread-turns.test.ts": "c6109af1e1313004e022d47ce2328105aa394080f6b61547bdb1b5b1dc5f90d0",
+        "src/lib/thread-turns.ts": "31416e1c2fe034157c43124558fded1ff85348cd3f35a593957aa740b945bd58",
+        "src/lib/user.ts": "e7c0186ccbc973150a371256d2d70e7cba79e006c392f4bdf99141bc162193e4",
+        "src/lib/username-request.test.ts": "445e5c0ed073232e2e79a5419495b7ce2a1501fad17bc2eb26bb96414b2ac0d9",
+        "src/lib/username-request.ts": "56a0dfed8d8b4c47e75c2fa12152b54780d0d427f0e8a22db9a2cd372db2832f",
+        "src/middleware.test.ts": "305d6a4f973fdc27fe2a0857e9243118b56e8e2cec3d465f319fa56ece95072c",
+        "src/middleware.ts": "9e5379c5873ac73107ee549af72ae9fd46ac0354eeebd5a5f005a9d5977bd78b",
+        "supabase/migrations/202611130001_onboarding_course_selection.sql": "1658edb6419dfe8657577c5b0896244317d28e7096dda16a7de1adc21fe4d83e",
+        "supabase/migrations/202611130002_rag_vector_tables.sql": "ae9546ab19d331d09c5bac6b37de0526f1cccb66807ffff7d6e0389052933eac",
+        "supabase/migrations/202611140001_study_prep.sql": "008a59860d9e15830feb99b9b065b37fac40ceb298a50d8324fc47cd638d086c",
+        "supabase/migrations/202611140002_secure_definer_search_path.sql": "57addfcbc77d3cec66ad42ff38a522c505e74bfc48673370f9fc2c4fac12bca9",
+        "supabase/migrations/202611150001_sync_locks_rls.sql": "9d5d0d413225639efd951c7b972bf22df10b4da749993d89a813dc30b4e5b3ca",
+        "supabase/migrations/202611200001_usernames.sql": "bdb6962dadbe107cd1c180239345567c760c89795442b50481febee4a522aa89",
+        "supabase/migrations/202611200002_account_deletion.sql": "9bd1340470c4b3004c3788754f7175d620ea34393b3f7f0a80c2f6a8cdd6ef07",
+        "supabase/migrations/202611270001_background_jobs.sql": "cbd364b0496dcd74f3e3ad24605de831f08da53b447696b7e4c4ddbb15e52b7e",
+        "supabase/migrations/202611270002_study_reliability.sql": "677ec379db267f85721b398e9cc11ee5970e0776a6ee4f5664b4dfa39517570f",
+        "supabase/migrations/202611270003_single_active_study.sql": "d933a9004582ece4abd57e2828e4767d350e4c6c43d7925540e525c65a694da2",
+        "supabase/migrations/202611270004_study_answer_validation.sql": "9414711218ab3097322b3d3f447533511af07ff070e1fa46f60ca8a3a4f91225",
+        "supabase/schema.sql": "969c4b9c68decfd0cc51d8c2fb8b0b76fde2dd0b883d92a48ef0395c943ff668",
+        "supabase/tests/background_jobs.sql": "b3eccbe2828ea4f2744f6ba42fd35eeded2afa080c5c7d7ee81a3f096ad9d609",
+        "supabase/tests/single_active_study.sql": "b820f417f54defb12721133acb8c9745948c844875ae99f4c80c612036dcba7a",
+        "supabase/tests/study_answer_validation.sql": "435858a00bb00b34eaf39d17f0828f1766a1298ae8f0d47b8d889c8a6f72037e",
+        "supabase/tests/study_reliability.sql": "a1ddd8296ac7a1c0566313d5cdec5813a493b6c3ed91907cac6777cd5b4ecebe",
+        "tsconfig.json": "1f8bb9b74a79e059dfdae28828984cb6988c1502af1df061a574d8176c516270",
+        "vercel.json": "51623d40519def6c57945037aeac50a781525037b2657be7a03cc522674522cb",
+        "vitest.config.mts": "23b9b1caefd1235d73f0fb55fa5dfaef7a9436c6482a9ff578bddcf7cb2bef01",
+        "vitest.coverage.config.mts": "acd854b198d4dc64cd1b0d0a7d469d7389d3321629947b7699471a11c49cd831"
+      }
+    },
+    "rag": {
+      "path": "rag/canvas-ai-assistant",
+      "branch": "fix/study-input-validation",
+      "head": "c50770126f4f6c6a3d6120c56bfa6d6b0b41d494",
+      "tree": "10c1eb189f8ff6734c3f476b141d049fd406f85d",
+      "status": "",
+      "tags": "",
+      "tracked_file_hashes": {
+        ".dockerignore": "04e593fac2d93d1544dc84a7c5146273345ec87cdd43ae8522824e9f04dfbd9c",
+        ".env.example": "f9b78444541640b4f7dc5a72693f6b303718de9896e2e0e031daf75556fd00a4",
+        ".github/workflows/ci.yml": "e78e5335c0e9dca65727854f7601831df8d42816de90de5ddb72e8ae6b90c5ca",
+        ".github/workflows/codeql.yml": "23da6bb25cd4e01e2185477d830558906460ab6257018c8d770b7bd6d8512fc0",
+        ".github/workflows/staging-health.yml": "4c3d689742971556c61104f9be8ecae8a9a43eb814380b695b21f7f5e9289610",
+        ".gitignore": "60b41630b7ce988780eb50472e1abc0fc496ee1f5cc95eda44f68f5fab70b7ac",
+        ".gitleaks.toml": "befa53cea409af38d21e106b8839ad32881fdd209c45507d9e38755eb19dfa43",
+        "Dockerfile": "42694a61e313055ee9b286a3b66a775a5f7b0e7a1c8cecaa955b548533b451c1",
+        "ORDER_IMPLEMENTATION.md": "fd6a26cb5893ed12bf9033ce3b2aadc6eb04b9d7d15088a77611cce31a5d03e3",
+        "README.md": "877092ae450d3f8b7e1fa7b178331cbede497684635b1601445f1869dd1547d3",
+        "app/api/chat.py": "7c2d295a0af13e49fba71971672b4ce84a8cb25f3d8147d2267e9e3d3bb6025f",
+        "app/api/ingestion.py": "0914eedd762d8ff8283449c0d61b1790025f2b97cda427232ed1443559afc9d1",
+        "app/api/ingestion_jobs.py": "2c4dfe7a06663d0d2a2e2f13d94a2a3c62fd5312893d59c2a8c60b3aea871ecc",
+        "app/api/routes.py": "0e5973990d979e250a7107573fcd3471caf0e2b064329c75bf1618958bebe4f8",
+        "app/api/study_prep.py": "5cb6ce0344eb64f03c530f9423fedac9ce5323e92362df9f1c374cedbf8fd094",
+        "app/config.py": "8c2997ea1b1b2d17f32a592f9b9bb99c57fe8da14788a7e3aa1e4b621944e4ec",
+        "app/dependencies.py": "ca6156ba0156342d79dd2928b89806178d3bf3bf6dbaad1fb2415719a0112b02",
+        "app/embeddings/embedder.py": "d7f92f293356948435095f8a26cfdac836ada3a014286a2132a63330c4ab18aa",
+        "app/ingestion/chunker.py": "e39e0a398fa8872cdd7a76bd7637db400bd2d6ea88f92e1c9e3e7fa77e917ee1",
+        "app/ingestion/cleaner.py": "3731d2d67259f76d6248bef96fdca60ce7afddacc4f8186f973799a1e7221016",
+        "app/ingestion/job_context.py": "5b40396c3c475db6801a233c3228056acee82e6fd8637ba895d99974fc5baf63",
+        "app/ingestion/loader.py": "c3eab87e76fd5895c2ad58bcd47d0a8a2812e73e7eea930dd1c0118e0f1c06fd",
+        "app/ingestion/parser.py": "15ef43519288c4d2d21385e68ba06ca45fcdc9fc41545e7902fd2f8bb698aa92",
+        "app/ingestion/pipeline.py": "dac2196e3e6890562b13c7838ba52ca170ec5dbf251fa8f13c1de3932e8e4451",
+        "app/ingestion/worker.py": "3e711728d97be812942550b119ef36b69269a9f5f17c14335a0d308363002114",
+        "app/main.py": "32da83bc4318ac50ee3005d4388fa643d874708f3346dd4c12886f6641cc741b",
+        "app/models/chunk.py": "796938062416d01b7f47e810fc56b511dd5319b7312f531a2ddcbe9591e5f1e8",
+        "app/models/document.py": "dbb66ab0aca538ce77f4c2ec78e6aa5cf529676eca0b8c8ebcd801826242d92e",
+        "app/models/query.py": "7227c0ac09de9f7013c9ba9e4691742749a1f928b190e45d809ff70031015190",
+        "app/rag/chain.py": "768889fac6048c7738d29d34e7492c546d7e9a6a8490b037e232bf721aa121f8",
+        "app/rag/chat_stream.py": "04de9410c31246a0efd01e326861c57435b78dec23a82e3c57b9043ce043fcfc",
+        "app/rag/llm.py": "c3ac5539a404e2dd67fdf86ffce3c2f9efefa31bbf58f2c858e3ddb58b94be6e",
+        "app/rag/prompts.py": "04bd943b3d58b0b0de99046f9fbb83083fd319817df98e5c9b0ef72bc46e0270",
+        "app/rag/response.py": "ca8aff1d25c7cdb597abe2f123d79a3de39a5220719904934eea545ece34ea13",
+        "app/reembed_staging.py": "fb5374b358d174c6b8f0233d4ce36e85577bd7cba4bc1ac366a90e2f12da18c0",
+        "app/security/__init__.py": "825367e6e200f7c42a12f3b1cefb6e67fbe44824995a99c4e0f7d9fe5825aab9",
+        "app/security/course_index.py": "41f52f5f913e2fc17ea4b3cc1cd82fa0bc2edcc5807599d58feb340d7f094668",
+        "app/security/request_id.py": "4a628d7db988388326881ad4ce77af374d5a217f70d27318bc93399acf973ec6",
+        "app/security/request_size.py": "0b56ed5e0c95abde4fe6baabb51014ea3a317acce59c123df1219832aa65a30d",
+        "app/security/study_focus.py": "716dd98569b33d3ab4d9743541864ca0b21fd60c57923a79cfbcd1561696731c",
+        "app/security/tokens.py": "e625fed220eccdffe0e67f59285720d1ef538c44aade5f7410b5e88769e44154",
+        "app/services/canvas_network.py": "6cc80c4351a41a59649773dbbd75f96f4d68f743482a34160e2743f81cf729aa",
+        "app/services/canvas_service.py": "f46ece8081f0978e2736e7ca3985354a64e621efdbde19cca6f58d3d0cb3b45e",
+        "app/services/document_service.py": "fce3c05fe81783aa4d434006d496de3b6455415738f607c02a9818468d380524",
+        "app/vectorstore/database.py": "a2ef2d76cd7f42a5300829d1b039a1550b4948bd18eb68caca0c4d6cab1e11e0",
+        "app/vectorstore/retriever.py": "78960d3b5878c03f310dfb78072d29329367f24efbdedc98c7e35a37d24ab0e8",
+        "app/vectorstore/schema.py": "e01fc93867660588f240ca1a08793d1c526e7a338f93a4dff9483652cefcd08c",
+        "config/r2-backup.env.example": "485f1c78eb600605a286854833b1a8475bd9a2b028aefbdf5c509ec092285d34",
+        "docs/AUTOMATED_BACKUP_COVERAGE.md": "c3060c5f87135fb0cbaaf4e30d1ce2027e3c7f5b6f4108b6082ccdeed006a3da",
+        "docs/CHAT_STREAMING.md": "5cad876a17fff2f4a0b075f9ee1f2e56123e44dec82539651a1cfd5c7f9a47ab",
+        "docs/R2_BACKUP_SETUP.md": "97a4960fe4374daa9993e073b05c4db8f939d14b998fbd74002ef76d9c1e9fbd",
+        "docs/R2_BACKUP_VERIFICATION_2026-11-20.md": "6161cb02f3f8d08ca62489dd26a29c65dce6138d137a6c4012b08e676d891d9e",
+        "docs/RAG_LATENCY_COMPARISON.md": "7324e180e9f7fd1b6a3884b8f546806c47ce9643b6a8962b71fc798bb12e1bcc",
+        "docs/SECURITY_GATES.md": "4bcbeba07caabd6445eff98d5116be0d402f30c92c4d9942f6c234f47f45b408",
+        "docs/STUDY_GENERATION_DEADLINES.md": "6e68429f2cbfe8c5666d2c5a731756b6674b2ed20d8e1842d4a779e8ae6c24db",
+        "migrate_course_key.sh": "6d35285af8074f0ad193025dc0a2401a88ff033e2a20d6ad6af7deb5d088a4eb",
+        "migrations/0002_document_source_types.sql": "33f3d197a1d6d72727909f6e31c854efb57ae1eef788293fb2dcd2fd28744fc0",
+        "migrations/0003_shared_source_fingerprints.sql": "dfaddf135acdba91ddcaf31e3bb9513cd6b5f96420b74c2d67aff9dbd0d21db0",
+        "migrations/0004_course_modules.sql": "912d125efc9b955edb9503de0c7027d9e6bc3844703d204e0d4b1ed3b1fae197",
+        "migrations/0005_ingestion_jobs.sql": "b6f16e28d8f3e3a258dd632e70397dbd4812d706a2b6ec0698786e2599270745",
+        "pyproject.toml": "b64931a0a4a22645eaacc293c3a243ccb3269ce6c166e5e0824cd16a35d44c21",
+        "scripts/benchmark_chat_stream.py": "b253a12d5bf5d43b161a594cd0cc071ab9e077295d9240ad783623ad1ca58ff8",
+        "scripts/check_codeql_sarif.py": "a2652fa1bb21ce706acf0ab8f9d54c8becda291482d9183b118c41bb0a979bfb",
+        "scripts/ingest_documents.py": "c7d720e006e9f83a3e70ebd2dbda74db48ace1eb723749260870ea023cf7a998",
+        "scripts/r2_backup_preflight.py": "961697717157ed6d1d216f2acdc5ccf784e75855e340cb8065514619ce686e1e",
+        "scripts/report_chat_metrics.py": "8c3e68efd2d8d21274ac9161460cbc35da79bc537e3acbd2fdd3c4736d9c9f73",
+        "scripts/report_rag_latency.py": "d2c94e5d6826bef1313911580757ae634787eeb39d77c5e81750be110088779e",
+        "scripts/validate_chat_database.py": "e17d9872dbb1496822ff0ab8c2ac863d94d3a9b0b8c500e785e418a6b3c2a0ad",
+        "tests/test_api.py": "9a0a499eda8b1e91ee1789a3aeb13dc2d65f59b854ad4a3a41a9b17015c1b40b",
+        "tests/test_canvas_network.py": "08c6f27bec57fbdf15e1356b4171a8d16359ac48deed46c4e97ab5cb8119a89c",
+        "tests/test_canvas_origins.py": "b505f367e7bbf984af0322a72250a0fe016a8095f6d869dc3eb1416e5f761578",
+        "tests/test_canvas_service.py": "8cde71ba7cc71547a709bb959ef730eeb3d59324f2b9d06aabe142e2f391300c",
+        "tests/test_chat_metrics.py": "b27bd0c5ca3afd08204bd19104f6ea515a490d62547c57af1d5d681bb4eb22d2",
+        "tests/test_chat_performance.py": "d56b27d34ac4f3d82480d27760480cf77177f0f34f30fb89b152ba57a757ac09",
+        "tests/test_chat_question_limit.py": "b88a5c6037310bbf8ae5e86d9c3b44679e874c0675c358f7c72a260985c79cc1",
+        "tests/test_chat_stream.py": "cdc90953cf641ae4aee79946b5c3bb41adf6dba5ab9f9f96e3357555680c3e5a",
+        "tests/test_chat_stream_database.py": "5e9eff67e180832957bc9329383437f4540524a48400960e93d894c0024e2d95",
+        "tests/test_chunker.py": "0b6aac640a5475b7ca026aa753d31a8b4e4d86445e6e3dafe7a2e6bf96499eb6",
+        "tests/test_cleaner.py": "b8bd0b581c13335bd3a03a7e304550e06ef16517960a07b58a581dc1abc14b61",
+        "tests/test_codeql_sarif.py": "4b72b69f29fabed8836e5ce01744fd83ab4b2b213eda87378a277b060a562d23",
+        "tests/test_document_service.py": "83f01b14190b7878efd94e21aa5f40f757865923233650c4a7f94af809184ebe",
+        "tests/test_embedder.py": "8e373a0ed3f0556477e664d7e96d5c661f9b62fe8d909d96501b145596a10351",
+        "tests/test_ingestion_jobs.py": "641d7fd1e2d1b6ab4ab1db30ca9fe4c7ebbaac02f7a79bff14d0188e809af68f",
+        "tests/test_loader.py": "6d443f0959c13aa0b42d7386293d907fe25a7b0d952776dcbedc0f917181cab2",
+        "tests/test_parser.py": "ec4b6fba5b0d66184bfa2da1efaf7727e627b2125ce2aa93711b7d5b4f433c17",
+        "tests/test_pipeline.py": "4228307d621b7e58c2ef938176512b1c150fe56b8f6c03b211e530c12700e047",
+        "tests/test_r2_backup_preflight.py": "a7576df671b062f761afb24c714fa05c1ffd5855f0e1c1ee3901aba79ed977ec",
+        "tests/test_rag.py": "cfa58913af45ed2442a36c21a94df09a923272a944b5e8b716a779784ff31f8b",
+        "tests/test_reembed_staging.py": "cc9002afa9e2fb0bad5b818a4797063da3218bdb23f928b5a129b8cf009e7408",
+        "tests/test_request_id.py": "d71836c966f8ee30eb65561c10342b1c44aee1cc73ea984aef0deb985eb6089c",
+        "tests/test_request_size.py": "395b6f61a0e1436347ba663124d6fa233d59ec378945731ddf9426ffb681c2f6",
+        "tests/test_retriever.py": "a457f9f6ab0368c9203f55555066e17a1ac544c4ec4787e941ba70b2d2f4b8f7",
+        "tests/test_shared_course.py": "1db90da7ee0d1a7ded4ce5e580739201d422274a4d7db0404492e3569cc91e32",
+        "tests/test_study_generation_deadlines.py": "bcd835ebcc24cb7236831a621bd809054ccd165d281c174c24dc172bf1525a22",
+        "tests/test_study_input_validation.py": "04aaa1378680dfcb81eb09ea47a60c0012131afcbe6ef1db251ec1333ea19c0f",
+        "tests/test_study_prep.py": "a094c9bd8a8afe5fea2f4a59342575268f1118108658f73df700989e4ba40205",
+        "tests/test_tokens.py": "df8f6c4ff76f3338630a68b7881af70d09e868d7839e81e50e06ea626a813978",
+        "uv.lock": "99976a769818841c4a0f3d62fbec646dd367d85b58eed64a3b3f277a6c4a27a0"
+      }
+    }
+  },
+  "tools": {
+    "node": "v26.7.0",
+    "npm": "11.19.0",
+    "python": "Python 3.13.16",
+    "uv": "uv 0.13.1 (62faed335 2026-10-13 aarch64-apple-darwin)",
+    "docker": "Docker version 29.9.2, build a82e528",
+    "pandoc": "pandoc 3.9.0.2"
+  },
+  "web_dependencies": [
+    {
+      "name": "@clerk/nextjs",
+      "range": "^7.9.18",
+      "resolved": "7.9.18",
+      "usage": "dependencies"
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "range": "^2.118.0",
+      "resolved": "2.118.0",
+      "usage": "dependencies"
+    },
+    {
+      "name": "animejs",
+      "range": "^4.5.0",
+      "resolved": "4.5.0",
+      "usage": "dependencies"
+    },
+    {
+      "name": "next",
+      "range": "^15.5.28",
+      "resolved": "15.5.29",
+      "usage": "dependencies"
+    },
+    {
+      "name": "react",
+      "range": "19.3.0",
+      "resolved": "19.3.0",
+      "usage": "dependencies"
+    },
+    {
+      "name": "react-dom",
+      "range": "19.3.0",
+      "resolved": "19.3.0",
+      "usage": "dependencies"
+    },
+    {
+      "name": "tsx",
+      "range": "^4.23.15",
+      "resolved": "4.23.15",
+      "usage": "dependencies"
+    },
+    {
+      "name": "undici",
+      "range": "^6.29.1",
+      "resolved": "6.29.1",
+      "usage": "dependencies"
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "range": "^4.3.3",
+      "resolved": "4.3.3",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "@tailwindcss/turbopack",
+      "range": "^4",
+      "resolved": "4.3.3",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "@types/node",
+      "range": "^22.20.5",
+      "resolved": "22.20.5",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "@types/react",
+      "range": "^19",
+      "resolved": "19.3.0",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "@types/react-dom",
+      "range": "^19",
+      "resolved": "19.3.0",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "@vitest/coverage-v8",
+      "range": "^5.1.0",
+      "resolved": "5.1.0",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "eslint",
+      "range": "^9",
+      "resolved": "9.39.5",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "eslint-config-next",
+      "range": "^15.5.28",
+      "resolved": "15.5.28",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "jsdom",
+      "range": "^31.0.1",
+      "resolved": "31.0.1",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "tailwindcss",
+      "range": "^4",
+      "resolved": "4.3.3",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "typescript",
+      "range": "^5",
+      "resolved": "5.9.3",
+      "usage": "devDependencies"
+    },
+    {
+      "name": "vitest",
+      "range": "^5.0.5",
+      "resolved": "5.1.0",
+      "usage": "devDependencies"
+    }
+  ],
+  "python_locked_packages": [
+    {
+      "name": "annotated-doc",
+      "version": "0.0.5"
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0"
+    },
+    {
+      "name": "anyio",
+      "version": "4.15.1"
+    },
+    {
+      "name": "beautifulsoup4",
+      "version": "4.15.0"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.10.23"
+    },
+    {
+      "name": "cffi",
+      "version": "2.1.1"
+    },
+    {
+      "name": "click",
+      "version": "8.5.0"
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6"
+    },
+    {
+      "name": "coursepilot-rag",
+      "version": "0.1.0"
+    },
+    {
+      "name": "coverage",
+      "version": "7.17.3"
+    },
+    {
+      "name": "cryptography",
+      "version": "50.0.2"
+    },
+    {
+      "name": "et-xmlfile",
+      "version": "2.0.0"
+    },
+    {
+      "name": "fastapi",
+      "version": "0.162.0"
+    },
+    {
+      "name": "greenlet",
+      "version": "3.5.6"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0"
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9"
+    },
+    {
+      "name": "httptools",
+      "version": "0.9.0"
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1"
+    },
+    {
+      "name": "idna",
+      "version": "3.20"
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.1"
+    },
+    {
+      "name": "lxml",
+      "version": "6.1.3"
+    },
+    {
+      "name": "openpyxl",
+      "version": "3.1.5"
+    },
+    {
+      "name": "opentelemetry-api",
+      "version": "1.45.2"
+    },
+    {
+      "name": "packaging",
+      "version": "26.3"
+    },
+    {
+      "name": "pgvector",
+      "version": "0.5.1"
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0"
+    },
+    {
+      "name": "pluggy",
+      "version": "1.7.0"
+    },
+    {
+      "name": "psycopg",
+      "version": "3.3.6"
+    },
+    {
+      "name": "psycopg-binary",
+      "version": "3.3.6"
+    },
+    {
+      "name": "pycparser",
+      "version": "3.12"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.14.1"
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.50.1"
+    },
+    {
+      "name": "pydantic-settings",
+      "version": "2.16.1"
+    },
+    {
+      "name": "pygments",
+      "version": "2.21.0"
+    },
+    {
+      "name": "pymupdf",
+      "version": "1.28.2"
+    },
+    {
+      "name": "pypdf",
+      "version": "7.1.0"
+    },
+    {
+      "name": "pytesseract",
+      "version": "0.3.13"
+    },
+    {
+      "name": "pytest",
+      "version": "9.1.1"
+    },
+    {
+      "name": "pytest-cov",
+      "version": "7.1.0"
+    },
+    {
+      "name": "python-docx",
+      "version": "1.2.0"
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.2.4"
+    },
+    {
+      "name": "python-pptx",
+      "version": "1.0.2"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3"
+    },
+    {
+      "name": "ruff",
+      "version": "0.17.5"
+    },
+    {
+      "name": "soupsieve",
+      "version": "4.1"
+    },
+    {
+      "name": "sqlalchemy",
+      "version": "2.1.6"
+    },
+    {
+      "name": "starlette",
+      "version": "1.10.0"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.16.0"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4"
+    },
+    {
+      "name": "tzdata",
+      "version": "2026.5"
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.54.0"
+    },
+    {
+      "name": "uvloop",
+      "version": "0.23.0"
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.3.0"
+    },
+    {
+      "name": "websockets",
+      "version": "17.3"
+    },
+    {
+      "name": "xlrd",
+      "version": "2.0.2"
+    },
+    {
+      "name": "xlsxwriter",
+      "version": "3.3.0"
+    }
+  ]
+}

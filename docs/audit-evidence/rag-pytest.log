@@ -1,0 +1,58 @@
+........................................................................ [ 18%]
+...................................sssss................................ [ 36%]
+.................................................................ss..... [ 54%]
+........................................................................ [ 72%]
+...ss................................................................... [ 91%]
+...................................                                      [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/var/folders/yv/2m1nxzpj3qx2ypb651s6qwf40000gn/T/opencode/coursepilot-audit-20261127/rag/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.13.16-final-0 _______________
+
+Name                               Stmts   Miss  Cover
+------------------------------------------------------
+app/api/chat.py                      104      5    95%
+app/api/ingestion.py                 122     24    80%
+app/api/ingestion_jobs.py             42      3    93%
+app/api/routes.py                     13      0   100%
+app/api/study_prep.py                255     32    87%
+app/config.py                         84     11    87%
+app/dependencies.py                   38     14    63%
+app/embeddings/embedder.py           211     49    77%
+app/ingestion/chunker.py              93      1    99%
+app/ingestion/cleaner.py              21      0   100%
+app/ingestion/job_context.py           5      0   100%
+app/ingestion/loader.py              118      4    97%
+app/ingestion/parser.py              236     84    64%
+app/ingestion/pipeline.py            233     20    91%
+app/main.py                           46      0   100%
+app/models/chunk.py                   13      0   100%
+app/models/document.py                19      0   100%
+app/models/query.py                   15      0   100%
+app/rag/chain.py                      32      0   100%
+app/rag/chat_stream.py               187     44    76%
+app/rag/llm.py                       433     73    83%
+app/rag/prompts.py                    41      1    98%
+app/rag/response.py                   30      0   100%
+app/reembed_staging.py                27      7    74%
+app/security/__init__.py               2      0   100%
+app/security/course_index.py          18      4    78%
+app/security/request_id.py             8      0   100%
+app/security/request_size.py          31      2    94%
+app/security/study_focus.py           45      3    93%
+app/security/tokens.py               116     20    83%
+app/services/canvas_network.py        27      3    89%
+app/services/canvas_service.py       386     77    80%
+app/services/document_service.py      23      1    96%
+app/vectorstore/database.py           67     27    60%
+app/vectorstore/retriever.py          76      4    95%
+app/vectorstore/schema.py             62      0   100%
+------------------------------------------------------
+TOTAL                               3279    513    84%
+Required test coverage of 80% reached. Total coverage: 84.35%
+386 passed, 9 skipped, 1 warning in 16.29s
+

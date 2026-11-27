@@ -1,0 +1,12 @@
+✔ sends only a read-only authenticated request to the fixed staging host (94.756125ms)
+✔ rejects missing, malformed and redirected sessions (1.511709ms)
+✔ rejects a non-array response (0.891209ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 287.155709
+
