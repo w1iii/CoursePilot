@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
-import { syncCanvas } from "@/lib/sync";
-import { invalidateUserCache } from "@/lib/cache";
+import { enqueueJob } from "@/lib/jobs";
 import { SyncInProgressError } from "@/lib/sync-lock";
 import { isUuid } from "@/lib/api-validation";
 
@@ -36,20 +35,9 @@ export async function POST(
     if (error) throw error;
     if (!course) return NextResponse.json({ error: "Course is not included for study indexing" }, { status: 404 });
 
-    let result;
-    try {
-      result = await syncCanvas(user, { selectedCoursesOnly: true, selectedCourseId: courseId });
-    } finally {
-      invalidateUserCache(user.id);
-    }
-    const failed = result.errors.length > 0 && result.courses === 0;
-    return NextResponse.json({
-      ...result,
-      errors: result.errors.length ? ["Some course data could not be synchronized."] : [],
-      ragFailureDetails: [],
-      ragSkippedDetails: [],
-      ...(failed ? { error: "Course synchronization failed" } : {}),
-    }, { status: failed ? 502 : 200, headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json(await enqueueJob(user.id, "course_sync", { courseId }), {
+      status: 202, headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (error instanceof SyncInProgressError) return NextResponse.json({ error: error.message }, { status: 409, headers: { "Retry-After": "30" } });

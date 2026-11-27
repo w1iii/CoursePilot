@@ -26,6 +26,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabase";
 import type { AppUser } from "@/lib/user";
 import { withUserSyncLock } from "@/lib/sync-lock";
+import { jobContext } from "@/lib/job-context";
 
 export interface SyncResult {
   courses: number;
@@ -65,14 +66,14 @@ function currentSemester(): string {
  */
 export async function syncCanvas(
   user: AppUser,
-  options: { selectedCoursesOnly?: boolean; selectedCourseId?: string } = {},
+  options: { selectedCoursesOnly?: boolean; selectedCourseId?: string; allSelectedCourses?: boolean } = {},
 ): Promise<SyncResult> {
   return withUserSyncLock(user.id, () => performSyncCanvas(user, options));
 }
 
 async function performSyncCanvas(
   user: AppUser,
-  options: { selectedCoursesOnly?: boolean; selectedCourseId?: string },
+  options: { selectedCoursesOnly?: boolean; selectedCourseId?: string; allSelectedCourses?: boolean },
 ): Promise<SyncResult> {
   const sb = supabaseAdmin();
   const result: SyncResult = {
@@ -159,7 +160,7 @@ async function performSyncCanvas(
   }
 
   if (ragIngestionEnabled()) {
-    await ingestDueCourses(sb, user.id, credentials, new Set(coursesToSync.map((course) => course.id)), result, options.selectedCourseId);
+    await ingestDueCourses(sb, user.id, credentials, new Set(coursesToSync.map((course) => course.id)), result, options.selectedCourseId, options.allSelectedCourses);
   }
 
   return result;
@@ -178,6 +179,7 @@ async function ingestDueCourses(
   activeCourseIds: Set<number>,
   result: SyncResult,
   forceCourseId?: string,
+  allSelectedCourses = false,
 ): Promise<void> {
   const cutoff = new Date(Date.now() - ragReindexHours() * 60 * 60 * 1000).toISOString();
 
@@ -189,8 +191,9 @@ async function ingestDueCourses(
     .order("rag_indexed_at", { ascending: true, nullsFirst: true });
   if (forceCourseId) {
     query = query.eq("id", forceCourseId).limit(1);
-  } else {
-    query = query.or(`rag_indexed_at.is.null,rag_indexed_at.lt.${cutoff}`).limit(ragIngestMaxCourses());
+  } else if (!allSelectedCourses) {
+    query = query.or(`rag_indexed_at.is.null,rag_indexed_at.lt.${cutoff}`);
+    if (!jobContext.getStore()) query = query.limit(ragIngestMaxCourses());
   }
   const { data: dueCourses, error } = await query;
 
@@ -200,6 +203,7 @@ async function ingestDueCourses(
   }
 
   for (const course of dueCourses ?? []) {
+    jobContext.getStore()?.progress(`Indexing ${course.course_name}`);
     const startedAt = Date.now();
     try {
       if (!activeCourseIds.has(course.canvas_course_id)) {

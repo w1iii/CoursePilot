@@ -2,13 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(), from: vi.fn(), getCredentials: vi.fn(), listCourses: vi.fn(),
-  ingest: vi.fn(), invalidate: vi.fn(), update: vi.fn(), maybeSingle: vi.fn(),
+  ingest: vi.fn(), enqueue: vi.fn(), invalidate: vi.fn(), update: vi.fn(), maybeSingle: vi.fn(),
 }));
 vi.mock("@/lib/user", () => ({ requireUser: mocks.requireUser, UnauthorizedError: class extends Error {} }));
 vi.mock("@/lib/supabase", () => ({ supabaseAdmin: () => ({ from: mocks.from }) }));
 vi.mock("@/lib/canvas-account", () => ({ getCanvasCredentials: mocks.getCredentials }));
 vi.mock("@/lib/canvas", () => ({ listCourses: mocks.listCourses }));
 vi.mock("@/lib/cache", () => ({ invalidateUserCache: mocks.invalidate }));
+vi.mock("@/lib/jobs", () => ({ enqueueJob: mocks.enqueue }));
 vi.mock("@/lib/ai/ingest", () => ({ ingestCanvasCourse: mocks.ingest, deleteRagCourse: vi.fn(), ragIndexStatus: () => ({ rag_document_count: 1 }) }));
 
 import { POST } from "./route";
@@ -30,12 +31,14 @@ describe("course selection", () => {
     mocks.getCredentials.mockResolvedValue({ credentials: { baseUrl: "https://canvas.test", token: "secret" }, account: {} });
     mocks.listCourses.mockResolvedValue([{ id: 42 }]);
     mocks.ingest.mockResolvedValue({});
+    mocks.enqueue.mockResolvedValue({ jobId: "job", queued: true });
   });
 
-  it("selects and indexes an active owned course", async () => {
-    expect((await call()).status).toBe(200);
+  it("selects and queues an active owned course without waiting for indexing", async () => {
+    expect((await call()).status).toBe(202);
     expect(mocks.update).toHaveBeenCalledWith({ selected_for_rag: true });
-    expect(mocks.ingest).toHaveBeenCalledWith({ userId: "user-a", courseKey: id, canvasCourseId: 42, canvasBaseUrl: "https://canvas.test", canvasAccessToken: "secret" });
+    expect(mocks.enqueue).toHaveBeenCalledWith("user-a", "course_sync", { courseId: id });
+    expect(mocks.ingest).not.toHaveBeenCalled();
     expect(mocks.invalidate).toHaveBeenCalledWith("user-a");
   });
 
@@ -48,8 +51,8 @@ describe("course selection", () => {
     expect(mocks.ingest).not.toHaveBeenCalled();
   });
 
-  it("invalidates cached selection even when indexing fails", async () => {
-    mocks.ingest.mockRejectedValueOnce(new Error("index unavailable"));
+  it("invalidates cached selection even when queue publication fails", async () => {
+    mocks.enqueue.mockRejectedValueOnce(new Error("queue unavailable"));
     expect((await call()).status).toBe(500);
     expect(mocks.invalidate).toHaveBeenCalledWith("user-a");
   });

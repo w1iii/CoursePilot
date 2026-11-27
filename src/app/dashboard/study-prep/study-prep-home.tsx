@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PaperReveal from "@/components/PaperReveal";
-import SyncLoadingOverlay from "@/components/SyncLoadingOverlay";
+import { useJobs } from "../JobProvider";
 import ArchiveList, { type History, type DeleteTarget } from "./archive-list";
 
 type Course = { id: string; course_name: string; course_code: string | null; rag_indexed_at: string | null };
@@ -30,6 +30,8 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   const [difficulty, setDifficulty] = useState("mixed");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [queued, setQueued] = useState(false);
+  const { refresh, version } = useJobs();
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -37,7 +39,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   useEffect(() => {
     if (!archive) fetch("/api/study-prep/courses").then((r) => r.ok ? r.json() : []).then((c) => { setCourses(c); if (c.length === 1) setCourseId(c[0].id); }).catch(() => setCourses([]));
     fetch("/api/study-packs").then((r) => { if (!r.ok) throw new Error("history"); return r.json(); }).then(setHistory).catch(() => setHistoryError(true)).finally(() => setHistoryLoading(false));
-  }, [archive]);
+  }, [archive, version]);
   useEffect(() => {
     let cancelled = false;
     setModules([]);
@@ -94,7 +96,8 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
       const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, module: scope === "module" ? selectedModule?.name : null, moduleId: scope === "module" ? selectedModule?.id : null, topic: null, mode, count, difficulty }) });
       const data = await response.json();
       if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not create study materials. Please try again.");
-      router.push(`/dashboard/study-prep/${data.id}`);
+      if (response.status === 202) { setQueued(true); refresh(); }
+      else router.push(`/dashboard/study-prep/${data.id}`);
     } catch (err) { setError(err instanceof Error ? err.message : "Could not create study materials. Please try again."); }
     finally { setLoading(false); }
   }
@@ -139,7 +142,8 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
 
         <PaperReveal delay={120} className="mt-space-lg"><div className="grid grid-cols-1 gap-space-xl lg:grid-cols-12 lg:gap-0">
           {!archive && <section className="relative lg:col-span-7 lg:pr-space-xl xl:col-span-8" aria-labelledby="builder-heading" aria-busy={loading}>
-            {loading && <SyncLoadingOverlay label="Preparing your study pack" />}
+            {loading && <p role="status">Queueing your study pack…</p>}
+            {queued && <p role="status">Study pack queued. Keep browsing; we&apos;ll notify you when it finishes.</p>}
             {courses.length === 0 ? <div className="mt-space-md border border-dashed border-primary-container/25 px-space-md py-space-xl" role="status"><p className="paper-kicker text-accent-text">First, choose your sources</p><h3 className="mt-2 font-headline-sm text-headline-sm text-primary-container">No selected courses</h3><p className="mt-2 font-body-md text-body-md text-text-muted">Select courses for AI study in Settings, then sync Canvas content to make materials available.</p><Link className="mt-space-md inline-flex items-center gap-2 font-label-md text-label-md text-accent-text underline underline-offset-4" href="/dashboard/settings">Open course settings <span aria-hidden="true">→</span></Link></div> : <div className="mt-space-md">
               <label className={labelClass} htmlFor="study-course">Course source</label>
               <select id="study-course" className={fieldClass} value={courseId} disabled={refreshingModules} onChange={(e) => { setCourseId(e.target.value); setModule(""); setModuleRefreshStatus(""); }}><option value="">Choose a course</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.course_code ? `${c.course_code} · ` : ""}{c.course_name}</option>)}</select>

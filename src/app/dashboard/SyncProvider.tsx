@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { syncErrorMessage } from "./sync-errors";
+import { activeJob, useJobs } from "./JobProvider";
 
 export interface SyncResult {
   courses: number;
@@ -106,17 +107,28 @@ function writeStoredState(state: SyncState): void {
 }
 
 /**
- * Owns the Canvas sync request above the dashboard routes.
- *
- * The provider stays mounted while the user moves between dashboard pages, so
- * a sync started on one page keeps running and its result is available when
- * they return. Completed results are also cached in localStorage.
+ * Publishes Canvas sync jobs and reflects durable status above dashboard routes.
+ * The browser never owns execution; reload/navigation cannot cancel a job.
  */
 export default function SyncProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<SyncState>(initialState);
   const [hydrated, setHydrated] = useState(false);
   const inFlight = useRef(false);
   const router = useRouter();
+  const { jobs, refresh } = useJobs();
+  const queuedSync = jobs.some((job) => job.kind !== "study_prep" && activeJob(job));
+  const latestSync = jobs.find((job) => job.kind !== "study_prep" && !activeJob(job));
+
+  useEffect(() => {
+    if (!latestSync?.finished_at) return;
+    setState((current) => {
+      if (current.finishedAt && current.finishedAt >= latestSync.finished_at!) return current;
+      return {
+        running: false, result: normalizeSyncResult(latestSync.result), error: latestSync.error,
+        startedAt: latestSync.created_at, finishedAt: latestSync.finished_at,
+      };
+    });
+  }, [latestSync]);
 
   useEffect(() => {
     const stored = readStoredState();
@@ -160,6 +172,11 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
         }));
         return;
       }
+      if (response.status === 202) {
+        setState((current) => ({ ...current, running: false }));
+        refresh();
+        return;
+      }
       const json = (await response.json()) as unknown;
       const result = normalizeSyncResult(json);
       if (!result) throw new Error("Sync returned an invalid response");
@@ -182,10 +199,10 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
     } finally {
       inFlight.current = false;
     }
-  }, [router]);
+  }, [router, refresh]);
 
   return (
-    <SyncContext.Provider value={{ ...state, start }}>
+    <SyncContext.Provider value={{ ...state, running: state.running || queuedSync, start }}>
       {children}
     </SyncContext.Provider>
   );

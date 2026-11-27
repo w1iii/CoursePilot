@@ -110,7 +110,7 @@ export default function OnboardingFlow({ initialUsername }: { initialUsername: s
       setStep("courses");
       setError(cause instanceof Error && cause.message === "session"
         ? "Your session expired. Sign in again, then retry course setup."
-        : "Courses could not be indexed. Please try again.");
+        : "Course setup could not be queued. Please try again.");
     } finally {
       setBusy(false);
     }

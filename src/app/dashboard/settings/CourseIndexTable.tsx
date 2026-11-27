@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "../types";
-import SyncLoadingOverlay from "@/components/SyncLoadingOverlay";
+import { useJobs } from "../JobProvider";
 import { useSync } from "../SyncProvider";
 
 function indexedLabel(value: string | null): string {
@@ -33,6 +33,7 @@ export default function CourseIndexTable({ courses, connected }: { courses: Cour
   const [chosenId, setChosenId] = useState("");
   const [adding, setAdding] = useState(false);
   const { running } = useSync();
+  const { refresh } = useJobs();
   const locked = running || busyId !== null || adding;
 
   async function loadCourses() {
@@ -67,7 +68,8 @@ export default function CourseIndexTable({ courses, connected }: { courses: Cour
         body: JSON.stringify({ courseId: chosenId, selected: true }),
       });
       if (!response.ok) throw new Error("selection");
-      setSuccess(`${course?.course_name ?? "Course"} added to your study index.`);
+      setSuccess(`${course?.course_name ?? "Course"} queued for indexing. You can keep browsing.`);
+      refresh();
       setAvailable(null);
       setChosenId("");
     } catch {
@@ -86,9 +88,9 @@ export default function CourseIndexTable({ courses, connected }: { courses: Cour
     setSuccess("");
     try {
       const response = await fetch(`/api/sync/courses/${encodeURIComponent(course.id)}`, { method: "POST" });
-      const result = await response.json();
       if (!response.ok) throw new Error("resync");
-      setSuccess(`Resynced ${course.name}${result.ragDocuments > 0 ? ` · ${result.ragDocuments} documents indexed` : ""}.`);
+      setSuccess(`${course.name} queued for resync. You can keep browsing.`);
+      refresh();
       router.refresh();
     } catch {
       setError("Could not resync course. Please try again.");
@@ -99,7 +101,7 @@ export default function CourseIndexTable({ courses, connected }: { courses: Cour
 
   return (
     <div className="relative" aria-busy={locked}>
-      {locked && <SyncLoadingOverlay label={running ? "Syncing course index" : adding ? "Preparing courses" : "Resyncing course"} showSyncMessages />}
+      {locked && <p role="status" className="mb-3 text-sm">Background work is running. You can keep browsing.</p>}
       {error && <p role="alert" className="mb-3 rounded-lg bg-error-container p-3 text-sm text-on-error-container">{error}</p>}
       {success && <p role="status" className="mb-3 rounded-lg border border-primary-container/25 bg-surface-container-low p-3 text-sm text-on-surface">{success}</p>}
       <div className="mb-4 space-y-2">

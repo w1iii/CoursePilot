@@ -5,9 +5,8 @@ import type { NextRequest } from "next/server";
 
 import { env } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase";
-import { syncCanvas } from "@/lib/sync";
+import { enqueueJob } from "@/lib/jobs";
 import type { AppUser } from "@/lib/user";
-import { invalidateUserCache } from "@/lib/cache";
 
 // A batch of Canvas syncs plus RAG ingestion can exceed the default budget.
 export const maxDuration = 300;
@@ -89,18 +88,15 @@ export async function GET(req: NextRequest) {
 
   for (const user of (users ?? []) as AppUser[]) {
     try {
-      const summary = await syncCanvas(user);
-      if (summary.errors.length > 0) failed += 1;
-      else succeeded += 1;
+      await enqueueJob(user.id, "sync", { scheduled: true });
+      succeeded += 1;
     } catch (err) {
       failed += 1;
       console.error("cron user sync failed", err instanceof Error ? err.name : "unknown");
-    } finally {
-      invalidateUserCache(user.id);
     }
   }
 
-  return NextResponse.json({ users: succeeded + failed, succeeded, failed }, {
+  return NextResponse.json({ users: succeeded + failed, queued: succeeded, failed }, {
     headers: { "Cache-Control": "no-store" },
   });
 }

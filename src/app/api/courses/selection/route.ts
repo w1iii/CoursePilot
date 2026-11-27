@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { invalidateUserCache } from "@/lib/cache";
-import { deleteRagCourse, ingestCanvasCourse, ragIndexStatus } from "@/lib/ai/ingest";
+import { deleteRagCourse } from "@/lib/ai/ingest";
+import { enqueueJob } from "@/lib/jobs";
 import { getCanvasCredentials } from "@/lib/canvas-account";
 import { listCourses } from "@/lib/canvas";
 import { supabaseAdmin } from "@/lib/supabase";
@@ -43,17 +44,9 @@ export async function POST(request: Request) {
         .eq("id", course.id).eq("user_id", user.id);
       if (error) throw error;
       invalidateUserCache(user.id);
-      const ingestion = await ingestCanvasCourse({
-        userId: user.id,
-        courseKey: course.id,
-        canvasCourseId: course.canvas_course_id,
-        canvasBaseUrl: credentials.baseUrl,
-        canvasAccessToken: credentials.token,
+      return NextResponse.json(await enqueueJob(user.id, "course_sync", { courseId: course.id }), {
+        status: 202, headers: { "Cache-Control": "private, no-store" },
       });
-      const { error: statusError } = await sb.from("courses").update({
-        ...ragIndexStatus(ingestion),
-      }).eq("id", course.id).eq("user_id", user.id);
-      if (statusError) throw statusError;
     }
     invalidateUserCache(user.id);
     return NextResponse.json({ success: true }, { headers: { "Cache-Control": "private, no-store" } });

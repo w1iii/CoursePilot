@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
-import { syncCanvas } from "@/lib/sync";
-import { invalidateUserCache } from "@/lib/cache";
+import { enqueueJob } from "@/lib/jobs";
 import { SyncInProgressError } from "@/lib/sync-lock";
 
 // Canvas + RAG ingestion can exceed the default serverless budget.
@@ -38,21 +37,9 @@ export async function POST() {
       );
     }
 
-    let result;
-    try {
-      result = await syncCanvas(user, { selectedCoursesOnly: true });
-    } finally {
-      // Sync may have committed partial updates before failing.
-      invalidateUserCache(user.id);
-    }
-    const failed = result.errors.length > 0 && result.courses === 0;
-    return NextResponse.json({
-      ...result,
-      errors: result.errors.length ? ["Some data could not be synchronized."] : [],
-      ragFailureDetails: [],
-      ragSkippedDetails: [],
-      ...(failed ? { error: "Canvas synchronization failed" } : {}),
-    }, { status: failed ? 502 : 200, headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json(await enqueueJob(user.id, "sync"), {
+      status: 202, headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

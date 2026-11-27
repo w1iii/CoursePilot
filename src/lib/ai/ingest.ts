@@ -1,6 +1,9 @@
 import { env } from "@/lib/env";
 import { signRagToken } from "@/lib/ai/rag-token";
 import { normalizeCanvasInstance, sharedCourseKey } from "@/lib/ai/course-index";
+import { createHash } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
+import { jobContext } from "@/lib/job-context";
 
 const DEFAULT_TIMEOUT_MS = 180_000;
 const DEFAULT_MAX_ATTEMPTS = 2;
@@ -80,8 +83,8 @@ async function errorDetail(res: Response): Promise<string> {
 /**
  * Ingest a Canvas course's module Files/Pages into the RAG knowledge base.
  *
- * The user's Canvas credentials are sent per request and are never stored by
- * the RAG service.
+ * Worker requests queue credentials encrypted at rest until ingestion finishes.
+ * Legacy synchronous callers still send transient credentials only.
  */
 export async function ingestCanvasCourse(input: {
   userId: string;
@@ -107,7 +110,9 @@ export async function ingestCanvasCourse(input: {
 
     let res: Response;
     try {
-      res = await fetch(`${ragBaseUrl()}/api/v1/ingestion/canvas-course`, {
+      const context = jobContext.getStore();
+      const id = context ? createHash("sha256").update(`${context.id}:${indexKey}`).digest("hex") : null;
+      res = await fetch(`${ragBaseUrl()}/api/v1/ingestion/${id ? `jobs/${id}` : "canvas-course"}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,9 +124,40 @@ export async function ingestCanvasCourse(input: {
           canvas_base_url: input.canvasBaseUrl,
           canvas_access_token: input.canvasAccessToken,
         }),
-        signal: AbortSignal.timeout(timeoutMs()),
+        signal: AbortSignal.timeout(id ? 10_000 : timeoutMs()),
         cache: "no-store",
       });
+      if (id && res.ok) {
+        const deadline = Date.now() + 100 * 60 * 1000;
+        let completed = false;
+        while (Date.now() < deadline) {
+          await delay(3000);
+          const freshToken = signRagToken({
+            userId: input.userId, courseKey: indexKey, scope: "ingest",
+            canvasCourseId: input.canvasCourseId,
+            ...(shared ? { canvasInstance } : {}),
+          });
+          let statusResponse: Response;
+          try {
+            statusResponse = await fetch(`${ragBaseUrl()}/api/v1/ingestion/jobs/${id}`, {
+              headers: { "X-RAG-Token": freshToken }, signal: AbortSignal.timeout(10_000), cache: "no-store",
+            });
+          } catch { continue; } // Lost HTTP connection does not cancel ingestion.
+          if (statusResponse.status >= 500 || statusResponse.status === 429) continue;
+          if (!statusResponse.ok) throw new Error("Could not check indexing progress");
+          const status = await statusResponse.json() as {
+            status: string; completed_modules: number; result?: unknown; error?: string;
+          };
+          context?.progress(`Indexing course · ${status.completed_modules} modules complete`);
+          if (status.status === "failed") throw new Error(status.error ?? "Indexing failed");
+          if (status.status === "succeeded") {
+            res = new Response(JSON.stringify(status.result), { status: 200 });
+            completed = true;
+            break;
+          }
+        }
+        if (!completed) throw new Error("Indexing exceeded its background work budget. Please resync.");
+      }
     } catch (err) {
       lastError = new Error(`RAG ingestion request failed: ${(err as Error).message}`);
       continue;

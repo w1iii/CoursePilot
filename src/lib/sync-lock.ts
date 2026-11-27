@@ -23,9 +23,25 @@ export async function withUserSyncLock<T>(userId: string, work: () => Promise<T>
   if (error) throw new Error(`Sync lock unavailable: ${error.message}`);
   if (data !== true) throw new SyncInProgressError();
 
+  // Background indexing may outlive the original ten-minute lease.
+  const heartbeat = setInterval(async () => {
+    try {
+      const { data: renewed, error } = await sb.rpc("renew_sync_lock", {
+        p_user_id: userId, p_lock_token: token, p_lease_seconds: LEASE_SECONDS,
+      });
+      if (error || !renewed) {
+        console.error("sync lock renewal failed");
+        // Dedicated worker must not continue writing after losing its lock.
+        if (process.env.COURSEPILOT_WORKER === "true") process.exit(1);
+      }
+    } catch {
+      if (process.env.COURSEPILOT_WORKER === "true") process.exit(1);
+    }
+  }, 60_000);
   try {
     return await work();
   } finally {
+    clearInterval(heartbeat);
     const { error: releaseError } = await sb.rpc("release_sync_lock", {
       p_user_id: userId,
       p_lock_token: token,

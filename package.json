@@ -6,6 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "worker": "tsx scripts/job-worker.ts",
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
@@ -22,6 +23,7 @@
     "next": "^15.5.28",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "tsx": "^4.23.15",
     "undici": "^6.29.1"
   },
   "devDependencies": {

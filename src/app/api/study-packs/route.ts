@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
-import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
-import { invalidateUserCache } from "@/lib/cache";
+import { enqueueJob } from "@/lib/jobs";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 import { randomUUID } from "node:crypto";
 import { logServerError } from "@/lib/server-error";
@@ -31,7 +29,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const started = Date.now();
   const requestId = randomUUID();
   try {
     const user = await requireUser();
@@ -55,25 +52,12 @@ export async function POST(request: Request) {
     const { data: limited, error: limitError } = await db.rpc("check_rate_limit", { p_user_id: user.id, p_minute_limit: 5, p_day_limit: 40 });
     if (limitError) throw limitError;
     if (limited?.[0]?.allowed === false) return NextResponse.json({ error: "Study generation limit reached. Try again later." }, { status: 429 });
-    try {
-      const generated = await generateStudyPack(user.id, course, validInput, requestId);
-      if (!generated.grounded || !Array.isArray(generated.items) || generated.items.length !== input.count || generated.items.some((item: any) => !Array.isArray(item.citations) || !item.citations.length)) return NextResponse.json({ error: "Not enough cited course material to generate this pack" }, { status: 422 });
-      const { data: pack, error } = await db.from("study_packs").insert({ user_id: user.id, course_id: course.id, title: generated.title, mode: input.mode, topic: input.topic ?? null, module: input.module ?? null, difficulty: input.difficulty, item_count: generated.items.length, source_index_version: generated.source_index_version }).select().single();
-      if (error) throw error;
-      const items = generated.items.map((item: any, item_order: number) => ({ ...item, pack_id: pack.id, item_order }));
-      const { error: itemsError } = await db.from("study_pack_items").insert(items);
-      if (itemsError) { await db.from("study_packs").delete().eq("id", pack.id).eq("user_id", user.id); throw itemsError; }
-      await db.from("ai_requests").insert({ user_id: user.id, feature: "study-prep", latency_ms: Date.now() - started, status: "ok" });
-      invalidateUserCache(user.id);
-      return NextResponse.json({ ...pack, items }, { status: 201, headers: { "X-Request-ID": requestId } });
-    } catch (error) {
-      await db.from("ai_requests").insert({ user_id: user.id, feature: "study-prep", latency_ms: Date.now() - started, status: "error", error: "generation_failed" });
-      throw error;
-    }
+    return NextResponse.json(await enqueueJob(user.id, "study_prep", validInput), {
+      status: 202, headers: { "X-Request-ID": requestId, "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     logServerError("study-packs.generate", error, requestId);
-    if (error instanceof StudyPrepServiceError) return NextResponse.json({ error: error.message }, { status: error.status === 422 || error.status === 504 ? error.status : 502, headers: { "X-Request-ID": requestId } });
     return NextResponse.json({ error: "Could not generate study pack" }, { status: 502, headers: { "X-Request-ID": requestId } });
   }
 }
