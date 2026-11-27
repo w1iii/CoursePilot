@@ -114,6 +114,7 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
   const [state, setState] = useState<SyncState>(initialState);
   const [hydrated, setHydrated] = useState(false);
   const inFlight = useRef(false);
+  const pendingJobId = useRef<string | null>(null);
   const router = useRouter();
   const { jobs, refresh } = useJobs();
   const queuedSync = jobs.some((job) => job.kind !== "study_prep" && activeJob(job));
@@ -122,6 +123,7 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!latestSync?.finished_at) return;
     setState((current) => {
+      if (current.running && pendingJobId.current !== latestSync.id) return current;
       if (current.finishedAt && current.finishedAt >= latestSync.finished_at!) return current;
       return {
         running: false, result: normalizeSyncResult(latestSync.result), error: latestSync.error,
@@ -151,6 +153,7 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
   const start = useCallback(async () => {
     if (inFlight.current) return;
     inFlight.current = true;
+    pendingJobId.current = null;
 
     const startedAt = new Date().toISOString();
     setState((current) => ({
@@ -173,7 +176,11 @@ export default function SyncProvider({ children }: { children: React.ReactNode }
         return;
       }
       if (response.status === 202) {
-        setState((current) => ({ ...current, running: false }));
+        const accepted = await response.json() as { jobId?: unknown };
+        if (typeof accepted.jobId !== "string") throw new Error("Sync returned an invalid job");
+        pendingJobId.current = accepted.jobId;
+        // Keep this request pending until durable completion arrives; clearing
+        // it now briefly enables another submission before the next jobs poll.
         refresh();
         return;
       }

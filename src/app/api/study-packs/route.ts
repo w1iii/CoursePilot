@@ -3,6 +3,7 @@ import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
 import { enqueueJob } from "@/lib/jobs";
+import { moduleMetadata, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 import { randomUUID } from "node:crypto";
 import { logServerError } from "@/lib/server-error";
@@ -33,17 +34,16 @@ export async function POST(request: Request) {
   try {
     const user = await requireUser();
     const input = await readJsonObject(request);
-    const allowedFields = new Set(["courseId", "mode", "difficulty", "count", "topic", "module", "moduleId"]);
-    if (!input || Object.keys(input).some((key) => !allowedFields.has(key)) || !isUuid(input.courseId) || !["flashcards", "quiz", "mixed"].includes(input.mode as string) || !["easy", "medium", "hard", "mixed"].includes(input.difficulty as string) || !Number.isInteger(input.count) || (input.count as number) < 1 || (input.count as number) > 30 || (input.topic != null && (typeof input.topic !== "string" || input.topic.length > 300)) || (input.module != null && (typeof input.module !== "string" || input.module.length > 200))) return NextResponse.json({ error: "Invalid study pack request" }, { status: 400 });
-    if (input.moduleId != null && (!Number.isSafeInteger(input.moduleId) || (input.moduleId as number) <= 0)) return NextResponse.json({ error: "Invalid module selection" }, { status: 400 });
+    const allowedFields = new Set(["courseId", "mode", "difficulty", "count", "topic", "moduleIds"]);
+    if (!input || Object.keys(input).some((key) => !allowedFields.has(key)) || !isUuid(input.courseId) || !["flashcards", "quiz", "mixed"].includes(input.mode as string) || !["easy", "medium", "hard", "mixed"].includes(input.difficulty as string) || !Number.isInteger(input.count) || (input.count as number) < 1 || (input.count as number) > 15 || (input.topic != null && (typeof input.topic !== "string" || input.topic.length > 300))) return NextResponse.json({ error: "Invalid study pack request" }, { status: 400 });
+    if (!Array.isArray(input.moduleIds) || input.moduleIds.length < 1 || input.moduleIds.length > 2 || input.moduleIds.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(input.moduleIds).size !== input.moduleIds.length) return NextResponse.json({ error: "Select one or two modules" }, { status: 400 });
     const validInput = {
       courseId: input.courseId,
       mode: input.mode as "flashcards" | "quiz" | "mixed",
       difficulty: input.difficulty as "easy" | "medium" | "hard" | "mixed",
       count: input.count as number,
+      moduleIds: input.moduleIds as number[],
       ...(typeof input.topic === "string" ? { topic: input.topic } : {}),
-      ...(typeof input.module === "string" ? { module: input.module } : {}),
-      ...(typeof input.moduleId === "number" ? { moduleId: input.moduleId } : {}),
     };
     const course = (await listStudyPrepCourses(user.id)).find((item) => item.id === input.courseId);
     if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });
@@ -52,12 +52,16 @@ export async function POST(request: Request) {
     const { data: limited, error: limitError } = await db.rpc("check_rate_limit", { p_user_id: user.id, p_minute_limit: 5, p_day_limit: 40 });
     if (limitError) throw limitError;
     if (limited?.[0]?.allowed === false) return NextResponse.json({ error: "Study generation limit reached. Try again later." }, { status: 429 });
+    const modules = await moduleMetadata(user.id, course);
+    const selectedModules = validInput.moduleIds.map((id) => modules.find((module) => module.id === id && module.chunks > 0));
+    if (selectedModules.some((module) => !module)) return NextResponse.json({ error: "Selected module is not indexed" }, { status: 422 });
     return NextResponse.json(await enqueueJob(user.id, "study_prep", validInput), {
       status: 202, headers: { "X-Request-ID": requestId, "Cache-Control": "private, no-store" },
     });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     logServerError("study-packs.generate", error, requestId);
+    if (error instanceof StudyPrepServiceError) return NextResponse.json({ error: error.message }, { status: error.status === 422 || error.status === 504 ? error.status : 502, headers: { "X-Request-ID": requestId } });
     return NextResponse.json({ error: "Could not generate study pack" }, { status: 502, headers: { "X-Request-ID": requestId } });
   }
 }

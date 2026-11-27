@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { syncCanvas } from "@/lib/sync";
 import { jobContext } from "@/lib/job-context";
 import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
-import { generateStudyPack, StudyPrepServiceError } from "@/lib/ai/study-prep";
+import { generateStudyPack, moduleMetadata, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import type { JobKind } from "@/lib/jobs";
 import type { AppUser } from "@/lib/user";
@@ -12,7 +12,7 @@ import type { AppUser } from "@/lib/user";
 type Job = { id: string; user_id: string; kind: JobKind; payload: Record<string, unknown>; attempts: number };
 class PermanentJobError extends Error {}
 
-async function executeJob(job: Job, token: string) {
+export async function executeJob(job: Job, token: string) {
   const db = supabaseAdmin();
   if (job.kind === "study_prep") {
     const { data: saved, error: savedError } = await db.from("study_packs").select("id")
@@ -21,6 +21,22 @@ async function executeJob(job: Job, token: string) {
     if (saved) return { status: "succeeded", result: { packId: saved.id }, error: null };
     const course = (await listStudyPrepCourses(job.user_id)).find((c) => c.id === job.payload.courseId);
     if (!course?.rag_indexed_at) throw new PermanentJobError("Course is not indexed. Sync it before trying again.");
+    // Old queue payloads may contain moduleId or whole-course scope. Never
+    // silently broaden generation: ask those users to submit with the new UI.
+    const ids = job.payload.moduleIds;
+    if (!Array.isArray(ids) || ids.length < 1 || ids.length > 2 ||
+      ids.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(ids).size !== ids.length ||
+      !Number.isInteger(job.payload.count) || (job.payload.count as number) < 1 || (job.payload.count as number) > 15 ||
+      !["flashcards", "quiz", "mixed"].includes(String(job.payload.mode)) ||
+      !["easy", "medium", "hard", "mixed"].includes(String(job.payload.difficulty)) ||
+      (job.payload.topic != null && (typeof job.payload.topic !== "string" || job.payload.topic.length > 300))) {
+      throw new PermanentJobError("Study request needs updating. Select one or two modules and create a new pack.");
+    }
+    const modules = await moduleMetadata(job.user_id, course);
+    const selectedModules = ids.map((id) => modules.find((module) => module.id === id && module.chunks > 0));
+    if (selectedModules.some((module) => !module)) {
+      throw new PermanentJobError("Selected module is no longer indexed. Sync the course and create a new pack.");
+    }
     const input = job.payload as Parameters<typeof generateStudyPack>[2];
     const generated = await generateStudyPack(job.user_id, course, input, job.id);
     if (!generated.grounded || !Array.isArray(generated.items) || generated.items.length !== input.count ||
@@ -31,7 +47,8 @@ async function executeJob(job: Job, token: string) {
     const { data: packId, error } = await db.rpc("save_background_study_pack", {
       p_job_id: job.id, p_token: token,
       p_pack: { course_id: course.id, title: generated.title, mode: input.mode, topic: input.topic ?? null,
-        module: input.module ?? null, difficulty: input.difficulty, source_index_version: generated.source_index_version },
+        module: selectedModules.map((module) => module!.name).join(", ").slice(0, 200),
+        difficulty: input.difficulty, source_index_version: generated.source_index_version },
       p_items: generated.items,
     });
     if (error) throw error;

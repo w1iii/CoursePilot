@@ -54,6 +54,13 @@ Local RAG worker:
   do not. Document writes retain their existing transactional behavior.
 - Generated study packs and items commit atomically and are unique per job.
   If a worker dies after saving a pack, recovery reuses that pack.
+- Study submissions retain the existing builder: one or two indexed `moduleIds`,
+  at most 15 items, and optional study focus (300 characters). Both submission
+  and execution check module availability. Saved packs retain module names.
+- Unsaved legacy jobs using `moduleId` or whole-course scope fail with an
+  actionable notification asking the user to resubmit. The worker never
+  silently broadens scope; already-saved packs are still recovered on retry.
+  Deploy web and app worker from the same revision.
 - Job polling is authenticated and owner-scoped. Internal Canvas/provider errors
   are not returned as sync failure details. Service-role queue functions are
   unavailable to anonymous/authenticated database roles.
@@ -77,7 +84,7 @@ database tables and migrations. Never drop queued work as a rollback shortcut.
 
 ## Validation
 
-- `npm run typecheck`, `npm run lint`, `npm test`
+- `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`
 - RAG: `uv run --locked pytest -q`
 - SQL: run `supabase/tests/background_jobs.sql` against a disposable database
   after schema and migrations. It rolls back synthetic data.
