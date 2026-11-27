@@ -26,6 +26,7 @@ interface RagResponse extends Record<string, unknown> {
   grounded: boolean;
   course: { id: string; name: string };
   dailyUsage?: { count: number; limit: number; warning: boolean } | null;
+  incomplete?: boolean;
 }
 
 interface Turn {
@@ -36,6 +37,7 @@ interface Turn {
   status: "loading" | "done" | "error";
   response?: RagResponse;
   error?: string;
+  progress?: string;
 }
 
 interface Props {
@@ -113,6 +115,7 @@ export default function ThreadView({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const followOutput = useRef(true);
   function startTurn(prompt: string, cid: string) {
     const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
     const turn: Turn = { id, question: prompt, courseId: cid, createdAt: new Date().toISOString(), status: "loading" };
@@ -133,8 +136,8 @@ export default function ThreadView({
   }, [store, initialThreadId, initialQuestion, initialCourseId, courses]);
 
   useEffect(() => {
-    if (turns.length > 0) {
-      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (turns.length > 0 && followOutput.current) {
+      endRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
     }
   }, [turns]);
 
@@ -186,7 +189,10 @@ export default function ThreadView({
             Dashboard
           </Link>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto bg-background">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background" onScroll={(event) => {
+          const el = event.currentTarget;
+          followOutput.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+        }}>
           <div className={`mx-auto flex w-full max-w-[720px] flex-col bg-background px-4 md:px-6 ${
             turns.length === 0 ? "min-h-full justify-center py-8" : "pb-8 pt-4"
           }`}>
@@ -245,6 +251,7 @@ export default function ThreadView({
                         <span className="h-2 w-2 animate-bounce rounded-full bg-tertiary-container [animation-delay:120ms]" />
                         <span className="h-2 w-2 animate-bounce rounded-full bg-tertiary-container [animation-delay:240ms]" />
                       </div>
+                      <p role="status" className="pt-2 text-xs text-text-muted">{turn.progress ?? "Preparing answer…"}</p>
                     </div>
                   )}
                   {turn.status === "error" && (
@@ -257,6 +264,8 @@ export default function ThreadView({
                     <div className="group flex gap-3">
                       <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-container font-display text-sm text-dark-text">h</span>
                       <div className="min-w-0 flex-1 break-words text-[13px] leading-[1.65] text-on-surface">
+                        {(turn.status === "error" || turn.response.incomplete) && <p className="mb-2 font-label-sm text-label-sm text-text-muted">Incomplete answer</p>}
+                        {turn.response.incomplete && turn.response.answer.length >= 8000 && <p className="mb-2 text-xs text-text-muted">Answer reached its size limit. Ask for a narrower section.</p>}
                         <div>{renderText(cleanCitationMarkers(turn.response.answer))}</div>
                         {turn.response.sources.length > 0 && (
                           <div className="mt-3 border-t border-border/70 pt-2.5">
@@ -275,7 +284,8 @@ export default function ThreadView({
                           <button type="button" onClick={() => void copyAnswer(turn)} className="rounded-md p-1.5 hover:bg-surface-container" title="Copy">
                             <span className="material-symbols-outlined text-[17px]">{copiedId === turn.id ? "check" : "content_copy"}</span>
                           </button>
-                          <button type="button" onClick={() => retry(turn)} className="rounded-md p-1.5 hover:bg-surface-container" title="Regenerate"><span className="material-symbols-outlined text-[17px]">refresh</span></button>
+                          {turn.response.incomplete && turn.response.answer.length < 8000 && <button type="button" disabled={busy} onClick={() => void store.request(initialThreadId, turn, true, true)} className="rounded-md px-2 py-1.5 underline disabled:opacity-50">Continue</button>}
+                          <button type="button" disabled={busy} onClick={() => retry(turn)} className="rounded-md p-1.5 hover:bg-surface-container disabled:opacity-50" title="Regenerate"><span className="material-symbols-outlined text-[17px]">refresh</span></button>
                           <button type="button" className="rounded-md p-1.5 hover:bg-surface-container" title="Helpful"><span className="material-symbols-outlined text-[17px]">thumb_up</span></button>
                           <button type="button" className="rounded-md p-1.5 hover:bg-surface-container" title="Not helpful"><span className="material-symbols-outlined text-[17px]">thumb_down</span></button>
                         </div>

@@ -28,6 +28,7 @@ import {
   CourseSelectionError,
   listCoursesForUser,
   RagServiceError,
+  streamAnswerQuestion,
 } from "@/lib/ai/rag";
 import { sharedCourseKey } from "@/lib/ai/course-index";
 
@@ -228,6 +229,39 @@ describe("answerQuestion", () => {
     await expect(answerQuestion("user-a", "hi", "course-1")).rejects.toThrow(
       "RAG service unreachable",
     );
+  });
+
+  it("checks enrollment before opening any streaming RAG request", async () => {
+    mockCourses({ data: [courses[0]], error: null });
+    listCanvasCoursesMock.mockResolvedValue([]);
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const stream = streamAnswerQuestion("user-a", "hi", "course-1", {
+      signal: new AbortController().signal, requestId: "request", deadline: Date.now() + 45000,
+    });
+    await expect(stream.next()).rejects.toBeInstanceOf(CourseSelectionError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("propagates request ID, remaining budget, course-scoped token, and final citation mapping", async () => {
+    mockCourses({ data: [courses[0]], error: null });
+    const final = { answer: "Answer", grounded: true, model: "existing", citations: [
+      { chunk_id: "chunk", label: "Cells", title: "Cells", source_type: "text", chunk_index: 0 },
+    ] };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      `event: delta\ndata: {"text":"Answer"}\n\nevent: done\ndata: ${JSON.stringify(final)}\n\n`,
+      { headers: { "Content-Type": "text/event-stream" } },
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+    const result = [];
+    for await (const item of streamAnswerQuestion("user-a", "hi", "course-1", {
+      signal: new AbortController().signal, requestId: "request", deadline: Date.now() + 12000,
+    })) result.push(item);
+    expect(result.at(-1)).toMatchObject({ event: "done", data: { sources: [{ id: "chunk", label: "Cells" }] } });
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers["X-Request-ID"]).toBe("request");
+    expect(Number(init.headers["X-Request-Budget-Ms"])).toBeLessThanOrEqual(11000);
+    expect(init.headers["X-RAG-Token"]).toBeTruthy();
   });
 
   it("leaves answer caching disabled unless explicitly enabled", async () => {

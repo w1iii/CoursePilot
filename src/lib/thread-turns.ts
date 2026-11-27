@@ -6,6 +6,7 @@ export interface ThreadTurn {
   status: "loading" | "done" | "error";
   response?: Record<string, unknown>;
   error?: string;
+  progress?: string;
 }
 
 export function hasPersistedTurns<T>(turns: T[] | undefined): boolean {
@@ -28,9 +29,9 @@ export function messagesToTurns(messages: Array<Record<string, unknown>>): Threa
     } else if (message.role === "assistant") {
       const turn = turns.get(turnId);
       if (!turn) continue;
-      turn.status = metadata.status === "error" ? "error" : "done";
+      turn.status = metadata.status === "error" ? "error" : metadata.status === "loading" ? "loading" : "done";
       if (turn.status === "error") turn.error = String(message.content);
-      else if (metadata.response && typeof metadata.response === "object" && !Array.isArray(metadata.response)) {
+      if (metadata.response && typeof metadata.response === "object" && !Array.isArray(metadata.response)) {
         turn.response = metadata.response as Record<string, unknown>;
       }
     }

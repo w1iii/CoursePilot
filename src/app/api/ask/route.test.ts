@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NextRequest } from "next/server";
 
-const mocks = vi.hoisted(() => ({ user: vi.fn(), limit: vi.fn(), answer: vi.fn(), log: vi.fn(), usage: vi.fn() }));
+const mocks = vi.hoisted(() => ({ user: vi.fn(), limit: vi.fn(), answer: vi.fn(), stream: vi.fn(), log: vi.fn(), usage: vi.fn() }));
+vi.mock("@/lib/ai/chat-response", () => ({ chatStreamResponse: mocks.stream }));
 vi.mock("@/lib/user", () => ({ requireUser: mocks.user, UnauthorizedError: class UnauthorizedError extends Error {} }));
 vi.mock("@/lib/ai/rag", () => ({ answerQuestion: mocks.answer, CourseSelectionError: class CourseSelectionError extends Error {}, RagServiceError: class RagServiceError extends Error {} }));
 vi.mock("@/lib/ai/log", () => ({ logAiRequest: mocks.log, elapsedMs: () => 1 }));
@@ -15,6 +16,7 @@ function request(body: unknown) {
 }
 
 describe("ask route", () => {
+  afterEach(() => vi.unstubAllEnvs());
   beforeEach(() => {
     vi.resetAllMocks();
     mocks.user.mockResolvedValue({ id: "user" });
@@ -52,5 +54,21 @@ describe("ask route", () => {
     expect(JSON.stringify(log.mock.calls)).not.toContain("secret detail");
     expect(mocks.log).toHaveBeenCalledWith(expect.objectContaining({ status: "error", error: "An unexpected error occurred" }));
     log.mockRestore();
+  });
+  it("opts into streaming only behind the server flag after authorization/rate checks", async () => {
+    vi.stubEnv("RAG_CHAT_STREAM_ENABLED", "true");
+    mocks.stream.mockReturnValue(new Response("stream", { headers: { "Content-Type": "text/event-stream" } }));
+    const req = new Request("http://localhost/api/ask", { method: "POST", headers: { Accept: "text/event-stream" }, body: JSON.stringify({ question: "hello" }) }) as NextRequest;
+    const response = await POST(req);
+    expect(response.headers.get("content-type")).toBe("text/event-stream");
+    expect(mocks.stream).toHaveBeenCalled();
+    expect(mocks.answer).not.toHaveBeenCalled();
+  });
+  it("does not open streaming for rate-limited requests", async () => {
+    vi.stubEnv("RAG_CHAT_STREAM_ENABLED", "true");
+    mocks.limit.mockResolvedValue({ allowed: false, enforced: true, scope: "minute" });
+    const req = new Request("http://localhost/api/ask", { method: "POST", headers: { Accept: "text/event-stream" }, body: JSON.stringify({ question: "hello" }) }) as NextRequest;
+    expect((await POST(req)).status).toBe(429);
+    expect(mocks.stream).not.toHaveBeenCalled();
   });
 });

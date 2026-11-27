@@ -108,7 +108,8 @@ Copy `.env.example` to `.env`; never commit secrets.
 | `CANVAS_ALLOW_ENV_TOKEN` | No | `false` | Local shared-token fallback |
 | `CANVAS_ACCESS_TOKEN` | No | — | Local fallback token |
 | `RAG_API_URL` | No | `http://localhost:8000` | RAG URL |
-| `RAG_TIMEOUT_MS` | No | `30000` | Chat timeout |
+| `RAG_TIMEOUT_MS` | No | `35000` | Legacy JSON RAG timeout, capped at 35 seconds |
+| `RAG_CHAT_STREAM_ENABLED` | No | `false` | Enable budgeted streaming after matching RAG deployment |
 | `RAG_SIGNING_SECRET` | Yes with RAG | — | Shared HMAC secret |
 | `RAG_INGESTION_ENABLED` | No | `true` | Ingest during sync |
 | `RAG_INGEST_MAX_COURSES` | No | `3` | Courses per sync |

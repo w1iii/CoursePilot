@@ -8,6 +8,8 @@ import { sharedCourseKey, normalizeCanvasInstance } from "@/lib/ai/course-index"
 import { getCanvasCredentials } from "@/lib/canvas-account";
 import { listCourses } from "@/lib/canvas";
 import { sharedIndexEnabled } from "@/lib/ai/ingest";
+import { CHAT_RAG_MS, abortable } from "@/lib/chat-budget";
+import { readChatEvents, type ChatEvent } from "@/lib/chat-stream";
 
 export interface CourseOption {
   id: string;
@@ -71,6 +73,7 @@ export class RagServiceError extends Error {
   constructor(
     message: string,
     readonly status = 502,
+    readonly code: "rag_timeout" | "rag_unreachable" | "rag_http_error" | "invalid_response" = "rag_http_error",
   ) {
     super(message);
     this.name = "RagServiceError";
@@ -89,7 +92,7 @@ function ragBaseUrl(): string {
 
 function ragTimeoutMs(): number {
   const configured = Number(env("RAG_TIMEOUT_MS"));
-  return Number.isFinite(configured) && configured > 0 ? configured : 30_000;
+  return Number.isFinite(configured) && configured > 0 ? Math.min(configured, CHAT_RAG_MS) : CHAT_RAG_MS;
 }
 
 function answerCacheEnabledForUser(userId: string): boolean {
@@ -274,7 +277,8 @@ async function answerQuestionUncached(
     });
   } catch (err) {
     const reason = (err as Error).name === "TimeoutError" ? "timed out" : "unreachable";
-    throw new RagServiceError(`RAG service ${reason} at ${ragBaseUrl()}.`);
+    throw new RagServiceError(`RAG service ${reason}.`, reason === "timed out" ? 504 : 502,
+      reason === "timed out" ? "rag_timeout" : "rag_unreachable");
   }
 
   if (!res.ok) {
@@ -296,4 +300,81 @@ async function answerQuestionUncached(
       chunk_index: citation.chunk_index,
   })),
   };
+}
+
+/** Streaming deliberately bypasses Promise dedupe/cache: a body has one reader.
+ * Access is rechecked exactly as for JSON answers, before any course text emits.
+ */
+export async function* streamAnswerQuestion(
+  userId: string, question: string, courseId: string | undefined,
+  options: { signal: AbortSignal; requestId: string; deadline: number; continuation?: string },
+): AsyncGenerator<ChatEvent> {
+  const course = await abortable(resolveCourse(userId, courseId), options.signal);
+  const { credentials, account } = await abortable(getCanvasCredentials(userId), options.signal);
+  if (account?.invalid_at) throw new CourseSelectionError("Reconnect Canvas to continue.", []);
+  const enrolled = await abortable(listCourses(credentials), options.signal);
+  if (!enrolled.some((item) => item.id === course.canvas_course_id)) {
+    throw new CourseSelectionError("Course is not active in this Canvas account.", []);
+  }
+  const canvasInstance = normalizeCanvasInstance(credentials.baseUrl);
+  const shared = sharedIndexEnabled();
+  const courseKey = shared ? sharedCourseKey(canvasInstance, course.canvas_course_id) : course.id;
+  const remaining = Math.min(CHAT_RAG_MS, options.deadline - Date.now() - 1000);
+  if (remaining <= 0) throw new RagServiceError("Request timed out.", 504, "rag_timeout");
+  const signal = AbortSignal.any([options.signal, AbortSignal.timeout(remaining)]);
+  let response: Response;
+  try {
+    response = await fetch(`${ragBaseUrl()}/api/v1/chat/stream`, {
+      method: "POST", cache: "no-store", signal,
+      headers: {
+        "Content-Type": "application/json", Accept: "text/event-stream",
+        "X-RAG-Token": signRagToken({ userId, courseKey, scope: "chat",
+          ...(shared ? { canvasCourseId: course.canvas_course_id, canvasInstance } : {}) }),
+        "X-Request-ID": options.requestId, "X-Request-Budget-Ms": String(remaining),
+      },
+      body: JSON.stringify({ course_key: courseKey, course_name: course.course_name, question,
+        ...(options.continuation ? { continuation: options.continuation } : {}) }),
+    });
+    if (!response.ok) {
+      await response.body?.cancel();
+      throw new RagServiceError("Assistant unavailable.", response.status);
+    }
+    if (!response.headers.get("content-type")?.includes("text/event-stream") || !response.body) {
+      await response.body?.cancel();
+      throw new RagServiceError("Invalid assistant response.", 502, "invalid_response");
+    }
+    for await (const item of readChatEvents(response.body)) {
+      if (item.event === "done") {
+        const body = item.data as unknown as RagChatResponse & { incomplete?: boolean };
+        if (typeof body.answer !== "string" || !Array.isArray(body.citations) ||
+          typeof body.model !== "string" || typeof body.grounded !== "boolean") {
+          throw new RagServiceError("Invalid assistant response.", 502, "invalid_response");
+        }
+        yield { event: "done", data: {
+          answer: body.answer, grounded: body.grounded, model: body.model,
+          incomplete: body.incomplete === true, course: { id: course.id, name: course.course_name },
+          sources: body.citations.map((citation) => ({
+            id: citation.chunk_id, label: citation.label, title: citation.title,
+            source_type: citation.source_type, chunk_index: citation.chunk_index,
+          })),
+          web_sources: body.web_sources ?? [],
+        } };
+        return;
+      }
+      if (item.event === "error") {
+        const code = item.data.code;
+        throw new RagServiceError("Assistant unavailable.", code === "rag_timeout" ? 504 : 502,
+          code === "rag_timeout" ? "rag_timeout" : "rag_http_error");
+      }
+      if (item.event === "delta" && typeof item.data.text !== "string") {
+        throw new RagServiceError("Invalid assistant response.", 502, "invalid_response");
+      }
+      if (["delta", "status"].includes(item.event)) yield item;
+    }
+    throw new RagServiceError("Assistant response interrupted.", 502, "invalid_response");
+  } catch (error) {
+    if (error instanceof RagServiceError) throw error;
+    if (signal.aborted) throw new RagServiceError("Request timed out.", 504, "rag_timeout");
+    throw new RagServiceError("Assistant connection lost.", 502, "rag_unreachable");
+  }
 }
