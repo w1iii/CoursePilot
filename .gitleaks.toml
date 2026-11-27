@@ -9,3 +9,13 @@ paths = [
   '''\.md$''',
   '''public/''',
 ]
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "SHA-256 file hashes in the captured audit baseline"
+condition = "AND"
+paths = ['''(^|/)docs/audit-evidence/baseline\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"[^"]+": "[a-f0-9]{64}",?\s*$''']
