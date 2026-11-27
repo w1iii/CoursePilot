@@ -7,6 +7,7 @@ import { moduleMetadata, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 import { randomUUID } from "node:crypto";
 import { logServerError } from "@/lib/server-error";
+import { validateStudyFocus } from "@/lib/study-focus";
 
 export const maxDuration = 300;
 
@@ -34,6 +35,8 @@ export async function POST(request: Request) {
   try {
     const user = await requireUser();
     const input = await readJsonObject(request);
+    const focus = validateStudyFocus(input?.topic);
+    if (focus.error) return NextResponse.json({ error: focus.error, field: "topic" }, { status: 400 });
     const allowedFields = new Set(["courseId", "mode", "difficulty", "count", "topic", "moduleIds"]);
     if (!input || Object.keys(input).some((key) => !allowedFields.has(key)) || !isUuid(input.courseId) || !["flashcards", "quiz", "mixed"].includes(input.mode as string) || !["easy", "medium", "hard", "mixed"].includes(input.difficulty as string) || !Number.isInteger(input.count) || (input.count as number) < 1 || (input.count as number) > 15 || (input.topic != null && (typeof input.topic !== "string" || input.topic.length > 300))) return NextResponse.json({ error: "Invalid study pack request" }, { status: 400 });
     if (!Array.isArray(input.moduleIds) || input.moduleIds.length < 1 || input.moduleIds.length > 2 || input.moduleIds.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(input.moduleIds).size !== input.moduleIds.length) return NextResponse.json({ error: "Select one or two modules" }, { status: 400 });
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
       difficulty: input.difficulty as "easy" | "medium" | "hard" | "mixed",
       count: input.count as number,
       moduleIds: input.moduleIds as number[],
-      ...(typeof input.topic === "string" && input.topic.trim() ? { topic: input.topic.trim() } : {}),
+      ...(focus.value ? { topic: focus.value } : {}),
     };
     const course = (await listStudyPrepCourses(user.id)).find((item) => item.id === input.courseId);
     if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });

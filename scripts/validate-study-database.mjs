@@ -92,6 +92,13 @@ try {
   const charge = await parallelSql("select count from study_generation_windows where user_id='44444444-4444-4444-8444-444444444444' and window_kind='day';");
   if (charge !== "1") throw new Error("Busy requests charged study quota");
   console.log("PASS eight concurrent different-scope requests create one job and one quota charge");
+  for (const file of [
+    "supabase/migrations/202611270004_study_answer_validation.sql",
+    "supabase/tests/study_answer_validation.sql",
+  ]) {
+    sql(readFileSync(new URL(`../${file}`, import.meta.url), "utf8"));
+    console.log(`PASS ${file}`);
+  }
 } finally {
   if (started) {
     run(["stop", "--time", "5", name]);

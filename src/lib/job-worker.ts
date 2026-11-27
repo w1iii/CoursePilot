@@ -9,6 +9,7 @@ import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import type { JobKind } from "@/lib/jobs";
 import type { AppUser } from "@/lib/user";
 import { logServerError } from "@/lib/server-error";
+import { validateStudyFocus } from "@/lib/study-focus";
 
 type Job = { id: string; user_id: string; kind: JobKind; payload: Record<string, unknown>; attempts: number };
 class PermanentJobError extends Error {}
@@ -33,12 +34,15 @@ export async function executeJob(job: Job, token: string) {
       (job.payload.topic != null && (typeof job.payload.topic !== "string" || job.payload.topic.length > 300))) {
       throw new PermanentJobError("Study request needs updating. Select one or two modules and create a new pack.");
     }
+    const input = { ...job.payload } as Parameters<typeof generateStudyPack>[2];
+    const focus = validateStudyFocus(input.topic);
+    if (focus.error) throw new PermanentJobError(focus.error);
+    input.topic = focus.value ?? undefined;
     const modules = await moduleMetadata(job.user_id, course);
     const selectedModules = ids.map((id) => modules.find((module) => module.id === id && module.chunks > 0));
     if (selectedModules.some((module) => !module)) {
       throw new PermanentJobError("Selected module is no longer indexed. Sync the course and create a new pack.");
     }
-    const input = job.payload as Parameters<typeof generateStudyPack>[2];
     const generated = await generateStudyPack(job.user_id, course, input, job.id);
     if (!generated.grounded || !Array.isArray(generated.items) || generated.items.length !== input.count ||
       generated.items.some((item) => !item || typeof item !== "object" ||

@@ -62,6 +62,20 @@ describe("study session atomic routes", () => {
     expect((await attempt(request({ itemId, answer: "A", isCorrect: true }), params)).status).toBe(404);
     expect(mocks.invalidate).not.toHaveBeenCalled();
   });
+  it("returns an answer field error for invalid choices or blank written answers", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "22023", message: "private DB detail" } });
+    const response = await attempt(request({ itemId, answer: "invalid", isCorrect: true }), params);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.field).toBe("answer");
+    expect(body.error).not.toContain("private DB detail");
+    expect(mocks.invalidate).not.toHaveBeenCalled();
+  });
+  it("rejects unsafe answer controls before contacting database", async () => {
+    const response = await attempt(request({ itemId, answer: "ATP\u0007", isCorrect: true }), params);
+    expect(response.status).toBe(400);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
   it.each([{ answer: "x".repeat(4001) }, { itemId: "bad" }, { isCorrect: "true" }, { confidence: 6 }])("rejects invalid attempts: %j", async (invalid) => {
     expect((await attempt(request({ itemId, answer: "A", isCorrect: true, ...invalid }), params)).status).toBe(400);
     expect(mocks.rpc).not.toHaveBeenCalled();

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { animate, createScope } from "animejs";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { hasUnsafeStudyCharacters } from "@/lib/study-focus";
 
 export default function StudySessionPage() {
   const { packId, sessionId } = useParams<{ packId: string; sessionId: string }>();
@@ -97,13 +98,27 @@ export default function StudySessionPage() {
 
   async function saveAttempt(isCorrect: boolean) {
     if (!item || saving.current || (item.item_type === "multiple_choice" && !answer)) return;
+    const submittedAnswer = item.item_type === "multiple_choice" ? item.options[Number(answer)]
+      : item.item_type === "flashcard" ? answer || (isCorrect ? item.answer : "Self-marked incorrect") : answer;
+    if (typeof submittedAnswer !== "string" || submittedAnswer.length > 4000 || hasUnsafeStudyCharacters(submittedAnswer) || (item.item_type === "short_answer" && !submittedAnswer.trim())) {
+      retryAction.current = null;
+      setRevealed(false);
+      setError("Enter a nonblank answer without hidden control characters, or choose a listed option.");
+      return;
+    }
     saving.current = true;
     setBusy(true);
     setError("");
     retryAction.current = () => saveAttempt(isCorrect);
     try {
-      const submittedAnswer = item.item_type === "multiple_choice" ? item.options[Number(answer)] : answer || (isCorrect ? item.answer : "Self-marked incorrect");
       const response = await fetch(`/api/study-sessions/${sessionId}/attempts`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemId: item.id, answer: submittedAnswer, isCorrect }) });
+      if (response.status === 400) {
+        const data = await response.json().catch(() => ({}));
+        retryAction.current = null;
+        setRevealed(false);
+        setError(typeof data.error === "string" ? data.error : "Check your answer and try again.");
+        return;
+      }
       if (!response.ok) throw new Error("save");
       const persisted = await response.json();
       setAttempts((current) => ({ ...current, [item.id]: { ...persisted, isCorrect: persisted.is_correct } }));
@@ -198,7 +213,7 @@ export default function StudySessionPage() {
           </div>
           <div className="mt-space-md h-[3px] w-full bg-primary-container/10" role="progressbar" aria-label="Session progress" aria-valuenow={index + 1} aria-valuemin={1} aria-valuemax={items.length}><div ref={progressRef} className="h-full bg-accent transition-[width] duration-500 ease-out" style={{ width: `${((index + 1) / items.length) * 100}%` }} /></div>
         </header>
-        {error && <div role="alert" className="mt-4 border-l-2 border-error px-3 py-2 text-sm text-error"><p>{error}</p><button type="button" disabled={busy} onClick={() => void retryAction.current?.()} className="mt-2 underline disabled:opacity-50">Retry saving</button></div>}
+        {error && <div role="alert" className="mt-4 border-l-2 border-error px-3 py-2 text-sm text-error"><p>{error}</p>{retryAction.current && <button type="button" disabled={busy} onClick={() => void retryAction.current?.()} className="mt-2 underline disabled:opacity-50">Retry saving</button>}</div>}
         {busy && <p role="status" className="mt-3 text-sm text-text-muted">Saving progress…</p>}
 
         <article key={index} className="paper-reveal mx-auto mt-space-xl max-w-3xl">

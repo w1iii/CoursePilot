@@ -8,6 +8,14 @@ import type { CourseOption } from "./rag";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("study prep upstream failures", () => {
+  it("maps unsupported focus to a safe actionable validation error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      detail: { code: "study_focus_unsupported", message: "private source text" },
+    }), { status: 422 })));
+    await expect(generateStudyPack("user", { id: "course" } as CourseOption, {
+      moduleIds: [1], topic: "Castles", mode: "quiz", count: 1, difficulty: "easy",
+    })).rejects.toMatchObject({ status: 422, message: "Study focus is not supported by the selected modules. Edit it or leave it blank." });
+  });
   it.each([422, 500, 504])("does not expose upstream details for HTTP %i", async (status) => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: "secret upstream details" }), { status })));
     const promise = generateStudyPack("user", { id: "course" } as CourseOption, { moduleIds: [1], mode: "quiz", count: 1, difficulty: "easy" });

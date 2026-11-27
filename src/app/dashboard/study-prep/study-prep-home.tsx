@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import PaperReveal from "@/components/PaperReveal";
 import { useJobs, activeJob } from "../JobProvider";
 import ArchiveList, { type History, type DeleteTarget } from "./archive-list";
+import { validateStudyFocus } from "@/lib/study-focus";
 
 type Course = { id: string; course_name: string; course_code: string | null; rag_indexed_at: string | null };
 const fieldClass = "mt-1.5 w-full rounded-none border-0 border-b border-border bg-transparent px-0 py-2.5 font-body-md text-body-md text-on-surface outline-none transition-colors focus:border-primary-container";
@@ -29,6 +30,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   const [moduleRefreshStatus, setModuleRefreshStatus] = useState("");
   const [selectedModules, setSelectedModules] = useState<number[]>([]);
   const [topic, setTopic] = useState("");
+  const focusValidation = validateStudyFocus(topic);
   const [mode, setMode] = useState("flashcards");
   const [count, setCount] = useState(10);
   const [difficulty, setDifficulty] = useState("mixed");
@@ -156,11 +158,11 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   }
 
   async function generate() {
-    if (submitting.current || loading || generationLocked || cooldownUntil > Date.now()) return;
+    if (submitting.current || loading || generationLocked || focusValidation.error || cooldownUntil > Date.now()) return;
     submitting.current = true;
     setError(""); setQueued(false); setLoading(true);
     try {
-      const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, moduleIds: selectedModules, topic: topic.trim() || null, mode, count, difficulty }) });
+      const response = await fetch("/api/study-packs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId, moduleIds: selectedModules, topic: focusValidation.value, mode, count, difficulty }) });
       const data = await response.json().catch(() => { throw new Error("Study service is temporarily unavailable. Please retry shortly."); });
       if (!data || typeof data !== "object") throw new Error("Study service returned an invalid response. Please retry.");
       if (!response.ok) {
@@ -195,7 +197,7 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
   }
 
   const selectedCourse = courses.find((course) => course.id === courseId);
-  const canGenerate = Boolean(courseId && selectedCourse?.rag_indexed_at && selectedModules.length > 0 && !coursesLoading && !coursesError && !modulesError && !modulesLoading && !refreshingModules);
+  const canGenerate = Boolean(courseId && selectedCourse?.rag_indexed_at && selectedModules.length > 0 && !focusValidation.error && !coursesLoading && !coursesError && !modulesError && !modulesLoading && !refreshingModules);
 
   return (
     <main className="paper-texture min-h-full w-full">
@@ -233,9 +235,11 @@ export default function StudyPrepHome({ archive = false }: { archive?: boolean }
                 })}</div>
               </fieldset>
               {selectedCourse?.rag_indexed_at && <div className="mt-3"><button type="button" onClick={() => void refreshModules()} disabled={refreshingModules || modulesLoading} className="font-label-md text-label-md text-accent-text underline underline-offset-4 disabled:opacity-50">{refreshingModules ? "Refreshing modules…" : "Refresh module names from Canvas"}</button>{moduleRefreshStatus && <p role="status" className="mt-2 font-body-sm text-body-sm text-text-muted">{moduleRefreshStatus}</p>}</div>}
-              <label className="mt-space-lg block"><span className={labelClass}>Study focus · optional</span><textarea className={`${fieldClass} min-h-20 resize-y`} value={topic} maxLength={300} onChange={(event) => setTopic(event.target.value)} placeholder="For example: focus on key terms or explain photosynthesis" /><span className="block text-right text-xs text-text-muted">{topic.length}/300</span></label>
+              <label className="mt-space-lg block"><span className={labelClass}>Study focus · optional</span><textarea aria-invalid={Boolean(focusValidation.error)} aria-describedby="study-focus-help" className={`${fieldClass} min-h-20 resize-y`} value={topic} maxLength={300} onChange={(event) => { setTopic(event.target.value); setError(""); }} placeholder="For example: focus on key terms or explain photosynthesis" /><span className="block text-right text-xs text-text-muted">{topic.length}/300</span></label>
+              <p id="study-focus-help" role={focusValidation.error ? "alert" : undefined} className={`mt-2 text-sm ${focusValidation.error ? "text-error" : "text-text-muted"}`}>{focusValidation.error || focusValidation.warning || "Use content from your selected modules. Leave blank to cover the selected material."}</p>
 
               <div className="mt-space-lg grid gap-x-space-lg gap-y-space-md border-t border-primary-container/25 pt-space-md sm:grid-cols-3"><label className={labelClass}>Study format<select className={fieldClass} value={mode} onChange={(e) => setMode(e.target.value)}><option value="flashcards">Flashcards</option><option value="quiz">Practice quiz</option><option value="mixed">Mixed pack</option></select></label><label className={labelClass}>Number of items<input aria-label="Question count" type="number" min={1} max={15} className={fieldClass} value={count} onChange={(e) => setCount(Number(e.target.value))} /></label><label className={labelClass}>Difficulty<select className={fieldClass} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}><option value="mixed">Mixed</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label></div>
+              {(!Number.isInteger(count) || count < 1 || count > 15) && <p role="alert" className="mt-2 text-sm text-error">Choose a whole number of items from 1 to 15.</p>}
               {error && <p role="alert" className="mt-space-md border-l-2 border-error px-3 py-2 font-body-sm text-body-sm text-error">{error}</p>}
               {cooldownSeconds > 0 && <p role="status" className="mt-3 text-sm text-text-muted">Retry available in {cooldownSeconds} seconds. Your selections are preserved.</p>}
               <div className="mt-space-lg flex flex-wrap items-center gap-space-md"><button type="button" onClick={generate} disabled={loading || generationLocked || cooldownSeconds > 0 || !canGenerate || !Number.isInteger(count) || count < 1 || count > 15} className="inline-flex min-h-11 items-center gap-2 bg-primary-container px-5 py-3 font-label-md text-label-md text-on-primary-container transition-colors hover:bg-primary-container/90 disabled:cursor-not-allowed disabled:opacity-50">{loading ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>Preparing your pack…</> : studyInProgress ? "Study pack being generated…" : <>Generate study pack <span aria-hidden="true">→</span></>}</button><span className="font-body-sm text-body-sm text-text-muted">Based on your selected Canvas modules</span></div>
