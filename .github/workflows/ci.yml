@@ -61,7 +61,7 @@ jobs:
           docker run --rm
           -v "${{ github.workspace }}:/repo"
           zricethezav/gitleaks:v8.30.1
-          detect --source=/repo --no-git --redact --config=/repo/.gitleaks.toml --exit-code 1
+          detect --source=/repo --no-git --redact --verbose --config=/repo/.gitleaks.toml --exit-code 1
 
   devops-tooling:
     name: DevOps evidence tooling
