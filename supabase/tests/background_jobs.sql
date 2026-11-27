@@ -6,7 +6,7 @@ declare
   u uuid; c uuid; j uuid; j2 uuid; pack uuid;
   token uuid := gen_random_uuid(); claimed background_jobs; n integer;
 begin
-  assert not has_function_privilege('anon','enqueue_background_job(uuid,text,jsonb,text)','execute'), 'anon can enqueue';
+   assert not has_function_privilege('anon','enqueue_background_job(uuid,text,jsonb,text)','execute'), 'anon can enqueue';
   assert not has_function_privilege('authenticated','enqueue_background_job(uuid,text,jsonb,text)','execute'), 'client can enqueue';
   assert has_function_privilege('service_role','enqueue_background_job(uuid,text,jsonb,text)','execute'), 'worker cannot enqueue';
   insert into users(clerk_user_id,email) values('queue-test','queue@example.test') returning id into u;
@@ -15,7 +15,7 @@ begin
   assert (select onboarding_completed_at is not null from users where id=u), 'onboarding gate not saved';
   assert (select selected_for_rag from courses where id=c), 'selection not saved';
   assert enqueue_background_job(u,'sync','{}','sync') = j, 'active dedupe failed';
-  select * into claimed from claim_background_job(token);
+   select * into claimed from claim_background_job(token,2);
   assert claimed.id=j and claimed.attempts=1, 'claim failed';
   assert not heartbeat_background_job(j,gen_random_uuid(),'wrong'), 'foreign lease accepted';
   assert heartbeat_background_job(j,token,'Indexing'), 'heartbeat failed';
@@ -27,7 +27,7 @@ begin
   assert finish_background_job(j,token,'partial_failure','{}','One course failed'), 'completion failed';
   assert (select read_at is null and status='partial_failure' from background_jobs where id=j), 'notification missing';
   token := gen_random_uuid();
-  select * into claimed from claim_background_job(token);
+   select * into claimed from claim_background_job(token,2);
   assert claimed.id=j2, 'next job did not start';
   pack := save_background_study_pack(j2,token,
     jsonb_build_object('course_id',c,'title','Test pack','mode','flashcards','difficulty','easy','source_index_version','v1',

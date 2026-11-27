@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import PaperReveal from "@/components/PaperReveal";
@@ -10,30 +10,38 @@ export default function StudyPackPage() {
   const router = useRouter();
   const [pack, setPack] = useState<any>(null);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [reload, setReload] = useState(0);
   const [busy, setBusy] = useState(false);
   const [sessions, setSessions] = useState<Array<{ id: string; status: string; score: number; current_item: number; last_active_at: string }> | null>(null);
   const [sessionError, setSessionError] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const starting = useRef(false);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoadError("");
+    setPack(null);
     fetch(`/api/study-packs/${packId}`)
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error("load");
-        setPack(data);
+        if (!cancelled) setPack(data);
       })
-      .catch(() => setError("Could not load this study pack. Please try again."));
-  }, [packId]);
+      .catch(() => { if (!cancelled) setLoadError("Could not load this study pack. Please try again."); });
+    return () => { cancelled = true; };
+  }, [packId, reload]);
 
   useEffect(() => {
     let cancelled = false;
+    setSessionError("");
     fetch(`/api/study-packs/${encodeURIComponent(packId)}/sessions`, { cache: "no-store" })
       .then((response) => { if (!response.ok) throw new Error("sessions"); return response.json(); })
       .then((data) => { if (!cancelled) setSessions(data); })
       .catch(() => { if (!cancelled) setSessionError("Could not load study sessions. Refresh to try again."); });
     return () => { cancelled = true; };
-  }, [packId]);
+  }, [packId, reload]);
 
   async function deleteSession() {
     if (!deleteId || deleting) return;
@@ -52,20 +60,24 @@ export default function StudyPackPage() {
   }
 
   async function start() {
+    if (starting.current) return;
+    starting.current = true;
     setBusy(true);
+    setError("");
     try {
       const response = await fetch(`/api/study-packs/${packId}/sessions`, { method: "POST" });
       const data = await response.json();
-      if (!response.ok) throw new Error("start");
+      if (!response.ok || typeof data.id !== "string") throw new Error("start");
       router.push(`/dashboard/study-prep/${packId}/session/${data.id}`);
     } catch {
       setError("Could not start this study session. Please try again.");
     } finally {
+      starting.current = false;
       setBusy(false);
     }
   }
 
-  if (error) return <main className="paper-texture min-h-full p-gutter-mobile md:p-gutter" role="alert"><p className="mx-auto max-w-5xl border-l-2 border-error px-4 py-3 font-body-sm text-body-sm text-error">{error}</p></main>;
+  if (loadError && !pack) return <main className="paper-texture min-h-full p-gutter-mobile md:p-gutter"><p role="alert">{loadError}</p><button type="button" onClick={() => setReload((v) => v + 1)} className="mt-3 underline">Retry loading pack</button><Link href="/dashboard/study-prep" className="ml-4 underline">Back to study desk</Link></main>;
   if (!pack) return <main className="paper-texture min-h-full p-gutter-mobile md:p-gutter" role="status"><p className="mx-auto max-w-5xl font-code-tag text-[11px] uppercase tracking-[0.14em] text-text-muted">Opening study edition…</p></main>;
 
   return (
@@ -80,9 +92,11 @@ export default function StudyPackPage() {
               <p className="mt-space-sm font-body-md text-body-md text-text-muted">{pack.course?.course_name} {pack.module ? `· ${pack.module}` : ""}</p>
             </div>
             <button type="button" onClick={start} disabled={busy} className="inline-flex min-h-11 items-center gap-2 border border-accent bg-accent px-5 py-3 font-code-tag text-[10px] uppercase tracking-[0.15em] text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-50">
-              {busy ? "Preparing session…" : "Begin study session"}<span aria-hidden="true">→</span>
+              {busy ? "Preparing session…" : sessions?.some((session) => session.status !== "completed") ? "Resume study session" : "Begin study session"}<span aria-hidden="true">→</span>
             </button>
           </div>
+          {error && <p role="alert" className="mt-3 border-l-2 border-error px-3 py-2 text-sm text-error">{error} Use the session button above to retry; existing sessions are preserved.</p>}
+          {loadError && <p role="alert" className="mt-3 text-sm text-error">{loadError}</p>}
           <div className="flex flex-wrap gap-x-space-lg gap-y-2 pt-space-sm font-code-tag text-[10px] uppercase tracking-[0.13em] text-text-muted">
             <span>{pack.item_count} items</span><span>{pack.study_pack_items?.length ?? 0} previewed</span>
             {pack.difficulty && <span>{pack.difficulty} difficulty</span>}
@@ -91,7 +105,7 @@ export default function StudyPackPage() {
 
         <section className="mt-space-lg border-b border-primary-container/25 pb-space-lg" aria-labelledby="sessions-heading">
           <div className="flex items-end justify-between gap-4"><div><p className="paper-kicker text-accent-text">Your progress</p><h2 id="sessions-heading" className="mt-1 font-display text-3xl text-primary-container">Study sessions</h2></div><span className="paper-kicker text-text-muted">{sessions?.length ?? 0} saved</span></div>
-          {sessionError && <p role="alert" className="mt-3 text-sm text-error">{sessionError}</p>}
+          {sessionError && <div role="alert" className="mt-3 text-sm text-error"><p>{sessionError}</p><button type="button" onClick={() => setReload((v) => v + 1)} className="mt-2 underline">Retry loading sessions</button></div>}
           {!sessions && !sessionError ? <p role="status" className="mt-3 text-sm text-text-muted">Loading sessions…</p> : sessions?.length === 0 ? <p className="mt-3 text-sm text-text-muted">No sessions yet. Begin a study session to track your progress.</p> : <ul className="mt-3 divide-y divide-border">{sessions?.map((session) => <li key={session.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-label-md text-label-md text-on-surface">{session.status === "completed" ? "Completed" : session.status === "paused" ? "Paused" : "In progress"}</p><p className="mt-1 text-sm text-text-muted">{session.status === "completed" ? `Score ${session.score}/${pack.item_count}` : `Question ${Math.min(session.current_item + 1, pack.item_count)} of ${pack.item_count}`} · {new Date(session.last_active_at).toLocaleDateString()}</p></div><div className="flex items-center gap-4"><Link className="font-label-sm text-accent-text underline underline-offset-4" href={`/dashboard/study-prep/${packId}/session/${session.id}`}>{session.status === "completed" ? "Review session" : "Resume session"}</Link><button type="button" onClick={() => setDeleteId(session.id)} aria-label={`Delete ${session.status === "completed" ? "completed" : "active"} session`} className="font-label-sm text-text-muted underline underline-offset-4 hover:text-error">Delete session</button></div></li>)}</ul>}
         </section>
 

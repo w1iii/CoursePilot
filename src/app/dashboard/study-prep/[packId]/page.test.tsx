@@ -30,3 +30,31 @@ it("shows sessions on the pack page and confirms deletion", async () => {
   expect(container.textContent).toContain("No sessions yet");
   act(() => root.unmount());
 });
+
+it("keeps pack and session controls available after start fails, allowing retry", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  let starts = 0;
+  vi.stubGlobal("fetch", vi.fn((url: string, init?: RequestInit) => {
+    if (init?.method === "POST") {
+      starts++;
+      return Promise.resolve(new Response(JSON.stringify(starts === 1 ? { error: "unavailable" } : { id: "session" }), { status: starts === 1 ? 503 : 200 }));
+    }
+    return Promise.resolve(new Response(JSON.stringify(url.endsWith("/sessions")
+      ? [{ id: "session", status: "paused", current_item: 0 }]
+      : { title: "Biology", item_count: 1, study_pack_items: [], course: {} })));
+  }));
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(<StudyPackPage />));
+    const start = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Resume study session"))!;
+    await act(async () => start.click());
+    expect(container.textContent).toContain("Could not start this study session");
+    expect(container.textContent).toContain("Biology");
+    expect(container.querySelector('a[href="/dashboard/study-prep/pack/session/session"]')).not.toBeNull();
+    expect(start.disabled).toBe(false);
+    await act(async () => start.click());
+    expect(starts).toBe(2);
+    expect(container.textContent).not.toContain("Could not start this study session");
+  } finally { act(() => root.unmount()); }
+});

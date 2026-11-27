@@ -4,11 +4,12 @@ const mocks = vi.hoisted(() => ({ user: vi.fn(), courses: vi.fn(), metadata: vi.
 vi.mock("@/lib/user", () => ({ requireUser: mocks.user, UnauthorizedError: class extends Error {} }));
 vi.mock("@/lib/ai/study-prep-courses", () => ({ listStudyPrepCourses: mocks.courses }));
 vi.mock("@/lib/ai/study-prep", () => ({ moduleMetadata: mocks.metadata, StudyPrepServiceError: class extends Error {} }));
-vi.mock("@/lib/jobs", () => ({ enqueueJob: mocks.enqueue }));
+vi.mock("@/lib/jobs", async (importOriginal) => ({ ...await importOriginal<typeof import("@/lib/jobs")>(), enqueueStudyPrepJob: mocks.enqueue }));
 vi.mock("@/lib/supabase", () => ({ supabaseAdmin: () => ({ rpc: mocks.rpc, from: mocks.from }) }));
 vi.mock("@/lib/cache", () => ({ invalidateUserCache: vi.fn() }));
 import { POST } from "./route";
 import { UnauthorizedError } from "@/lib/user";
+import { StudyQueueError } from "@/lib/jobs";
 
 const courseId = "11111111-1111-4111-8111-111111111111";
 const valid = { courseId, moduleIds: [1, 2], count: 15, mode: "quiz", difficulty: "mixed", topic: "key terms" };
@@ -37,15 +38,23 @@ describe("study pack validation", () => {
     expect(await response.json()).toEqual({ queued: true, jobId: "job" });
     expect(response.headers.get("Cache-Control")).toContain("no-store");
     expect(response.headers.get("X-Request-ID")).toBeTruthy();
-    expect(mocks.enqueue).toHaveBeenCalledWith("user", "study_prep", valid);
+    expect(mocks.enqueue).toHaveBeenCalledWith("user", valid);
+    expect(mocks.rpc).not.toHaveBeenCalled();
     expect(mocks.from).not.toHaveBeenCalled();
   });
-  it.each([404, 409, 429])("rejects unavailable or limited course (%s) without enqueueing", async (status) => {
+  it.each([404, 409])("rejects unavailable course (%s) without enqueueing", async (status) => {
     if (status === 404) mocks.courses.mockResolvedValue([]);
     if (status === 409) mocks.courses.mockResolvedValue([{ id: courseId, rag_indexed_at: null }]);
-    if (status === 429) mocks.rpc.mockResolvedValue({ data: [{ allowed: false }], error: null });
     expect((await POST(request(valid))).status).toBe(status);
     expect(mocks.enqueue).not.toHaveBeenCalled();
+  });
+  it.each([429, 503] as const)("returns actionable queue rejection (%s) with retry timing", async (status) => {
+    mocks.enqueue.mockRejectedValue(new StudyQueueError("Please retry shortly.", status, 30));
+    const response = await POST(request(valid));
+    expect(response.status).toBe(status);
+    expect(response.headers.get("Retry-After")).toBe("30");
+    expect(response.headers.get("Cache-Control")).toContain("no-store");
+    expect(await response.json()).toEqual({ error: "Please retry shortly.", retryAfterSeconds: 30 });
   });
   it("does not enqueue unauthenticated requests", async () => {
     mocks.user.mockRejectedValue(new UnauthorizedError());

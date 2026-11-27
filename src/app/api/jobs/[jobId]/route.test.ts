@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ user: vi.fn(), from: vi.fn(), eq: vi.fn(), terminal: vi.fn(), single: vi.fn() }));
 vi.mock("@/lib/user", () => ({ requireUser: mocks.user, UnauthorizedError: class extends Error {} }));
 vi.mock("@/lib/supabase", () => ({ supabaseAdmin: () => ({ from: mocks.from }) }));
-import { PATCH } from "./route";
+import { GET, PATCH } from "./route";
 import { UnauthorizedError } from "@/lib/user";
 const id = "11111111-1111-4111-8111-111111111111";
 const dismiss = (jobId = id) => PATCH(new Request("http://localhost"), { params: Promise.resolve({ jobId }) });
@@ -36,5 +36,21 @@ describe("job notification dismissal", () => {
     mocks.user.mockRejectedValue(new UnauthorizedError());
     expect((await dismiss()).status).toBe(401);
     expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it("reads status only for the current owner, including dismissed jobs", async () => {
+    mocks.single.mockResolvedValue({ data: { id, kind: "study_prep", status: "succeeded" }, error: null });
+    const response = await GET(new Request("http://localhost"), { params: Promise.resolve({ jobId: id }) });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toContain("no-store");
+    expect(mocks.eq).toHaveBeenCalledWith("id", id);
+    expect(mocks.eq).toHaveBeenCalledWith("user_id", "owner");
+  });
+  it("does not disclose another user's job status", async () => {
+    mocks.single.mockResolvedValue({ data: null, error: null });
+    expect((await GET(new Request("http://localhost"), { params: Promise.resolve({ jobId: id }) })).status).toBe(404);
+  });
+  it("requires authentication for direct status reads", async () => {
+    mocks.user.mockRejectedValue(new UnauthorizedError());
+    expect((await GET(new Request("http://localhost"), { params: Promise.resolve({ jobId: id }) })).status).toBe(401);
   });
 });

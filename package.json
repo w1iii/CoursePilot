@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:study-db": "node scripts/validate-study-database.mjs",
     "test:coverage:all": "vitest run --config vitest.coverage.config.mts --coverage",
     "test:watch": "vitest"
   },

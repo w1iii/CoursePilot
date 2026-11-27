@@ -23,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cou
         status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds), "Cache-Control": "no-store" },
       });
     }
-    if (sharedIndexEnabled()) return NextResponse.json({ error: "Metadata refresh is unavailable for shared indexes" }, { status: 409 });
+    if (sharedIndexEnabled()) return NextResponse.json({ error: "Shared module names are managed during course sync. Sync this course in settings, then retry loading modules." }, { status: 409 });
     const { data: course, error } = await supabaseAdmin().from("courses")
       .select("id, canvas_course_id").eq("id", courseId).eq("user_id", user.id)
       .eq("selected_for_rag", true).maybeSingle();

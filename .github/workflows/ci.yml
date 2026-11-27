@@ -33,6 +33,16 @@ jobs:
       - run: node --test scripts/staging-auth-smoke.test.mjs
       - run: npm run build
 
+  study-database:
+    name: Study database contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm run test:study-db
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest

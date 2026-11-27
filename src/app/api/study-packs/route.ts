@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/user";
 import { supabaseAdmin } from "@/lib/supabase";
 import { listStudyPrepCourses } from "@/lib/ai/study-prep-courses";
-import { enqueueJob } from "@/lib/jobs";
+import { enqueueStudyPrepJob, StudyQueueError } from "@/lib/jobs";
 import { moduleMetadata, StudyPrepServiceError } from "@/lib/ai/study-prep";
 import { isUuid, readJsonObject } from "@/lib/api-validation";
 import { randomUUID } from "node:crypto";
@@ -43,23 +43,23 @@ export async function POST(request: Request) {
       difficulty: input.difficulty as "easy" | "medium" | "hard" | "mixed",
       count: input.count as number,
       moduleIds: input.moduleIds as number[],
-      ...(typeof input.topic === "string" ? { topic: input.topic } : {}),
+      ...(typeof input.topic === "string" && input.topic.trim() ? { topic: input.topic.trim() } : {}),
     };
     const course = (await listStudyPrepCourses(user.id)).find((item) => item.id === input.courseId);
     if (!course) return NextResponse.json({ error: "Selected course not found" }, { status: 404 });
     if (!course.rag_indexed_at) return NextResponse.json({ error: "Course is not indexed yet" }, { status: 409 });
-    const db = supabaseAdmin();
-    const { data: limited, error: limitError } = await db.rpc("check_rate_limit", { p_user_id: user.id, p_minute_limit: 5, p_day_limit: 40 });
-    if (limitError) throw limitError;
-    if (limited?.[0]?.allowed === false) return NextResponse.json({ error: "Study generation limit reached. Try again later." }, { status: 429 });
     const modules = await moduleMetadata(user.id, course);
     const selectedModules = validInput.moduleIds.map((id) => modules.find((module) => module.id === id && module.chunks > 0));
     if (selectedModules.some((module) => !module)) return NextResponse.json({ error: "Selected module is not indexed" }, { status: 422 });
-    return NextResponse.json(await enqueueJob(user.id, "study_prep", validInput), {
+    return NextResponse.json(await enqueueStudyPrepJob(user.id, validInput), {
       status: 202, headers: { "X-Request-ID": requestId, "Cache-Control": "private, no-store" },
     });
   } catch (error) {
     if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error instanceof StudyQueueError) return NextResponse.json({ error: error.message, retryAfterSeconds: error.retryAfterSeconds }, {
+      status: error.status,
+      headers: { "Retry-After": String(error.retryAfterSeconds), "X-Request-ID": requestId, "Cache-Control": "private, no-store" },
+    });
     logServerError("study-packs.generate", error, requestId);
     if (error instanceof StudyPrepServiceError) return NextResponse.json({ error: error.message }, { status: error.status === 422 || error.status === 504 ? error.status : 502, headers: { "X-Request-ID": requestId } });
     return NextResponse.json({ error: "Could not generate study pack" }, { status: 502, headers: { "X-Request-ID": requestId } });

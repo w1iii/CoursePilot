@@ -10,8 +10,8 @@ export type BackgroundJob = {
   progress: string; result: { packId?: string } | null; error: string | null;
   created_at: string; finished_at: string | null; read_at: string | null;
 };
-const JobContext = createContext<{ jobs: BackgroundJob[]; refresh: () => void; version: number }>({
-  jobs: [], refresh: () => {}, version: 0,
+const JobContext = createContext<{ jobs: BackgroundJob[]; refresh: () => void; version: number; loaded: boolean; unavailable: boolean }>({
+  jobs: [], refresh: () => {}, version: 0, loaded: false, unavailable: false,
 });
 export const useJobs = () => useContext(JobContext);
 export const activeJob = (job: BackgroundJob) => job.status === "queued" || job.status === "running";
@@ -21,6 +21,7 @@ export default function JobProvider({ children }: { children: React.ReactNode })
   const [jobs, setJobs] = useState<BackgroundJob[]>([]);
   const [version, setVersion] = useState(0);
   const [unavailable, setUnavailable] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [dismissError, setDismissError] = useState("");
   const previous = useRef(new Map<string, string>());
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function JobProvider({ children }: { children: React.ReactNode })
         const completed = next.some((job) => !activeJob(job) && previous.current.get(job.id) !== job.status);
         previous.current = new Map(next.map((job) => [job.id, job.status]));
         setJobs(next);
+        setLoaded(true);
         setUnavailable(false);
         if (completed) {
           const invalidated = await fetch("/api/jobs", { method: "POST" });
@@ -78,7 +80,7 @@ export default function JobProvider({ children }: { children: React.ReactNode })
   }
   const running = jobs.filter(activeJob);
   const notices = jobs.filter((job) => !activeJob(job));
-  return <JobContext.Provider value={{ jobs, refresh, version }}>
+  return <JobContext.Provider value={{ jobs, refresh, version, loaded, unavailable }}>
     {children}
     {(running.length > 0 || notices.length > 0 || unavailable) && <aside aria-label="Background work" className="fixed bottom-4 right-4 z-50 max-h-[50vh] w-[min(24rem,calc(100vw-2rem))] space-y-2 overflow-y-auto rounded-xl border border-border bg-surface p-4 text-on-surface shadow-lg">
       {unavailable && <p role="status" className="text-sm">Progress unavailable. Queued work continues; reconnect to see results.</p>}

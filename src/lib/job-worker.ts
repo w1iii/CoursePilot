@@ -8,6 +8,7 @@ import { generateStudyPack, moduleMetadata, StudyPrepServiceError } from "@/lib/
 import { CanvasNotConnectedError } from "@/lib/canvas-account";
 import type { JobKind } from "@/lib/jobs";
 import type { AppUser } from "@/lib/user";
+import { logServerError } from "@/lib/server-error";
 
 type Job = { id: string; user_id: string; kind: JobKind; payload: Record<string, unknown>; attempts: number };
 class PermanentJobError extends Error {}
@@ -75,10 +76,17 @@ export async function runWorker() {
   let stopping = false;
   process.on("SIGTERM", () => { stopping = true; });
   process.on("SIGINT", () => { stopping = true; });
+  const workerId = randomUUID();
+  let lastReadiness = 0;
   while (!stopping) {
     const db = supabaseAdmin();
+    if (Date.now() - lastReadiness >= 20_000) {
+      const { error } = await db.rpc("report_study_worker_ready", { p_worker_id: workerId });
+      if (error) { console.error("study worker readiness failed", error.code); await delay(5000); continue; }
+      lastReadiness = Date.now();
+    }
     const token = randomUUID();
-    const { data, error } = await db.rpc("claim_background_job", { p_token: token });
+    const { data, error } = await db.rpc("claim_background_job", { p_token: token, p_study_protocol: 2 });
     if (error) { console.error("job claim failed", error.code); await delay(5000); continue; }
     const job = data?.[0] as Job | undefined;
     if (!job) { await delay(2000); continue; }
@@ -93,6 +101,8 @@ export async function runWorker() {
         });
         // Stop all local writes if ownership is uncertain; supervisor restarts.
         if (leaseError || !owned) process.exit(1);
+        const { error: readinessError } = await db.rpc("report_study_worker_ready", { p_worker_id: workerId });
+        if (readinessError) console.error("study worker readiness failed", readinessError.code);
       } catch { process.exit(1); }
       finally { heartbeatBusy = false; }
     }, 20_000);
@@ -106,7 +116,7 @@ export async function runWorker() {
       });
       if (finishError) throw finishError;
     } catch (err) {
-      console.error("job failed", job.id, err instanceof Error ? err.name : "unknown");
+      logServerError(`background-job.${job.kind}`, err, job.id);
       const permanent = err instanceof PermanentJobError || err instanceof CanvasNotConnectedError ||
         (err instanceof StudyPrepServiceError && [400, 403, 404, 409, 422].includes(err.status));
       const message = err instanceof PermanentJobError || err instanceof StudyPrepServiceError || err instanceof CanvasNotConnectedError

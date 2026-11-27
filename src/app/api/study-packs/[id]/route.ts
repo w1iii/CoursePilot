@@ -13,7 +13,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (error) throw error;
     if (!data) return NextResponse.json({ error: "Study pack not found" }, { status: 404 });
     invalidateUserCache(user.id);
-    return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json({
+      ...data,
+      study_pack_items: [...data.study_pack_items].sort((a, b) => a.item_order - b.item_order),
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) { if (error instanceof UnauthorizedError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return apiFailure("study-packs.load", error, "Could not load study pack"); }
 }
 

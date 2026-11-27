@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ user: vi.fn(), courses: vi.fn(), maybeSingle: vi.fn() }));
+const mocks = vi.hoisted(() => ({ user: vi.fn(), courses: vi.fn(), maybeSingle: vi.fn(), rpc: vi.fn() }));
 vi.mock("@/lib/user", () => ({ requireUser: mocks.user, UnauthorizedError: class UnauthorizedError extends Error {} }));
 vi.mock("@/lib/ai/study-prep-courses", () => ({ listStudyPrepCourses: mocks.courses }));
 vi.mock("@/lib/cache", () => ({ invalidateUserCache: vi.fn() }));
-vi.mock("@/lib/supabase", () => ({ supabaseAdmin: () => ({ from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: mocks.maybeSingle }) }) }) }) }) }));
+vi.mock("@/lib/supabase", () => ({ supabaseAdmin: () => ({ rpc: mocks.rpc, from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: mocks.maybeSingle }) }) }) }) }) }));
 
 import { UnauthorizedError } from "@/lib/user";
 import { GET as courses } from "./study-prep/courses/route";
 import { GET as modules } from "./study-prep/courses/[courseId]/modules/route";
 import { GET as pack, DELETE as deletePack } from "./study-packs/[id]/route";
 import { GET as sessions, POST as startSession } from "./study-packs/[id]/sessions/route";
-import { PATCH as updateSession } from "./study-sessions/[id]/route";
+import { GET as loadSession, PATCH as updateSession } from "./study-sessions/[id]/route";
 import { POST as attempt } from "./study-sessions/[id]/attempts/route";
 
 const id = "86f039b2-6993-4e98-a11b-c89e1bf3b407";
@@ -24,6 +24,7 @@ const calls = [
   ["study-packs.delete", () => deletePack(request(), idParams())],
   ["study-sessions.list", () => sessions(request(), idParams())],
   ["study-sessions.create", () => startSession(request(), idParams())],
+  ["study-sessions.load", () => loadSession(request(), idParams())],
   ["study-sessions.update", () => updateSession(request(), idParams())],
   ["study-attempts.save", () => attempt(request(), idParams())],
 ] as const;
@@ -49,7 +50,7 @@ describe("study routes error handling", () => {
 
   it("does not mistake a failed pack lookup for a missing pack", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    mocks.maybeSingle.mockResolvedValue({ data: null, error: { message: "secret" } });
+    mocks.rpc.mockResolvedValue({ data: null, error: { message: "secret" } });
     const response = await startSession(request(), idParams());
     expect(response.status).toBe(500);
     expect(JSON.stringify(log.mock.calls)).not.toContain("secret");
