@@ -46,6 +46,12 @@ export async function generateStudyPack(userId: string, course: CourseOption, in
       : "Study content service is temporarily unreachable. Please retry shortly.", timedOut ? 504 : 503);
   }
   if (!response.ok) {
+    if (response.status === 422) {
+      const body = await response.json().catch(() => null) as { detail?: { code?: string } } | null;
+      if (body?.detail?.code === "study_focus_unsupported") {
+        throw new StudyPrepServiceError("Study focus is not supported by the selected modules. Edit it or leave it blank.", 422);
+      }
+    }
     const message = response.status === 422
       ? "Invalid study request. Check the selected course and module."
       : response.status === 504

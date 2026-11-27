@@ -124,4 +124,23 @@ describe("recoverable study session", () => {
     expect(fetch.mock.calls.filter(([url]) => url.endsWith("/attempts"))).toHaveLength(2);
     expect(container.textContent).toContain("Marked to review");
   });
+  it("reopens answer editing for validation errors instead of retrying invalid payloads", async () => {
+    const written = { ...item, item_type: "short_answer" };
+    vi.stubGlobal("fetch", vi.fn((url: string) => {
+      if (url.endsWith("/attempts")) return Promise.resolve(json({ field: "answer", error: "Check your written answer." }, 400));
+      return Promise.resolve(json(url.includes("/study-packs/") ? { ...pack, study_pack_items: [written] } : session));
+    }));
+    await mount();
+    const textarea = container.querySelector("textarea")!;
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(textarea, "ATP");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => button("Check answer").click());
+    await act(async () => button("I got it").click());
+    expect(container.textContent).toContain("Check your written answer");
+    expect(textarea.disabled).toBe(false);
+    expect(textarea.value).toBe("ATP");
+    expect(button("Retry saving")).toBeUndefined();
+  });
 });
