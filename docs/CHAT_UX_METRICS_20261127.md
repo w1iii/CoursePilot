@@ -114,15 +114,28 @@ deadline propagation, partial output, Stop, navigation, malformed/blocked output
 truncation, no automatic retry after text, stream flushing, provider cancellation,
 and metrics classification.
 
-Validation: 269 frontend tests passed; typecheck/lint/build passed. RAG:
-290 tests passed, four database-dependent tests skipped; Ruff passes for changed
-streaming files. Existing Starlette TestClient deprecation warning remains.
+Validation update: Docker 29.9.2 is running. Against a fresh, disposable
+`pgvector/pgvector:pg17` container, **all 299 RAG tests passed with zero skips**,
+including async query/vector mapping, private/shared owner isolation, module
+filtering, and cancellation followed by connection-pool recovery. The container
+was removed afterward; no production database was used.
+Full RAG coverage gate passed at **83.95%** (minimum 80%).
+
+269 frontend tests, typecheck and lint passed again; frontend build passed in the
+earlier validation. RAG production Docker image build passed. Ruff passes for
+changed streaming files. Existing Starlette TestClient deprecation warning
+remains. Core durable queue files were compared byte-for-byte with the deployed
+queue snapshot and match, avoiding an ingestion endpoint rollback on merge.
+
+Reproduce from the RAG repository:
+
+```sh
+uv run --locked python -m scripts.validate_chat_database
+```
 
 Still pending:
 
 - Production canary and before/after traffic comparison.
 - Authenticated browser checks, including reading without forced scrolling.
 - Live model latency, grounding-quality/recall, and cost benchmarks.
-- Disposable pgvector-backed validation of the new async retrieval path:
-  Docker daemon is unavailable in this environment.
 - First-token UX targets (p50 ≤3 s / p95 ≤8 s) are goals, not measured results.
